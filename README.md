@@ -16,4 +16,6 @@ PYTHON DEBUGGER
 PYTHON EXTENSION PACK
 PYTHON SNIPPETS 
 
+run: python filename
+
 ---

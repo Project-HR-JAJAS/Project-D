@@ -1,20 +1,10 @@
 from Data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 
 def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
-    """
-    Import an Excel file into the database.
-    
-    Args:
-        file_path (str): Path to the Excel file
-        
-    Returns:
-        Tuple[bool, str, Optional[int]]: 
-            - Success status (True/False)
-            - Message describing the result
-            - Number of records imported (if successful, None if failed)
-    """
     try:
         if not os.path.exists(file_path):
             return False, f"File not found at: {file_path}", None
@@ -24,6 +14,7 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
             
         # Initialize database
         db = DbContext()
+        db.initialize_database()  # Ensure the table is created
         
         # Import the Excel file
         records_imported = db.import_excel_to_database(file_path)
@@ -37,8 +28,17 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
         return False, f"Error importing file: {str(e)}", None
 
 def main():
-    # Example usage of the import function
-    file_path = r'C:\Users\Aymane\Downloads\report_20250212_141749 - 20250211 - 0000to0900.xlsx'
+    # Use a file dialog to select the file
+    Tk().withdraw()  # Hide the root Tkinter window
+    file_path = askopenfilename(
+        title="Select an Excel or CSV file",
+        filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv"), ("All files", "*.*")]
+    )
+    
+    if not file_path:
+        print("No file selected.")
+        return
+    
     success, message, count = import_excel_to_db(file_path)
     print(message)
     if success:

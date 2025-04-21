@@ -32,19 +32,19 @@ class DbContext:
             End_datetime TEXT NOT NULL,
             Duration INTEGER NOT NULL,
             Volume REAL NOT NULL,
-            Charge_Point_Address TEXT NOT NULL,
-            Charge_Point_ZIP TEXT NOT NULL,
-            Charge_Point_City TEXT NOT NULL,
-            Charge_Point_Country TEXT NOT NULL,
-            Charge_Point_Type TEXT NOT NULL,
-            Product_Type TEXT NOT NULL,
-            Tariff_Type TEXT NOT NULL,
-            Authentication_ID TEXT NOT NULL,
-            Contract_ID TEXT NOT NULL,
-            Meter_ID TEXT NOT NULL,
-            OBIS_Code TEXT NOT NULL,
+            Charge_Point_Address TEXT,
+            Charge_Point_ZIP TEXT,
+            Charge_Point_City TEXT,
+            Charge_Point_Country TEXT,
+            Charge_Point_Type TEXT,
+            Product_Type TEXT,
+            Tariff_Type TEXT,
+            Authentication_ID TEXT,
+            Contract_ID TEXT,
+            Meter_ID TEXT,
+            OBIS_Code TEXT,
             Charge_Point_ID TEXT NOT NULL,
-            Service_Provider_ID TEXT NOT NULL,
+            Service_Provider_ID TEXT,
             Infra_Provider_ID TEXT NOT NULL,
             Calculated_Cost REAL NOT NULL
         """
@@ -141,4 +141,4 @@ class DbContext:
             
         finally:
             if self.connection:
-                self.close() 
+                self.close()

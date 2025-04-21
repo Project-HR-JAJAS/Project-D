@@ -37,12 +37,14 @@ def main():
     
     if not file_path:
         print("No file selected.")
+        print("You cook")
         return
     
     success, message, count = import_excel_to_db(file_path)
     print(message)
     if success:
         print(f"Total records imported: {count}")
+
 
 if __name__ == "__main__":
     main()

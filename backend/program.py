@@ -4,6 +4,7 @@ from typing import Tuple, Optional
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
+
 def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
     try:
         if not os.path.exists(file_path):
@@ -26,6 +27,7 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
             
     except Exception as e:
         return False, f"Error importing file: {str(e)}", None
+
 
 def main():
     # Use a file dialog to select the file

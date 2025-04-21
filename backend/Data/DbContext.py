@@ -37,10 +37,10 @@ class DbContext:
         # Define the schema for the CDR (Charge Detail Record) table
         cdr_schema = """
             CDR_ID TEXT PRIMARY KEY,
-            Start_datetime TEXT NOT NULL,
-            End_datetime TEXT NOT NULL,
-            Duration INTEGER NOT NULL,
-            Volume REAL NOT NULL,
+            Start_datetime TEXT,
+            End_datetime TEXT,
+            Duration INTEGER,
+            Volume REAL,
             Charge_Point_Address TEXT,
             Charge_Point_ZIP TEXT,
             Charge_Point_City TEXT,
@@ -52,10 +52,10 @@ class DbContext:
             Contract_ID TEXT,
             Meter_ID TEXT,
             OBIS_Code TEXT,
-            Charge_Point_ID TEXT NOT NULL,
+            Charge_Point_ID TEXT,
             Service_Provider_ID TEXT,
-            Infra_Provider_ID TEXT NOT NULL,
-            Calculated_Cost REAL NOT NULL
+            Infra_Provider_ID TEXT ,
+            Calculated_Cost REAL 
         """
         
         # Create the CDR table

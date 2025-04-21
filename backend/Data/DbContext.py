@@ -1,11 +1,20 @@
 import sqlite3
 from datetime import datetime
 import pandas as pd
+import logging
+import os
 
 class DbContext:
     def __init__(self, db_name="project-d.db"):
         self.db_name = db_name
         self.connection = None
+
+        # Initialize logging
+        logging.basicConfig(
+            filename="import_log.txt",
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s"
+        )
 
     def connect(self):
         """Establish a connection to the SQLite database."""
@@ -81,18 +90,21 @@ class DbContext:
         if self.connection:
             self.connection.close()
             print(f"Connection to {self.db_name} closed.")
-
+    
     def import_excel_to_database(self, excel_file_path):
         """
-        Import data from an Excel file into the CDR table.
+        Import data from an Excel file into the CDR table and log the results.
         
         Args:
             excel_file_path (str): Path to the Excel file to import
             
         Returns:
-            int: Number of records imported
+            int: Number of records successfully imported
         """
         try:
+            # Extract the file name from the full path
+            file_name = os.path.basename(excel_file_path)
+            
             # Read the Excel file
             df = pd.read_excel(excel_file_path)
             
@@ -127,18 +139,20 @@ class DbContext:
             cursor.executemany(insert_sql, records)
             self.connection.commit()
             
-            # Get the number of records inserted
-            count = cursor.rowcount
-            print(f"Successfully imported {count} records from {excel_file_path}")
-            
-            return count
-            
+            # Log success
+            logging.info(f"Successfully imported {len(records)} records from {file_name}")
+            print(f"Successfully imported {len(records)} records from {file_name}")
+            return len(records)
+        
         except Exception as e:
+            # Log failure
+            file_name = os.path.basename(excel_file_path)
+            logging.error(f"Failed to import records from {file_name}. Error: {str(e)}")
             print(f"Error importing Excel file: {str(e)}")
             if self.connection:
                 self.connection.rollback()
             return 0
-            
+        
         finally:
             if self.connection:
                 self.close()

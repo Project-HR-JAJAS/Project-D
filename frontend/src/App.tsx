@@ -1,44 +1,34 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
 import ImportPage from './pages/ImportPage';
+import './App.css';
 
 const App: React.FC = () => {
   return (
     <Router>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Project D
-          </Typography>
-          <Button color="inherit" component={Link} to="/">
-            Home
-          </Button>
-          <Button color="inherit" component={Link} to="/import">
-            Import
-          </Button>
-        </Toolbar>
-      </AppBar>
+      <nav className="navbar">
+        <div className="nav-content">
+          <h1>Project D</h1>
+          <div className="nav-links">
+            <Link to="/" className="nav-link">Home</Link>
+            <Link to="/import" className="nav-link">Import</Link>
+          </div>
+        </div>
+      </nav>
 
-      <Container>
+      <main className="main-content">
         <Routes>
           <Route path="/import" element={<ImportPage />} />
           <Route path="/" element={
-            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-              <Typography variant="h4">Welcome to Project D</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                component={Link}
-                to="/import"
-                sx={{ mt: 2 }}
-              >
+            <div className="home-container">
+              <h2>Welcome to Project D</h2>
+              <Link to="/import" className="import-link">
                 Go to Import Page
-              </Button>
+              </Link>
             </div>
           } />
         </Routes>
-      </Container>
+      </main>
     </Router>
   );
 };

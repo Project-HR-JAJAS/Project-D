@@ -119,29 +119,5 @@ def usage_counts():
         print(f"Error in usage_counts: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-def insert_sample_data():
-    """Helper function to insert sample data for testing"""
-    db = DbContext()
-    try:
-        db.connect()
-        cursor = db.connection.cursor()
-        # Insert some sample data
-        sample_data = [
-            ('2023-01-01 08:30:00', 1.50),
-            ('2023-01-01 10:15:00', 2.00),
-            ('2023-01-01 14:45:00', 3.25),
-            ('2023-01-01 18:30:00', 1.75),
-            ('2023-01-01 22:15:00', 4.50),
-        ]
-        cursor.executemany("INSERT INTO CDR (Start_datetime, Calculated_Cost) VALUES (?, ?)", sample_data)
-        db.connection.commit()
-        print("Inserted 5 sample records")
-    except Exception as e:
-        print(f"Error inserting sample data: {e}")
-    finally:
-        db.close()
-
 if __name__ == '__main__':
-    # Insert sample data if needed
-    # insert_sample_data()
     app.run(debug=True, port=5000)

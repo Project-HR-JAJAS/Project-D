@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, CircularProgress, Alert } from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import './ImportPage.css';
 
 const ImportPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -38,7 +37,7 @@ const ImportPage: React.FC = () => {
 
       const data = await response.json();
       const endTime = performance.now();
-      const clientProcessingTime = (endTime - startTime) / 1000; // Convert to seconds
+      const clientProcessingTime = (endTime - startTime) / 1000;
 
       if (data.success) {
         setMessage({ 
@@ -65,79 +64,44 @@ const ImportPage: React.FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '80vh',
-        gap: 3,
-        p: 3,
-      }}
-    >
-      <Typography variant="h4" component="h1" gutterBottom>
-        Import Excel File
-      </Typography>
+    <div className="import-container">
+      <h1>Import Excel File</h1>
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 2,
-          p: 4,
-          border: '2px dashed #ccc',
-          borderRadius: 2,
-          width: '100%',
-          maxWidth: 500,
-        }}
-      >
+      <div className="file-upload-container">
         <input
           accept=".xlsx,.xls"
-          style={{ display: 'none' }}
-          id="raised-button-file"
+          id="file-input"
           type="file"
           onChange={handleFileChange}
         />
-        <label htmlFor="raised-button-file">
-          <Button
-            variant="contained"
-            component="span"
-            startIcon={<CloudUploadIcon />}
-            disabled={loading}
-          >
-            Select File
-          </Button>
+        <label htmlFor="file-input" className="file-input-label">
+          Select File
         </label>
         {file && (
-          <Typography variant="body1">
-            Selected file: {file.name}
-          </Typography>
+          <p className="selected-file">Selected file: {file.name}</p>
         )}
-      </Box>
+      </div>
 
-      <Button
-        variant="contained"
-        color="primary"
+      <button
+        className="upload-button"
         onClick={handleUpload}
         disabled={!file || loading}
       >
-        {loading ? <CircularProgress size={24} /> : 'Upload'}
-      </Button>
+        {loading ? <div className="loading-spinner"></div> : 'Upload'}
+      </button>
 
       {message && (
-        <Alert severity={message.type} sx={{ width: '100%', maxWidth: 500 }}>
+        <div className={`message ${message.type}`}>
           {message.text}
-        </Alert>
+        </div>
       )}
 
       {uploadTime && (
-        <Typography variant="body2" color="text.secondary">
+        <p className="processing-time">
           Server processing time: {uploadTime.toFixed(2)} seconds
-        </Typography>
+        </p>
       )}
-    </Box>
+    </div>
   );
 };
 

@@ -1,10 +1,14 @@
 import React from 'react';
- 
-export const App = ()=> {
+
+export const App = () => {
   return (
-<div>
-      Hello React!
-</div>
+    <div>
+      <div>
+        Hello React!
+      </div>
+      <button onClick={() => window.location.href = '/Home/home.tsx'}>
+        Go to Home
+      </button>
+    </div>
   );
 }
- 

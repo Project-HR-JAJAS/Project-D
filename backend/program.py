@@ -1,4 +1,4 @@
-from data.DbContext import DbContext
+from Data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk

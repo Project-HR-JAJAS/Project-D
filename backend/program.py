@@ -63,7 +63,7 @@ def main():
 
     if choice == "1":  # Use a file dialog to select the file
         root = Tk()
-        root.withdraw()  # Hide the root Tkinter window
+        # root.withdraw()  # Hide the root Tkinter window
         file_path = askopenfilename(
             title="Select an Excel or CSV file",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv"), ("All files", "*.*")]

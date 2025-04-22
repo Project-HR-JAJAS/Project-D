@@ -14,7 +14,8 @@ const Home: React.FC = () => {
                 const timeLabels = ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000'];
                 const values = timeLabels.map(label => data[label] || 0);
                 setUsageData(values);
-            });
+            })
+            .catch(error => console.error('Error fetching data:', error));
     }, []);
 
     useEffect(() => {
@@ -37,6 +38,7 @@ const Home: React.FC = () => {
                         }]
                     },
                     options: {
+                        responsive: true,
                         scales: {
                             y: {
                                 beginAtZero: true
@@ -56,7 +58,7 @@ const Home: React.FC = () => {
     }, [usageData]);
 
     return (
-        <div>
+        <div style={{ width: '80%', margin: '0 auto' }}>
             <canvas id="myChart" ref={chartRef}></canvas>
         </div>
     );

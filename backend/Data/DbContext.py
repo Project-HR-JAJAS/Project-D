@@ -156,3 +156,30 @@ class DbContext:
         finally:
             if self.connection:
                 self.close()
+
+
+    def export_cdr_to_file(self, output_path: str) -> bool:
+        """Export all CDR data to CSV or Excel."""
+        try:
+            self.connect()
+            query = "SELECT * FROM CDR"
+            df = pd.read_sql_query(query, self.connection)
+
+            # Decide format based on file extension
+            if output_path.endswith('.csv'):
+                df.to_csv(output_path, index=False)
+            elif output_path.endswith(('.xlsx', '.xls')):
+                df.to_excel(output_path, index=False)
+            else:
+                print("Unsupported file format. Please use .csv or .xlsx/.xls")
+                return False
+
+            print(f"Data exported successfully to {output_path}")
+            return True
+
+        except Exception as e:
+            print(f"Error exporting data: {str(e)}")
+            return False
+
+        finally:
+            self.close()

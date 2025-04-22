@@ -4,12 +4,19 @@ ChartJS.register(...registerables);
 
 const Home: React.FC = () => {
     const chartRef = React.useRef<HTMLCanvasElement | null>(null);
+    const chartInstanceRef = React.useRef<ChartJS | null>(null);
 
     React.useEffect(() => {
         if (chartRef.current) {
             const ctx = chartRef.current.getContext('2d');
             if (ctx) {
-                new ChartJS(ctx, {
+                // Destroy the existing chart instance if it exists
+                if (chartInstanceRef.current) {
+                    chartInstanceRef.current.destroy();
+                }
+
+                // Create a new chart instance
+                chartInstanceRef.current = new ChartJS(ctx, {
                     type: 'bar',
                     data: {
                         labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
@@ -29,6 +36,14 @@ const Home: React.FC = () => {
                 });
             }
         }
+
+        // Cleanup function to destroy the chart instance when the component unmounts
+        return () => {
+            if (chartInstanceRef.current) {
+                chartInstanceRef.current.destroy();
+                chartInstanceRef.current = null;
+            }
+        };
     }, []);
 
     return (

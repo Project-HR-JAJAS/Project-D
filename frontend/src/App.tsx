@@ -1,14 +1,16 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './Home/home';
 
-export const App = () => {
+const App = () => {
   return (
-    <div>
-      <div>
-        Hello React!
-      </div>
-      <button onClick={() => window.location.href = '/Home/home.tsx'}>
-        Go to Home
-      </button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="" element={<Home />} />
+        <Route path="*" element={<h1>Page Not Found</h1>} />
+      </Routes>
+    </Router>
   );
-}
+};
+
+export default App;

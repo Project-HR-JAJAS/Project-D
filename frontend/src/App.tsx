@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './Home/home';
+import Home from './home/Home';
 
 const App = () => {
   return (

@@ -1,11 +1,12 @@
 import sqlite3
-from datetime import datetime
+# from datetime import datetime
 import pandas as pd
 import logging
 import os
 
+
 class DbContext:
-    def __init__(self, db_name="project-d.db"):
+    def __init__(self, db_name="backend/project-d.db"):
         self.db_name = db_name
         self.connection = None
 

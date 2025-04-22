@@ -1,29 +1,39 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 ChartJS.register(...registerables);
 
 const Home: React.FC = () => {
-    const chartRef = React.useRef<HTMLCanvasElement | null>(null);
-    const chartInstanceRef = React.useRef<ChartJS | null>(null);
+    const chartRef = useRef<HTMLCanvasElement | null>(null);
+    const chartInstanceRef = useRef<ChartJS | null>(null);
+    const [usageData, setUsageData] = useState<number[]>([]);
 
-    React.useEffect(() => {
-        if (chartRef.current) {
+    useEffect(() => {
+        fetch('http://localhost:5000/api/usage-counts')
+            .then(res => res.json())
+            .then(data => {
+                const timeLabels = ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000'];
+                const values = timeLabels.map(label => data[label] || 0);
+                setUsageData(values);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (chartRef.current && usageData.length > 0) {
             const ctx = chartRef.current.getContext('2d');
             if (ctx) {
-                // Destroy the existing chart instance if it exists
                 if (chartInstanceRef.current) {
                     chartInstanceRef.current.destroy();
                 }
 
-                // Create a new chart instance
                 chartInstanceRef.current = new ChartJS(ctx, {
                     type: 'bar',
                     data: {
-                        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                        labels: ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000'],
                         datasets: [{
-                            label: '# of Votes',
-                            data: [12, 19, 3, 5, 2, 3],
-                            borderWidth: 1
+                            label: 'Usage Count',
+                            data: usageData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderWidth: 1,
                         }]
                     },
                     options: {
@@ -37,20 +47,17 @@ const Home: React.FC = () => {
             }
         }
 
-        // Cleanup function to destroy the chart instance when the component unmounts
         return () => {
             if (chartInstanceRef.current) {
                 chartInstanceRef.current.destroy();
                 chartInstanceRef.current = null;
             }
         };
-    }, []);
+    }, [usageData]);
 
     return (
         <div>
-            <div>
-                <canvas id="myChart" ref={chartRef}></canvas>
-            </div>
+            <canvas id="myChart" ref={chartRef}></canvas>
         </div>
     );
 };

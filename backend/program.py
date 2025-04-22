@@ -29,15 +29,20 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
     except Exception as e:
         return False, f"Error importing file: {str(e)}", None
 
-
 def export_db_to_file():
     db = DbContext()
-    Tk().withdraw()
+    root = Tk()
+    root.withdraw()  # hides the Tkinter window
+
     output_path = asksaveasfilename(
         title="Save as",
-        defaultextension=".csv",
-        filetypes=[("CSV file", "*.csv"), ("Excel file", "*.xlsx *.xls")]
+        defaultextension=".xlsx",
+        filetypes=[
+            ("Excel file", "*.xlsx *.xls"), ("CSV file", "*.csv")
+        ]
     )
+
+    root.destroy()
 
     if not output_path:
         print("Export cancelled.")
@@ -50,7 +55,6 @@ def export_db_to_file():
         print("Export failed.")
 
 
-
 def main():
     print("Select an action:")
     print("1. Import Excel to DB")
@@ -59,7 +63,7 @@ def main():
 
     if choice == "1":  # Use a file dialog to select the file
         root = Tk()
-        # root.withdraw()  # Hide the root Tkinter window
+        root.withdraw()  # Hide the root Tkinter window
         file_path = askopenfilename(
             title="Select an Excel or CSV file",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv"), ("All files", "*.*")]

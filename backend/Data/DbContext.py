@@ -9,12 +9,21 @@ class DbContext:
         self.db_name = db_name
         self.connection = None
 
-        # Initialize logging
-        logging.basicConfig(
-            filename="import_log.txt",
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s"
-        )
+        # Import logger
+        self.import_logger = logging.getLogger("import_logger")
+        self.import_logger.setLevel(logging.INFO)
+        import_handler = logging.FileHandler("import_log.txt")
+        import_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        if not self.import_logger.handlers:
+            self.import_logger.addHandler(import_handler)
+
+        # Export logger
+        self.export_logger = logging.getLogger("export_logger")
+        self.export_logger.setLevel(logging.INFO)
+        export_handler = logging.FileHandler("export_log.txt")
+        export_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        if not self.export_logger.handlers:
+            self.export_logger.addHandler(export_handler)
 
     def connect(self):
         """Establish a connection to the SQLite database."""
@@ -140,14 +149,14 @@ class DbContext:
             self.connection.commit()
             
             # Log success
-            logging.info(f"Successfully imported {len(records)} records from {file_name}")
+            self.import_logger.info(f"Successfully imported {len(records)} records from {file_name}")
             print(f"Successfully imported {len(records)} records from {file_name}")
             return len(records)
         
         except Exception as e:
             # Log failure
             file_name = os.path.basename(excel_file_path)
-            logging.error(f"Failed to import records from {file_name}. Error: {str(e)}")
+            self.import_logger.error(f"Failed to import records from {file_name}. Error: {str(e)}")
             print(f"Error importing Excel file: {str(e)}")
             if self.connection:
                 self.connection.rollback()
@@ -156,3 +165,35 @@ class DbContext:
         finally:
             if self.connection:
                 self.close()
+
+
+    def export_cdr_to_file(self, output_path: str) -> bool:
+        """Export all CDR data to CSV or Excel, and log the result."""
+        try:
+            self.connect()
+            query = "SELECT * FROM CDR"
+            df = pd.read_sql_query(query, self.connection)
+
+            if output_path.endswith(('.xlsx', '.xls')):
+                df.to_excel(output_path, index=False)
+            elif output_path.endswith('.csv'):
+                df.to_csv(output_path, index=False)
+            else:
+                msg = f"Export failed: Unsupported file format for {output_path}"
+                self.import_logger.error(msg)
+                print("Unsupported file format. Please use .csv or .xlsx/.xls")
+                return False
+
+            msg = f"Successfully exported {len(df)} records to {output_path}"
+            self.export_logger.info(msg)
+            print(f"Data exported successfully to {output_path}")
+            return True
+
+        except Exception as e:
+            msg = f"Failed to export records to {output_path}. Error: {str(e)}"
+            self.import_logger.error(msg)
+            print(f"Error exporting data: {str(e)}")
+            return False
+
+        finally:
+            self.close()

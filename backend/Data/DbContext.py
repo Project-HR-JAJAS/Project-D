@@ -191,7 +191,7 @@ class DbContext:
 
         except Exception as e:
             msg = f"Failed to export records to {output_path}. Error: {str(e)}"
-            self.import_logger.error(msg)
+            self.export_logger.error(msg)
             print(f"Error exporting data: {str(e)}")
             return False
 

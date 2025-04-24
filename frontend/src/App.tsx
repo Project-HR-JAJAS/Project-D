@@ -21,7 +21,7 @@ const App: React.FC = () => {
       <main className="main-content">
         <Routes>
           <Route path="/import" element={<ImportPage />} />
-          <Route path="/import" element={<ExportPage />} />
+          <Route path="/export" element={<ExportPage />} />
           <Route path="/" element={
             <div className="home-container">
               <h2>Welcome to Project D</h2>

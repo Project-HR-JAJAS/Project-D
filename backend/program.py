@@ -103,11 +103,14 @@ async def export_excel(format: str = "xlsx"):
 
         # Export the data using existing logic
         db = DbContext()
-        success = db.export_cdr_to_file(output_path)
+        success, record_count = db.export_cdr_to_file(output_path)
 
         if not success:
             os.remove(output_path)
-            raise HTTPException(status_code=500, detail="Failed to export database.")
+            if record_count == 0:
+                raise HTTPException(status_code=404, detail="No data found in the database. Please import data first.")
+            else:
+                raise HTTPException(status_code=500, detail="Failed to export database.")
 
         # Return file as response
         return FileResponse(
@@ -116,6 +119,8 @@ async def export_excel(format: str = "xlsx"):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if format == "xlsx" else "text/csv"
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
     

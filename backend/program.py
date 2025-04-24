@@ -262,35 +262,7 @@ def export_db_to_file():
 
 
 def main():
-    print("Select an action:")
-    print("1. Import Excel to DB")
-    print("2. Export DB to CSV/XLSX")
-    choice = input("Enter your choice (1 or 2): ").strip()
-
-    if choice == "1":  # Use a file dialog to select the file
-        root = Tk()
-        # root.withdraw()  # Hide the root Tkinter window
-        file_path = askopenfilename(
-            title="Select an Excel or CSV file",
-            filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv"), ("All files", "*.*")]
-        )
-        root.destroy()  # Destroy the Tkinter root window
-
-        if not file_path:
-            print("No file selected.")
-            return
-
-        success, message, count = import_excel_to_db(file_path)
-        print(message)
-        if success:
-            print(f"Total records imported: {count}")
-    # elif choice == "2":
-    #     root = Tk()
-    #     #root.withdraw()  # Hide the root Tkinter window
-    #     export_db_to_file()
-    #     root.destroy()  # Destroy the Tkinter root window
-    else:
-        print("Invalid choice.")
+    pass
 
 
 if __name__ == "__main__":

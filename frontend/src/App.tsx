@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ImportPage from './pages/ImportPage';
 import ExportPage from './pages/ExportPage';
 import './App.css';
-import Home from './Home/home';
-import ChargeDetails from './Home/ChargeDetail';
+import ChargeDetails from './home/ChargeDetail';
+import Home from './home/Home';
 
 const App: React.FC = () => {
   return (

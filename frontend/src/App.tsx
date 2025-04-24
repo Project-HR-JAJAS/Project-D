@@ -1,14 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ChargeDetails from './home/ChargeDetail';
 import Home from './home/Home';
-import UsageDetails from './home/UsageDetails';
 
 const App: React.FC = () => {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/usage/:timeRange" element={<UsageDetails />} />
+                <Route path="/charges/:timeRange" element={<ChargeDetails />} />
             </Routes>
         </Router>
     );

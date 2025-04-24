@@ -9,55 +9,83 @@ from Data.DbContext import DbContext
 app = Flask(__name__)
 CORS(app)
 
-
-def get_data():
+def get_charge_counts():
     db = DbContext()
     try:
         db.connect()
         cursor = db.connection.cursor()
 
-        # Check if table exists
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='CDR'"
-        )
-        table_exists = cursor.fetchone()
-
-        if not table_exists:
-            print("CDR table doesn't exist - creating it")
-            # Create table without closing the connection
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS CDR (
-                    CDR_ID TEXT PRIMARY KEY,
-                    Start_datetime TEXT,
-                    End_datetime TEXT,
-                    Duration INTEGER,
-                    Volume REAL,
-                    Charge_Point_Address TEXT,
-                    Charge_Point_ZIP TEXT,
-                    Charge_Point_City TEXT,
-                    Charge_Point_Country TEXT,
-                    Charge_Point_Type TEXT,
-                    Product_Type TEXT,
-                    Tariff_Type TEXT,
-                    Authentication_ID TEXT,
-                    Contract_ID TEXT,
-                    Meter_ID TEXT,
-                    OBIS_Code TEXT,
-                    Charge_Point_ID TEXT,
-                    Service_Provider_ID TEXT,
-                    Infra_Provider_ID TEXT,
-                    Calculated_Cost REAL
-                )
-            """)
-            db.connection.commit()
-            print("CDR table created")
-            return []  # No data yet since the table was just created
-
-        # Query all data from CDR table
-        cursor.execute("SELECT * FROM CDR")
+        # Query to get total charge counts per time range
+        query = """
+        SELECT 
+            CASE 
+                WHEN time(Start_datetime) BETWEEN '00:00:00' AND '08:59:59' THEN '0000-0900'
+                WHEN time(Start_datetime) BETWEEN '09:00:00' AND '12:59:59' THEN '0900-1300'
+                WHEN time(Start_datetime) BETWEEN '13:00:00' AND '16:59:59' THEN '1300-1700'
+                WHEN time(Start_datetime) BETWEEN '17:00:00' AND '20:59:59' THEN '1700-2100'
+                WHEN time(Start_datetime) >= '21:00:00' OR time(Start_datetime) < '00:00:00' THEN '2100-0000'
+            END as TimeRange,
+            COUNT(*) as TotalCharges
+        FROM CDR
+        GROUP BY TimeRange
+        ORDER BY TimeRange
+        """
+        
+        cursor.execute(query)
         columns = [column[0] for column in cursor.description]
         rows = cursor.fetchall()
-        print(f"Found {len(rows)} records in CDR table")  # Add this line
+        
+        # Initialize all time ranges with 0 counts
+        time_ranges = ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000']
+        result = {tr: {'TotalCharges': 0} for tr in time_ranges}
+        
+        # Update with actual data from query
+        for row in rows:
+            time_range = row[0]
+            if time_range in result:
+                result[time_range]['TotalCharges'] = row[1]
+        
+        # Convert to list format for the frontend
+        formatted_result = [{
+            'TimeRange': tr,
+            'TotalCharges': data['TotalCharges']
+        } for tr, data in result.items()]
+        
+        return formatted_result
+    except Exception as e:
+        print(f"Database error: {e}")
+        return []
+    finally:
+        db.close()
+
+def get_charge_details(time_range):
+    db = DbContext()
+    try:
+        db.connect()
+        cursor = db.connection.cursor()
+
+        # Define time range conditions
+        time_conditions = {
+            '0000-0900': "time(Start_datetime) BETWEEN '00:00:00' AND '08:59:59'",
+            '0900-1300': "time(Start_datetime) BETWEEN '09:00:00' AND '12:59:59'",
+            '1300-1700': "time(Start_datetime) BETWEEN '13:00:00' AND '16:59:59'",
+            '1700-2100': "time(Start_datetime) BETWEEN '17:00:00' AND '20:59:59'",
+            '2100-0000': "(time(Start_datetime) >= '21:00:00' OR time(Start_datetime) < '00:00:00')"
+        }
+
+        if time_range not in time_conditions:
+            return []
+
+        # Query to get all charges for a specific time range
+        query = f"""
+        SELECT *
+        FROM CDR
+        WHERE {time_conditions[time_range]}
+        """
+        
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        rows = cursor.fetchall()
         
         data = [dict(zip(columns, row)) for row in rows]
         return data
@@ -65,108 +93,29 @@ def get_data():
         print(f"Database error: {e}")
         return []
     finally:
-        db.close()  # Now closes only after all operations
+        db.close()
 
-
-def calculate_usage_counts(data):
-    time_ranges = {
-        "0000-0900": 0,
-        "0900-1300": 0,
-        "1300-1700": 0,
-        "1700-2100": 0,
-        "2100-0000": 0,
-    }
-
-    if not data:  # Check if data is empty
-        return time_ranges
-
-    for entry in data:
-        try:
-            if not entry.get("Start_datetime"):
-                continue
-
-            # Split date and time safely
-            datetime_parts = entry["Start_datetime"].split()
-            if len(datetime_parts) < 2:
-                continue
-
-            time_str = datetime_parts[1]
-            time_parts = time_str.split(":")
-            if len(time_parts) < 2:
-                continue
-
-            hours = int(time_parts[0])
-            minutes = int(time_parts[1]) if len(time_parts) > 1 else 0
-            time = hours * 100 + minutes
-
-            if 0 <= time < 900:
-                time_ranges["0000-0900"] += 1
-            elif 900 <= time < 1300:
-                time_ranges["0900-1300"] += 1
-            elif 1300 <= time < 1700:
-                time_ranges["1300-1700"] += 1
-            elif 1700 <= time < 2100:
-                time_ranges["1700-2100"] += 1
-            elif 2100 <= time < 2400:
-                time_ranges["2100-0000"] += 1
-        except (ValueError, KeyError, AttributeError, IndexError) as e:
-            print(f"Error processing entry {entry.get('CDR_ID', 'unknown')}: {e}")
-            continue
-
-    return time_ranges
-
-
-@app.route("/api/usage-counts", methods=["GET"])
-def usage_counts():
+@app.route("/api/charge-counts", methods=["GET"])
+def charge_counts():
     try:
-        data = get_data()
-        usage = calculate_usage_counts(data)
-        return jsonify(usage)
+        data = get_charge_counts()
+        return jsonify(data)
     except Exception as e:
-        print(f"Error in usage_counts: {e}")
+        print(f"Error in charge_counts: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-
-@app.route("/api/usage-data/<time_range>", methods=["GET"])
-def usage_data(time_range):
+@app.route("/api/charge-details/<time_range>", methods=["GET"])
+def charge_details(time_range):
     try:
-        data = get_data()
-        filtered_data = filter_data_by_time_range(data, time_range)
-        return jsonify(filtered_data)
+        valid_ranges = ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000']
+        if time_range not in valid_ranges:
+            return jsonify({"error": "Invalid time range"}), 400
+            
+        data = get_charge_details(time_range)
+        return jsonify(data)
     except Exception as e:
-        print(f"Error in usage_data: {e}")
+        print(f"Error in charge_details: {e}")
         return jsonify({"error": "Internal server error"}), 500
-
-
-def filter_data_by_time_range(data, time_range):
-    time_mapping = {
-        "0000-0900": (0, 900),
-        "0900-1300": (900, 1300),
-        "1300-1700": (1300, 1700),
-        "1700-2100": (1700, 2100),
-        "2100-0000": (2100, 2400),
-    }
-
-    if time_range not in time_mapping:
-        return []
-
-    start, end = time_mapping[time_range]
-    filtered = []
-
-    for entry in data:
-        try:
-            time_str = entry["Start_datetime"].split()[1]
-            hours, minutes, _ = time_str.split(":")
-            time = int(hours) * 100 + int(minutes)  # Correct time calculation
-
-            if start <= time < end:
-                filtered.append(entry)
-        except (ValueError, KeyError, AttributeError) as e:
-            print(f"Error processing entry: {e}")
-            continue
-
-    return filtered
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

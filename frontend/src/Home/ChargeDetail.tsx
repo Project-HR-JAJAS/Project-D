@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import './ChargeDetail.css';
 
 interface ChargeDetail {
     CDR_ID: string;
@@ -25,7 +26,6 @@ const ChargeDetails: React.FC = () => {
     const itemsPerPage = 50;
     const navigate = useNavigate();
 
-    // Define the columns we want to display
     const columnsToShow: (keyof ChargeDetail)[] = [
         'CDR_ID',
         'Start_datetime',
@@ -57,7 +57,6 @@ const ChargeDetails: React.FC = () => {
                     return res.json();
                 })
                 .then(data => {
-                    // Convert string numbers to actual numbers if needed
                     const processedData = data.map((item: any) => ({
                         ...item,
                         Calculated_Cost: typeof item.Calculated_Cost === 'string' ?
@@ -74,14 +73,12 @@ const ChargeDetails: React.FC = () => {
         }
     }, [timeRange]);
 
-    // Calculate pagination values
     const totalPages = Math.ceil(data.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
     const formatColumnName = (name: string) => {
-        // Custom formatting for some column names
         const nameMap: Record<string, string> = {
             'CDR_ID': 'ID',
             'Charge_Point_Address': 'Address',
@@ -120,7 +117,6 @@ const ChargeDetails: React.FC = () => {
         }
 
         if (column === 'Start_datetime' || column === 'End_datetime') {
-            // Format date/time if needed
             return new Date(value).toLocaleString();
         }
 
@@ -130,104 +126,63 @@ const ChargeDetails: React.FC = () => {
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="charge-details-container">
             <Helmet>
                 <title>Charge Details - {timeRange}</title>
             </Helmet>
 
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    marginBottom: '20px',
-                    padding: '8px 16px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                }}
-            >
+            <button className="back-button" onClick={() => navigate(-1)}>
                 Back to Dashboard
             </button>
 
-            <h2 style={{ marginBottom: '20px' }}>Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
+            <h2 className="time-range-title">Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
 
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
+                <div className="loading-message">
                     Loading data...
                 </div>
             ) : data.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                <div className="no-data-message">
                     No charging sessions recorded for this time range
                 </div>
             ) : (
                 <>
-                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="pagination-info">
                         <div>
                             Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, data.length)} of {data.length} records
                         </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div className="pagination-controls">
                             <button
                                 onClick={() => paginate(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                style={{
-                                    padding: '5px 10px',
-                                    backgroundColor: currentPage === 1 ? '#cccccc' : '#007bff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-                                }}
+                                className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
                             >
                                 Previous
                             </button>
-                            <span style={{ padding: '5px 10px' }}>
+                            <span className="page-indicator">
                                 Page {currentPage} of {totalPages}
                             </span>
                             <button
                                 onClick={() => paginate(currentPage + 1)}
                                 disabled={currentPage === totalPages}
-                                style={{
-                                    padding: '5px 10px',
-                                    backgroundColor: currentPage === totalPages ? '#cccccc' : '#007bff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-                                }}
+                                className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
                             >
                                 Next
                             </button>
                         </div>
                     </div>
 
-                    <div style={{ overflowX: 'auto', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
-                        <table style={{
-                            width: '100%',
-                            borderCollapse: 'collapse',
-                            fontSize: '14px',
-                            tableLayout: 'fixed'
-                        }}>
+                    <div className="table-container">
+                        <table className="charge-details-table">
                             <colgroup>
                                 {columnsToShow.map(column => (
-                                    <col key={column} style={{
-                                        width: column === 'Charge_Point_Address' ? '250px' :
-                                            column === 'CDR_ID' ? '150px' : 'auto'
-                                    }} />
+                                    <col key={column} className={`column-${column}`} />
                                 ))}
                             </colgroup>
                             <thead>
-                                <tr style={{ backgroundColor: '#f2f2f2' }}>
+                                <tr className="table-header">
                                     {columnsToShow.map((column) => (
-                                        <th
-                                            key={column}
-                                            style={{
-                                                padding: '12px',
-                                                border: '1px solid #ddd',
-                                                textAlign: 'left',
-                                                fontWeight: 'bold'
-                                            }}
-                                        >
+                                        <th key={column} className="table-header-cell">
                                             {formatColumnName(column)}
                                         </th>
                                     ))}
@@ -235,24 +190,11 @@ const ChargeDetails: React.FC = () => {
                             </thead>
                             <tbody>
                                 {currentItems.map((item, index) => (
-                                    <tr
-                                        key={index}
-                                        style={{
-                                            border: '1px solid #ddd',
-                                            backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9'
-                                        }}
-                                    >
+                                    <tr key={index} className={`table-row ${index % 2 === 0 ? 'even' : 'odd'}`}>
                                         {columnsToShow.map((column) => (
                                             <td
                                                 key={column}
-                                                style={{
-                                                    padding: '10px',
-                                                    border: '1px solid #ddd',
-                                                    maxWidth: '200px',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap'
-                                                }}
+                                                className="table-cell"
                                                 title={String(item[column as keyof ChargeDetail])}
                                             >
                                                 {formatCellValue(column, item[column as keyof ChargeDetail])}
@@ -264,7 +206,7 @@ const ChargeDetails: React.FC = () => {
                         </table>
                     </div>
 
-                    <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '5px' }}>
+                    <div className="page-numbers">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                             let pageNumber: number;
                             if (totalPages <= 5) {
@@ -281,33 +223,19 @@ const ChargeDetails: React.FC = () => {
                                 <button
                                     key={pageNumber}
                                     onClick={() => paginate(pageNumber)}
-                                    style={{
-                                        padding: '5px 10px',
-                                        backgroundColor: currentPage === pageNumber ? '#007bff' : '#f2f2f2',
-                                        color: currentPage === pageNumber ? 'white' : '#333',
-                                        border: '1px solid #ddd',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
+                                    className={`page-number-button ${currentPage === pageNumber ? 'active' : ''}`}
                                 >
                                     {pageNumber}
                                 </button>
                             );
                         })}
                         {totalPages > 5 && currentPage < totalPages - 2 && (
-                            <span style={{ padding: '5px' }}>...</span>
+                            <span className="page-number-ellipsis">...</span>
                         )}
                         {totalPages > 5 && currentPage < totalPages - 2 && (
                             <button
                                 onClick={() => paginate(totalPages)}
-                                style={{
-                                    padding: '5px 10px',
-                                    backgroundColor: currentPage === totalPages ? '#007bff' : '#f2f2f2',
-                                    color: currentPage === totalPages ? 'white' : '#333',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer'
-                                }}
+                                className={`page-number-button ${currentPage === totalPages ? 'active' : ''}`}
                             >
                                 {totalPages}
                             </button>
@@ -319,4 +247,4 @@ const ChargeDetails: React.FC = () => {
     );
 };
 
-export default ChargeDetails; 
+export default ChargeDetails;

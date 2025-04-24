@@ -260,6 +260,18 @@ def export_db_to_file():
 #     else:
 #         print("Export failed.")
 
+@app.get("/api/overlapping-sessions")
+async def get_overlapping_sessions():
+    try:
+        db = DbContext()
+        sessions = db.get_overlapping_sessions()
+        return sessions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 
 def main():
     pass

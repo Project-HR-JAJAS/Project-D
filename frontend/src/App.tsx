@@ -3,15 +3,17 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ImportPage from './pages/ImportPage';
 import ExportPage from './pages/ExportPage';
 import './App.css';
-import Home from './home/Home';
-import ChargeDetails from './home/ChargeDetail';
+import Home from './Home/home';
+import ChargeDetails from './Home/ChargeDetail';
 
 const App: React.FC = () => {
   return (
     <Router>
       <nav className="navbar">
         <div className="nav-content">
-          <h1>Project D</h1>
+        <Link to="/" className="nav-link" style={{ textDecoration: 'none' }}>
+            <h1>Project D</h1>
+          </Link>
           <div className="nav-links">
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/import" className="nav-link">Import</Link>

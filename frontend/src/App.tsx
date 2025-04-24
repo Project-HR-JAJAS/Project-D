@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ImportPage from './pages/ImportPage';
 import ExportPage from './pages/ExportPage';
 import './App.css';
+import Home from './home/Home';
+import ChargeDetails from './home/ChargeDetail';
 
 const App: React.FC = () => {
   return (
@@ -22,15 +24,10 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/import" element={<ImportPage />} />
           <Route path="/export" element={<ExportPage />} />
+          <Route path="/charges/:timeRange" element={<ChargeDetails />} />
           <Route path="/" element={
-            <div className="home-container">
-              <h2>Welcome to Project D</h2>
-              <Link to="/import" className="import-link">
-                Go to Import Page
-              </Link>
-              <Link to="/export" className="export-link">
-                Go to Export Page
-              </Link>
+            <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+              <Home />
             </div>
           } />
         </Routes>
@@ -40,4 +37,3 @@ const App: React.FC = () => {
 };
 
 export default App;
- 

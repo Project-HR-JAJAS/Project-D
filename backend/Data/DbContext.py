@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 import logging
 import os
+from typing import Tuple
 
 
 class DbContext:
@@ -15,6 +16,21 @@ class DbContext:
         print("Database path:", self.db_name)
         self.connection = None
 
+        # Import logger
+        self.import_logger = logging.getLogger("import_logger")
+        self.import_logger.setLevel(logging.INFO)
+        import_handler = logging.FileHandler("import_log.txt")
+        import_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        if not self.import_logger.handlers:
+            self.import_logger.addHandler(import_handler)
+
+        # Export logger
+        self.export_logger = logging.getLogger("export_logger")
+        self.export_logger.setLevel(logging.INFO)
+        export_handler = logging.FileHandler("export_log.txt")
+        export_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        if not self.export_logger.handlers:
+            self.export_logger.addHandler(export_handler)
         # Initialize logging
         logging.basicConfig(
             filename="import_log.txt",
@@ -162,6 +178,7 @@ class DbContext:
             self.connection.commit()
 
             # Log success
+            self.import_logger.info(f"Successfully imported {len(records)} records from {file_name}")
             logging.info(
                 f"Successfully imported {len(records)} records from {file_name}"
             )
@@ -171,7 +188,7 @@ class DbContext:
         except Exception as e:
             # Log failure
             file_name = os.path.basename(excel_file_path)
-            logging.error(f"Failed to import records from {file_name}. Error: {str(e)}")
+            self.import_logger.error(f"Failed to import records from {file_name}. Error: {str(e)}")
             print(f"Error importing Excel file: {str(e)}")
             if self.connection:
                 self.connection.rollback()
@@ -180,3 +197,43 @@ class DbContext:
         finally:
             if self.connection:
                 self.close()
+
+
+    def export_cdr_to_file(self, output_path: str) -> Tuple[bool, int]:
+        """Export all CDR data to CSV or Excel, and log the result."""
+        try:
+            self.connect()
+            query = "SELECT * FROM CDR"
+            df = pd.read_sql_query(query, self.connection)
+            
+            record_count = len(df)
+            if record_count == 0:
+                msg = "No records found in the database"
+                self.export_logger.warning(msg)
+                print(msg)
+                return False, 0
+
+            if output_path.endswith(('.xlsx', '.xls')):
+                df.to_excel(output_path, index=False)
+            elif output_path.endswith('.csv'):
+                df.to_csv(output_path, index=False)
+            else:
+                msg = f"Export failed: Unsupported file format for {output_path}"
+                self.import_logger.error(msg)
+                print("Unsupported file format. Please use .csv or .xlsx/.xls")
+                return False, record_count
+
+            msg = f"Successfully exported {record_count} records to {output_path}"
+            self.export_logger.info(msg)
+            print(f"Data exported successfully to {output_path}")
+            return True, record_count
+
+        except Exception as e:
+            msg = f"Failed to export records to {output_path}. Error: {str(e)}"
+            self.export_logger.error(msg)
+            print(f"Error exporting data: {str(e)}")
+            return False, 0
+
+        finally:
+            self.close()
+                

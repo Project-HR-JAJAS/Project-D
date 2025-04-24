@@ -1,8 +1,31 @@
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from Data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import asksaveasfilename
+import uvicorn
+import time
+import logging
+from fastapi.responses import FileResponse
+from tempfile import NamedTemporaryFile
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI()
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
@@ -28,22 +51,148 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
     except Exception as e:
         return False, f"Error importing file: {str(e)}", None
 
-def main():
-    # Use a file dialog to select the file
-    Tk().withdraw()  # Hide the root Tkinter window
-    file_path = askopenfilename(
-        title="Select an Excel or CSV file",
-        filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv"), ("All files", "*.*")]
+@app.post("/api/import")
+async def import_excel(file: UploadFile = File(...)):
+    start_time = time.time()
+    try:
+        logger.info(f"Starting file import for: {file.filename}")
+        
+        # Create a temporary file to store the uploaded content
+        temp_file_path = f"temp_{file.filename}"
+        with open(temp_file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Import the file using the existing function
+        success, message, records_imported = import_excel_to_db(temp_file_path)
+        
+        # Clean up the temporary file
+        os.remove(temp_file_path)
+        
+        processing_time = time.time() - start_time
+        logger.info(f"File import completed in {processing_time:.2f} seconds. Imported {records_imported} records.")
+        
+        if success and records_imported:
+            return {
+                "success": True,
+                "message": f"{message} in {processing_time:.2f} seconds",
+                "count": records_imported,
+                "processingTime": processing_time
+            }
+        else:
+            return {
+                "success": False,
+                "message": message,
+                "count": 0,
+                "processingTime": processing_time
+            }
+            
+    except Exception as e:
+        return False, f"Error importing file: {str(e)}", None
+
+
+@app.get("/api/export")
+async def export_excel(format: str = "xlsx"):
+    if format not in ["xlsx", "csv"]:
+        raise HTTPException(status_code=400, detail="Invalid format. Use 'xlsx' or 'csv'.")
+
+    try:
+        # Create a temporary file for the export
+        suffix = ".xlsx" if format == "xlsx" else ".csv"
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            output_path = tmp.name
+
+        # Export the data using existing logic
+        db = DbContext()
+        success, record_count = db.export_cdr_to_file(output_path)
+
+        if not success:
+            os.remove(output_path)
+            if record_count == 0:
+                raise HTTPException(status_code=404, detail="No data found in the database. Please import data first.")
+            else:
+                raise HTTPException(status_code=500, detail="Failed to export database.")
+
+        # Return file as response
+        return FileResponse(
+            path=output_path,
+            filename=f"cdr_export{suffix}",
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if format == "xlsx" else "text/csv"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
+    
+def export_db_to_file():
+    db = DbContext()
+    root = Tk()
+    root.withdraw()  # hides the Tkinter window
+
+    output_path = asksaveasfilename(
+        title="Save as",
+        defaultextension=".xlsx",
+        filetypes=[
+            ("Excel file", "*.xlsx *.xls"), ("CSV file", "*.csv")
+        ]
     )
-    
-    if not file_path:
-        print("No file selected.")
+
+    root.destroy()
+
+    if not output_path:
+        print("Export cancelled.")
         return
-    
-    success, message, count = import_excel_to_db(file_path)
-    print(message)
+
+    success = db.export_cdr_to_file(output_path)
     if success:
-        print(f"Total records imported: {count}")
+        print("Export completed.")
+    else:
+        print("Export failed.")
+
+
+def main():
+    print("Select an action:")
+    print("1. Import Excel to DB")
+    print("2. Export DB to CSV/XLSX")
+    choice = input("Enter your choice (1 or 2): ").strip()
+
+    if choice == "1":  # Use a file dialog to select the file
+        root = Tk()
+        # root.withdraw()  # Hide the root Tkinter window
+        file_path = askopenfilename(
+            title="Select an Excel or CSV file",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv"), ("All files", "*.*")]
+        )
+        root.destroy()  # Destroy the Tkinter root window
+
+        if not file_path:
+            print("No file selected.")
+            return
+
+        success, message, count = import_excel_to_db(file_path)
+        print(message)
+        if success:
+            print(f"Total records imported: {count}")
+    elif choice == "2":
+        root = Tk()
+        #root.withdraw()  # Hide the root Tkinter window
+        export_db_to_file()
+        root.destroy()  # Destroy the Tkinter root window
+    else:
+        print("Invalid choice.")
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        processing_time = time.time() - start_time
+        logger.error(f"Error importing file: {str(e)}. Processing time: {processing_time:.2f} seconds")
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

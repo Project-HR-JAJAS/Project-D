@@ -11,6 +11,7 @@ import time
 import logging
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
+from fastapi import Query
 import json
 from fastapi.responses import Response
 
@@ -94,7 +95,7 @@ async def import_excel(file: UploadFile = File(...)):
 
 
 @app.get("/api/export")
-async def export_excel(format: str = "xlsx"):
+async def export_excel(format: str = "xlsx", columns: Optional[str] = Query(None)):
     if format not in ["xlsx", "csv"]:
         raise HTTPException(status_code=400, detail="Invalid format. Use 'xlsx' or 'csv'.")
 
@@ -106,7 +107,8 @@ async def export_excel(format: str = "xlsx"):
 
         # Export the data using existing logic
         db = DbContext()
-        success, record_count = db.export_cdr_to_file(output_path)
+        success, record_count = db.export_cdr_to_file(output_path, columns)
+
 
         if not success:
             os.remove(output_path)
@@ -126,6 +128,11 @@ async def export_excel(format: str = "xlsx"):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
+    
+# def export_db_to_file():
+#     db = DbContext()
+#     root = Tk()
+#     root.withdraw()  # hides the Tkinter window
 
 @app.get("/api/charge-counts")
 async def get_charge_counts():
@@ -233,25 +240,25 @@ def export_db_to_file():
     root = Tk()
     root.withdraw()  # hides the Tkinter window
 
-    output_path = asksaveasfilename(
-        title="Save as",
-        defaultextension=".xlsx",
-        filetypes=[
-            ("Excel file", "*.xlsx *.xls"), ("CSV file", "*.csv")
-        ]
-    )
+#     output_path = asksaveasfilename(
+#         title="Save as",
+#         defaultextension=".xlsx",
+#         filetypes=[
+#             ("Excel file", "*.xlsx *.xls"), ("CSV file", "*.csv")
+#         ]
+#     )
 
-    root.destroy()
+#     root.destroy()
 
-    if not output_path:
-        print("Export cancelled.")
-        return
+#     if not output_path:
+#         print("Export cancelled.")
+#         return
 
-    success = db.export_cdr_to_file(output_path)
-    if success:
-        print("Export completed.")
-    else:
-        print("Export failed.")
+#     success = db.export_cdr_to_file(output_path)
+#     if success:
+#         print("Export completed.")
+#     else:
+#         print("Export failed.")
 
 
 def main():
@@ -277,11 +284,11 @@ def main():
         print(message)
         if success:
             print(f"Total records imported: {count}")
-    elif choice == "2":
-        root = Tk()
-        #root.withdraw()  # Hide the root Tkinter window
-        export_db_to_file()
-        root.destroy()  # Destroy the Tkinter root window
+    # elif choice == "2":
+    #     root = Tk()
+    #     #root.withdraw()  # Hide the root Tkinter window
+    #     export_db_to_file()
+    #     root.destroy()  # Destroy the Tkinter root window
     else:
         print("Invalid choice.")
 

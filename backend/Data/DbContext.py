@@ -4,7 +4,7 @@ import sqlite3
 import pandas as pd
 import logging
 import os
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class DbContext:
@@ -199,11 +199,12 @@ class DbContext:
                 self.close()
 
 
-    def export_cdr_to_file(self, output_path: str) -> Tuple[bool, int]:
+    def export_cdr_to_file(self, output_path: str, columns: Optional[str] = None) -> Tuple[bool, int]:
         """Export all CDR data to CSV or Excel, and log the result."""
         try:
             self.connect()
-            query = "SELECT * FROM CDR"
+            query = f"SELECT {columns} FROM CDR" if columns else "SELECT * FROM CDR"
+
             df = pd.read_sql_query(query, self.connection)
             
             record_count = len(df)

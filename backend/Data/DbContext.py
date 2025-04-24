@@ -3,6 +3,7 @@ from datetime import datetime
 import pandas as pd
 import logging
 import os
+from typing import Tuple
 
 class DbContext:
     def __init__(self, db_name="project-d.db"):
@@ -167,12 +168,19 @@ class DbContext:
                 self.close()
 
 
-    def export_cdr_to_file(self, output_path: str) -> bool:
+    def export_cdr_to_file(self, output_path: str) -> Tuple[bool, int]:
         """Export all CDR data to CSV or Excel, and log the result."""
         try:
             self.connect()
             query = "SELECT * FROM CDR"
             df = pd.read_sql_query(query, self.connection)
+            
+            record_count = len(df)
+            if record_count == 0:
+                msg = "No records found in the database"
+                self.export_logger.warning(msg)
+                print(msg)
+                return False, 0
 
             if output_path.endswith(('.xlsx', '.xls')):
                 df.to_excel(output_path, index=False)
@@ -182,18 +190,18 @@ class DbContext:
                 msg = f"Export failed: Unsupported file format for {output_path}"
                 self.import_logger.error(msg)
                 print("Unsupported file format. Please use .csv or .xlsx/.xls")
-                return False
+                return False, record_count
 
-            msg = f"Successfully exported {len(df)} records to {output_path}"
+            msg = f"Successfully exported {record_count} records to {output_path}"
             self.export_logger.info(msg)
             print(f"Data exported successfully to {output_path}")
-            return True
+            return True, record_count
 
         except Exception as e:
             msg = f"Failed to export records to {output_path}. Error: {str(e)}"
-            self.import_logger.error(msg)
+            self.export_logger.error(msg)
             print(f"Error exporting data: {str(e)}")
-            return False
+            return False, 0
 
         finally:
             self.close()

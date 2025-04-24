@@ -9,6 +9,8 @@ from tkinter.filedialog import asksaveasfilename
 import uvicorn
 import time
 import logging
+from fastapi.responses import FileResponse
+from tempfile import NamedTemporaryFile
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -87,6 +89,41 @@ async def import_excel(file: UploadFile = File(...)):
     except Exception as e:
         return False, f"Error importing file: {str(e)}", None
 
+
+@app.get("/api/export")
+async def export_excel(format: str = "xlsx"):
+    if format not in ["xlsx", "csv"]:
+        raise HTTPException(status_code=400, detail="Invalid format. Use 'xlsx' or 'csv'.")
+
+    try:
+        # Create a temporary file for the export
+        suffix = ".xlsx" if format == "xlsx" else ".csv"
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            output_path = tmp.name
+
+        # Export the data using existing logic
+        db = DbContext()
+        success, record_count = db.export_cdr_to_file(output_path)
+
+        if not success:
+            os.remove(output_path)
+            if record_count == 0:
+                raise HTTPException(status_code=404, detail="No data found in the database. Please import data first.")
+            else:
+                raise HTTPException(status_code=500, detail="Failed to export database.")
+
+        # Return file as response
+        return FileResponse(
+            path=output_path,
+            filename=f"cdr_export{suffix}",
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if format == "xlsx" else "text/csv"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
+    
 def export_db_to_file():
     db = DbContext()
     root = Tk()

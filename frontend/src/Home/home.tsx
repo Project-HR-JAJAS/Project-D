@@ -16,7 +16,7 @@ const Home: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/charge-counts')
+        fetch('http://localhost:8000/api/charge-counts')
             .then(res => res.json())
             .then(data => {
                 // Ensure all time ranges are present and ordered correctly
@@ -99,9 +99,11 @@ const Home: React.FC = () => {
                             }
                         },
                         onClick: (event, elements) => {
-                            if (elements.length > 0) {
+                            console.log('Chart clicked', elements); 
+                            if (elements && elements.length > 0) {
                                 const index = elements[0].index;
                                 const clickedRange = labels[index];
+                                console.log('Navigating to:', `/charges/${clickedRange}`); 
                                 navigate(`/charges/${clickedRange}`);
                             }
                         }

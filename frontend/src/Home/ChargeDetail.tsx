@@ -44,14 +44,24 @@ const ChargeDetails: React.FC = () => {
     useEffect(() => {
         if (timeRange) {
             setIsLoading(true);
-            fetch(`http://localhost:5000/api/charge-details/${timeRange}`)
-                .then(res => res.json())
+            fetch(`http://localhost:8000/api/charge-details/${timeRange}`, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     // Convert string numbers to actual numbers if needed
                     const processedData = data.map((item: any) => ({
                         ...item,
-                        Calculated_Cost: typeof item.Calculated_Cost === 'string' ? 
-                            parseFloat(item.Calculated_Cost) : 
+                        Calculated_Cost: typeof item.Calculated_Cost === 'string' ?
+                            parseFloat(item.Calculated_Cost) :
                             item.Calculated_Cost
                     }));
                     setData(processedData);
@@ -100,20 +110,20 @@ const ChargeDetails: React.FC = () => {
         if (value === null || value === undefined) {
             return 'N/A';
         }
-        
+
         if (column === 'Calculated_Cost') {
             return typeof value === 'number' ? `€${value.toFixed(2)}` : String(value);
         }
-        
+
         if (column === 'Duration') {
             return typeof value === 'number' ? `${value} minutes` : String(value);
         }
-        
+
         if (column === 'Start_datetime' || column === 'End_datetime') {
             // Format date/time if needed
             return new Date(value).toLocaleString();
         }
-        
+
         return String(value);
     };
 
@@ -124,7 +134,7 @@ const ChargeDetails: React.FC = () => {
             <Helmet>
                 <title>Charge Details - {timeRange}</title>
             </Helmet>
-            
+
             <button
                 onClick={() => navigate(-1)}
                 style={{
@@ -139,9 +149,9 @@ const ChargeDetails: React.FC = () => {
             >
                 Back to Dashboard
             </button>
-            
+
             <h2 style={{ marginBottom: '20px' }}>Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
-            
+
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
                     Loading data...
@@ -309,4 +319,4 @@ const ChargeDetails: React.FC = () => {
     );
 };
 
-export default ChargeDetails;
+export default ChargeDetails; 

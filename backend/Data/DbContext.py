@@ -237,15 +237,15 @@ class DbContext:
 
         finally:
             self.close()
-                
+
     def get_overlapping_sessions(self):
         self.connect()
         query = """
-        SELECT a.* 
+        SELECT DISTINCT a.* 
         FROM CDR a
         JOIN CDR b
         ON a.Authentication_ID = b.Authentication_ID
-        AND a.CDR_ID != b.CDR_ID
+        AND a.CDR_ID < b.CDR_ID
         AND (
             datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
             OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)

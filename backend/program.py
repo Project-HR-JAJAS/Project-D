@@ -269,7 +269,28 @@ async def get_overlapping_sessions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# # Filters op datum, locatie, gebruiker
+# @app.get("/api/overlapping-sessions")
+# async def get_overlapping_sessions(
+#     start_date: Optional[str] = Query(None),
+#     end_date: Optional[str] = Query(None),
+#     city: Optional[str] = Query(None),
+#     auth_id: Optional[str] = Query(None),
+# ):
+#     try:
+#         db = DbContext()
+#         sessions = db.get_overlapping_sessions()
+#         if start_date:
+#             sessions = [s for s in sessions if s['Start_datetime'] >= start_date]
+#         if end_date:
+#             sessions = [s for s in sessions if s['End_datetime'] <= end_date]
+#         if city:
+#             sessions = [s for s in sessions if s['Charge_Point_City'] == city]
+#         if auth_id:
+#             sessions = [s for s in sessions if s['Authentication_ID'] == auth_id]
+#         return sessions
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 

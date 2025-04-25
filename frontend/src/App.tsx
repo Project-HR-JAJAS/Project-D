@@ -5,6 +5,7 @@ import ExportPage from './pages/ExportPage';
 import './App.css';
 import ChargeDetails from './home/ChargeDetail';
 import Home from './home/Home';
+import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 import { TabelDetails } from './tabel/TabelDetails';
 import { TabelForm } from './tabel/Tabel';
 
@@ -20,6 +21,7 @@ const App: React.FC = () => {
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/import" className="nav-link">Import</Link>
             <Link to="/export" className="nav-link">Export</Link>
+            <Link to="/overlapping-sessions" className="nav-link">Overlappende Sessies</Link>
           </div>
         </div>
       </nav>
@@ -35,6 +37,7 @@ const App: React.FC = () => {
               <Home />
             </div>
           } />
+          <Route path="/overlapping-sessions" element={<OverlappingSessions />} />
           <Route path="details/:cdrId" element={<TabelDetails />} />
         </Routes>
       </main>

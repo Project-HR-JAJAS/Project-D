@@ -5,6 +5,7 @@ import ExportPage from './pages/ExportPage';
 import './App.css';
 import ChargeDetails from './home/ChargeDetail';
 import Home from './home/Home';
+import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/import" className="nav-link">Import</Link>
             <Link to="/export" className="nav-link">Export</Link>
+            <Link to="/overlapping-sessions" className="nav-link">Overlappende Sessies</Link>
           </div>
         </div>
       </nav>
@@ -32,6 +34,7 @@ const App: React.FC = () => {
               <Home />
             </div>
           } />
+          <Route path="/overlapping-sessions" element={<OverlappingSessions />} />
         </Routes>
       </main>
     </Router>

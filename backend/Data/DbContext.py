@@ -241,18 +241,30 @@ class DbContext:
     def get_overlapping_sessions(self):
         self.connect()
         query = """
-        SELECT DISTINCT a.* 
-        FROM CDR a
+        SELECT a.* FROM CDR a
         JOIN CDR b
         ON a.Authentication_ID = b.Authentication_ID
-        AND a.CDR_ID < b.CDR_ID
+        AND a.CDR_ID != b.CDR_ID
         AND (
             datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
             OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
             OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
         )
-        ORDER BY a.Authentication_ID, a.Start_datetime
+        
+        UNION
+
+        SELECT b.* FROM CDR a
+        JOIN CDR b
+        ON a.Authentication_ID = b.Authentication_ID
+        AND a.CDR_ID != b.CDR_ID
+        AND (
+            datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+            OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+            OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+        )
+
+        ORDER BY Authentication_ID, Start_datetime
         """
         df = pd.read_sql_query(query, self.connection)
         self.close()
-        return df.to_dict(orient="records")
+        return df.drop_duplicates(subset="CDR_ID").to_dict(orient="records")

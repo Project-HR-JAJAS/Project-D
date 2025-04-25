@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from Data.DbContext import DbContext
+from data.GetData import GetAll
+from data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
@@ -175,6 +176,19 @@ async def get_charge_counts():
         if db.connection:
             db.close()
         raise HTTPException(status_code=500, detail=f"Error fetching charge counts: {str(e)}")
+
+
+@app.get("/tabel/all")
+async def get_all_records():
+    getAllInstance = GetAll()
+    data = getAllInstance.fetch_data()
+    return data
+
+@app.get("/tabel/{cdrID}")
+async def get_one_record(cdrID: str):
+    getOneInstance = GetAll()
+    data = getOneInstance.fetch_one_data(cdrID)
+    return data
 
 @app.get("/api/charge-details/{timeRange}")
 async def get_charge_details(timeRange: str):

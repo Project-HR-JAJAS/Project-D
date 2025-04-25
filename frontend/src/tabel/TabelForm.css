@@ -1,0 +1,113 @@
+/* TabelForm.css */
+
+.tabel-form {
+    padding: 2rem;
+    font-family: Arial, sans-serif;
+}
+
+.tabel-form h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.tabel-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tabel-table th,
+.tabel-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabel-table th {
+    background-color: #f8f8f8;
+    font-weight: bold;
+    color: #444;
+}
+
+.tabel-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.tabel-table td {
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .tabel-table,
+    .tabel-table thead,
+    .tabel-table tbody,
+    .tabel-table th,
+    .tabel-table td,
+    .tabel-table tr {
+        display: block;
+    }
+
+    .tabel-table thead {
+        display: none;
+    }
+
+    .tabel-table tr {
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .tabel-table td {
+        padding-left: 50%;
+        position: relative;
+    }
+
+    .tabel-table td::before {
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-left: 1rem;
+        white-space: nowrap;
+        font-weight: bold;
+    }
+
+    .tabel-table td:nth-of-type(1)::before { content: "CDR ID"; }
+    .tabel-table td:nth-of-type(2)::before { content: "Authentication ID"; }
+    .tabel-table td:nth-of-type(3)::before { content: "Duration"; }
+    .tabel-table td:nth-of-type(4)::before { content: "Volume"; }
+    .tabel-table td:nth-of-type(5)::before { content: "Charge Point ID"; }
+    .tabel-table td:nth-of-type(6)::before { content: "Calculated Cost"; }
+
+    .table-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+    
+    .pagination-info.aligned-right {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #555;
+        width: 100%; 
+    }
+
+    .clickable-row {
+        cursor: pointer;
+    }
+    
+    .clickable-row:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .item-details {
+        margin-top: 2rem;
+        padding: 1rem;
+        background-color: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }    
+}

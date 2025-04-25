@@ -6,13 +6,15 @@ import './App.css';
 import ChargeDetails from './home/ChargeDetail';
 import Home from './home/Home';
 import OverlappingSessions from './overlappingSessions/OverlappingSessions';
+import { TabelDetails } from './tabel/TabelDetails';
+import { TabelForm } from './tabel/Tabel';
 
 const App: React.FC = () => {
   return (
     <Router>
       <nav className="navbar">
         <div className="nav-content">
-        <Link to="/" className="nav-link" style={{ textDecoration: 'none' }}>
+          <Link to="/" className="nav-link" style={{ textDecoration: 'none' }}>
             <h1>Project D</h1>
           </Link>
           <div className="nav-links">
@@ -28,6 +30,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/import" element={<ImportPage />} />
           <Route path="/export" element={<ExportPage />} />
+          <Route path="/tabel/all" element={<TabelForm />} />
           <Route path="/charges/:timeRange" element={<ChargeDetails />} />
           <Route path="/" element={
             <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
@@ -35,6 +38,7 @@ const App: React.FC = () => {
             </div>
           } />
           <Route path="/overlapping-sessions" element={<OverlappingSessions />} />
+          <Route path="details/:cdrId" element={<TabelDetails />} />
         </Routes>
       </main>
     </Router>

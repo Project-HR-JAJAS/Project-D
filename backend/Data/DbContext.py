@@ -240,31 +240,64 @@ class DbContext:
 
     def get_overlapping_sessions(self):
         self.connect()
+
         query = """
-        SELECT a.* FROM CDR a
-        JOIN CDR b
-        ON a.Authentication_ID = b.Authentication_ID
-        AND a.CDR_ID != b.CDR_ID
-        AND (
-            datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-            OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-            OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+        WITH Overlaps AS (
+            SELECT a.CDR_ID AS main_id, b.CDR_ID AS overlap_id, a.*
+            FROM CDR a
+            JOIN CDR b
+            ON a.Authentication_ID = b.Authentication_ID
+            AND a.CDR_ID != b.CDR_ID
+            AND (
+                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+            )
         )
-        
-        UNION
-
-        SELECT b.* FROM CDR a
-        JOIN CDR b
-        ON a.Authentication_ID = b.Authentication_ID
-        AND a.CDR_ID != b.CDR_ID
-        AND (
-            datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-            OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-            OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
-        )
-
-        ORDER BY Authentication_ID, Start_datetime
+        SELECT o.main_id AS CDR_ID, o.Authentication_ID, o.Start_datetime, o.End_datetime,
+            o.Charge_Point_City, o.Volume,
+            COUNT(o.overlap_id) AS OverlappingCount
+        FROM Overlaps o
+        GROUP BY o.main_id
+        ORDER BY o.Authentication_ID, o.Start_datetime
         """
+
         df = pd.read_sql_query(query, self.connection)
         self.close()
-        return df.drop_duplicates(subset="CDR_ID").to_dict(orient="records")
+        return df.to_dict(orient="records")
+    
+
+    def get_all_overlapping_for_cdr(self, cdr_id):
+        self.connect()
+
+        query = f"""
+        SELECT b.*
+        FROM CDR a
+        JOIN CDR b
+            ON a.Authentication_ID = b.Authentication_ID
+            AND a.CDR_ID = ?
+            AND a.CDR_ID != b.CDR_ID
+            AND (
+                datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+                OR datetime(b.End_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+                OR datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+            )
+
+        UNION
+
+        SELECT a.*
+        FROM CDR a
+        JOIN CDR b
+            ON b.Authentication_ID = a.Authentication_ID
+            AND b.CDR_ID = ?
+            AND b.CDR_ID != a.CDR_ID
+            AND (
+                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+            )
+        """
+
+        df = pd.read_sql_query(query, self.connection, params=(cdr_id, cdr_id))
+        self.close()
+        return df.to_dict(orient="records")

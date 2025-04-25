@@ -296,8 +296,14 @@ class DbContext:
                 OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
                 OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
             )
+
+        UNION
+
+        SELECT *
+        FROM CDR
+        WHERE CDR_ID = ?
         """
 
-        df = pd.read_sql_query(query, self.connection, params=(cdr_id, cdr_id))
+        df = pd.read_sql_query(query, self.connection, params=(cdr_id, cdr_id, cdr_id))
         self.close()
-        return df.to_dict(orient="records")
+        return df.drop_duplicates(subset="CDR_ID").to_dict(orient="records")

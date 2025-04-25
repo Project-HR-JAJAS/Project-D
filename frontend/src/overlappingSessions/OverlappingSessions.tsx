@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import './OverlappingSessions.css';
+import OverlappingModal from './OverlappingModal';
+
+interface OverlappingSession {
+  CDR_ID: string;
+  Authentication_ID: string;
+  Start_datetime: string;
+  End_datetime: string;
+  Charge_Point_City: string;
+  Volume: number;
+  OverlappingCount?: number;
+}
 
 const OverlappingSessions: React.FC = () => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<OverlappingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCdrId, setSelectedCdrId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const itemsPerPage = 50;
 
   useEffect(() => {
@@ -71,16 +84,26 @@ const OverlappingSessions: React.FC = () => {
                   <th>End Time</th>
                   <th>City</th>
                   <th>Volume (kWh)</th>
+                  <th>Overlaps</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((row, i) => (
-                  <tr key={i} className={i % 2 === 0 ? "even" : "odd"}>
+                  <tr
+                    key={i}
+                    className={i % 2 === 0 ? 'even' : 'odd'}
+                    onClick={() => {
+                      setSelectedCdrId(row.CDR_ID);
+                      setShowModal(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td>{row.Authentication_ID}</td>
                     <td>{formatDate(row.Start_datetime)}</td>
                     <td>{formatDate(row.End_datetime)}</td>
                     <td>{row.Charge_Point_City}</td>
                     <td>{row.Volume}</td>
+                    <td>{row.OverlappingCount ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -122,6 +145,16 @@ const OverlappingSessions: React.FC = () => {
               </button>
             )}
           </div>
+
+          {showModal && selectedCdrId && (
+            <OverlappingModal
+              cdrId={selectedCdrId}
+              onClose={() => {
+                setShowModal(false);
+                setSelectedCdrId(null);
+              }}
+            />
+          )}
         </>
       )}
     </div>

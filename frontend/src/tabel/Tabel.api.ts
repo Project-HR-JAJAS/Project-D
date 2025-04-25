@@ -7,7 +7,7 @@ export interface TabelData {
     Calculated_Cost: number;
   }
 
-interface RawApiResponse {
+export interface RawApiResponse {
     CDR_ID: string;
     Start_datetime: string;
     End_datetime: string;
@@ -55,3 +55,48 @@ interface RawApiResponse {
         throw error;
     }
 };
+
+export const GetDataByCDR = async (cdrID: string): Promise<RawApiResponse | null> => {
+    try {
+        const response = await fetch(`http://localhost:8000/tabel/${cdrID}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const rawData: any[] = await response.json(); // Get the raw data as an array
+
+        // Map the array to an object that matches RawApiResponse
+        const mappedData: RawApiResponse = {
+            CDR_ID: rawData[0],
+            Start_datetime: rawData[1],
+            End_datetime: rawData[2],
+            Duration: rawData[3],
+            Volume: parseFloat(rawData[4].replace(',', '.')), // Ensure it's a number
+            Charge_Point_Address: rawData[5],
+            Charge_Point_ZIP: rawData[6],
+            Charge_Point_City: rawData[7],
+            Charge_Point_Country: rawData[8],
+            Charge_Point_Type: rawData[9],
+            Product_Type: rawData[10],
+            Tariff_Type: rawData[11],
+            Authentication_ID: rawData[12] || '',
+            Contract_ID: rawData[13] || '',
+            Meter_ID: rawData[14] || '',
+            OBIS_Code: rawData[15] || '',
+            Charge_Point_ID: rawData[16],
+            Service_Provider_ID: rawData[17],
+            Infra_Provider_ID: rawData[18],
+            Calculated_Cost: parseFloat(rawData[19].replace(',', '.')), // Ensure it's a number
+        };
+
+        console.log('Mapped Data:', mappedData); // Log the mapped data to ensure it's correct
+
+        return mappedData;
+    } catch (error) {
+        console.error('Error fetching tabel data:', error);
+        throw error;
+    }
+};
+
+

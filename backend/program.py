@@ -184,6 +184,12 @@ async def get_all_records():
     data = getAllInstance.fetch_data()
     return data
 
+@app.get("/tabel/{cdrID}")
+async def get_one_record(cdrID: str):
+    getOneInstance = GetAll()
+    data = getOneInstance.fetch_one_data(cdrID)
+    return data
+
 @app.get("/api/charge-details/{timeRange}")
 async def get_charge_details(timeRange: str):
     try:

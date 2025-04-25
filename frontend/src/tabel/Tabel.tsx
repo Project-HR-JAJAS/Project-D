@@ -60,7 +60,7 @@ export const TabelForm: React.FC = () => {
                     {visibleData.map((item) => (
                         <tr key={item.CDR_ID} onClick={() => handleRowClick(item)} className="clickable-row">
                             <td>{item.CDR_ID}</td>
-                            <td>{item.Authentication_ID ?? 'null'}</td>
+                            <td>{item.Authentication_ID ?? ''}</td>
                             <td>{item.Duration}</td>
                             <td>{item.Volume}</td>
                             <td>{item.Charge_Point_ID}</td>

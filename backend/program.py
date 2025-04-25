@@ -292,7 +292,15 @@ async def get_overlapping_sessions():
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
-
+# Endpoint voor details per sessie
+@app.get("/api/overlapping-sessions/{cdr_id}")
+async def get_overlaps_for_cdr(cdr_id: str):
+    try:
+        db = DbContext()
+        sessions = db.get_all_overlapping_for_cdr(cdr_id)
+        return sessions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 def main():
     pass

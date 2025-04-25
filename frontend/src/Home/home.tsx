@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { TabelForm } from '../tabel/Tabel';
+
 ChartJS.register(...registerables);
 
 interface ChargeData {
@@ -121,9 +123,15 @@ const Home: React.FC = () => {
             <Helmet>
                 <title>Charging Sessions Dashboard</title>
             </Helmet>
+    
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
+    
             <div className="chart-container">
                 <canvas id="chargeChart" ref={chartRef} height="400"></canvas>
+            </div>
+    
+            <div className="tabel-wrapper">
+                <TabelForm />
             </div>
         </div>
     );

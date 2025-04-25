@@ -94,8 +94,20 @@
         color: #555;
         width: 100%; 
     }
-    
-    
 
+    .clickable-row {
+        cursor: pointer;
+    }
     
+    .clickable-row:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .item-details {
+        margin-top: 2rem;
+        padding: 1rem;
+        background-color: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }    
 }

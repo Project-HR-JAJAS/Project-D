@@ -72,9 +72,7 @@ export const TabelForm: React.FC = () => {
                     <tr>
                         <th>CDR ID</th>
                         <th>Authentication ID</th>
-                        <th onClick={() => handleSort("Duration")} className="sortable-header">
-                            Duration {sortField === "Duration" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
-                        </th>
+                        <th> Duration</th>
                         <th onClick={() => handleSort("Volume")} className="sortable-header">
                             Volume {sortField === "Volume" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
                         </th>

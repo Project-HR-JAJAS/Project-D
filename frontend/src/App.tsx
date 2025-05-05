@@ -4,7 +4,7 @@ import ImportPage from './pages/ImportPage';
 import ExportPage from './pages/ExportPage';
 import './App.css';
 import ChargeDetails from './home/ChargeDetail';
-import Home from './home/Home';
+import Home from './home/home';
 import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 import { TabelDetails } from './tabel/TabelDetails';
 import { TabelForm } from './tabel/Tabel';

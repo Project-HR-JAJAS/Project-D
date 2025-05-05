@@ -1,0 +1,76 @@
+.userstats-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .userstats-title {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .userstats-loading,
+  .userstats-empty {
+    text-align: center;
+    padding: 40px;
+    color: #555;
+    font-size: 1.1rem;
+  }
+  
+  .userstats-table-wrapper {
+    overflow-x: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .userstats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  .userstats-table th,
+  .userstats-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
+  }
+  
+  .userstats-table thead {
+    background-color: #f2f2f2;
+  }
+  
+  .userstats-table tr.even {
+    background-color: white;
+  }
+  
+  .userstats-table tr.odd {
+    background-color: #f9f9f9;
+  }
+  
+  .page-numbers {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .page-number-button {
+    padding: 5px 10px;
+    background-color: #f2f2f2;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .page-number-button.active {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .page-number-ellipsis {
+    padding: 5px;
+  }
+  

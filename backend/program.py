@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from data.GetData import GetAll
-from data.DbContext import DbContext
+from Data.GetData import GetAll
+from Data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
@@ -315,6 +315,61 @@ async def get_overlaps_for_cdr(cdr_id: str):
         return sessions
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/charge-point-stats")
+async def get_charge_point_stats(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
+    try:
+        db = DbContext()
+        db.connect()
+        
+        # Totaal aantal unieke laadpunten
+        count_query = """
+            SELECT COUNT(*) FROM (
+                SELECT Charge_Point_ID, Charge_Point_Country FROM CDR GROUP BY Charge_Point_ID, Charge_Point_Country
+            )
+        """
+        cursor = db.connection.cursor()
+        cursor.execute(count_query)
+        total_count = cursor.fetchone()[0]
+
+        # Data ophalen met LIMIT/OFFSET
+        offset = (page - 1) * page_size
+        data_query = f"""
+            SELECT 
+                Charge_Point_ID,
+                Charge_Point_Country,
+                COUNT(*) as transaction_count,
+                SUM(Volume) as total_volume,
+                SUM(Calculated_Cost) as total_cost
+            FROM CDR 
+            GROUP BY Charge_Point_ID, Charge_Point_Country
+            ORDER BY transaction_count DESC
+            LIMIT ? OFFSET ?
+        """
+        cursor.execute(data_query, (page_size, offset))
+        columns = [description[0] for description in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+        db.close()
+        return Response(
+            content=json.dumps({
+                "results": results,
+                "total": total_count,
+                "page": page,
+                "page_size": page_size
+            }),
+            media_type="application/json",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+        
+    except Exception as e:
+        if db.connection:
+            db.close()
+        raise HTTPException(status_code=500, detail=f"Error fetching charge point statistics: {str(e)}")
 
 def main():
     pass

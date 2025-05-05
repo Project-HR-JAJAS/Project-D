@@ -40,14 +40,32 @@ export interface RawApiResponse {
 
         const rawData: any[][] = await response.json();
 
-        const filteredData: TabelData[] = rawData.map(row => ({
-            CDR_ID: row[0],
-            Authentication_ID: row[11],
-            Duration: row[3],
-            Volume: parseFloat(row[4].replace(',', '.')),
-            Charge_Point_ID: row[16],
-            Calculated_Cost: parseFloat(row[19].replace(',', '.'))
-        }));
+        const filteredData: TabelData[] = rawData.map(row => {
+            // Safely convert Calculated_Cost to number
+            let calculatedCost = 0;
+            if (typeof row[19] === 'string') {
+                calculatedCost = parseFloat(row[19].replace(',', '.'));
+            } else if (typeof row[19] === 'number') {
+                calculatedCost = row[19];
+            }
+
+            // Safely convert Volume to number
+            let volume = 0;
+            if (typeof row[4] === 'string') {
+                volume = parseFloat(row[4].replace(',', '.'));
+            } else if (typeof row[4] === 'number') {
+                volume = row[4];
+            }
+
+            return {
+                CDR_ID: row[0],
+                Authentication_ID: row[11],
+                Duration: row[3],
+                Volume: volume,
+                Charge_Point_ID: row[16],
+                Calculated_Cost: calculatedCost
+            };
+        });
 
         return filteredData;
     } catch (error) {

@@ -126,8 +126,8 @@ const Home: React.FC = () => {
     
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
     
-            <div className="chart-container" style={{ height: '1100px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-                <canvas id="chargeChart" ref={chartRef} height={150} style={{ width: '100%' }}></canvas>
+            <div className="chart-container" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', height: '1000px' }}>
+                <canvas id="chargeChart" ref={chartRef} style={{ width: '100%', height: '100%' }}></canvas>
             </div>
     
             <div className="tabel-wrapper" style={{ maxWidth: '1200px', margin: '0 auto' }}>

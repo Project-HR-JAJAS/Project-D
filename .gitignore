@@ -216,3 +216,7 @@ thumb
 sketch
 
 # End of https://www.toptal.com/developers/gitignore/api/python,git,react
+backend/import_log.txt
+backend/program.py
+frontend/package-lock.json
+frontend/yarn.lock

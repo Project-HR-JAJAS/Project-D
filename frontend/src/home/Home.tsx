@@ -128,7 +128,6 @@ const Home: React.FC = () => {
             <div>
                 <SuspCharges />
             </div>
-            </>
     
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
     

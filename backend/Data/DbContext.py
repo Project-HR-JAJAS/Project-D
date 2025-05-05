@@ -317,3 +317,28 @@ class DbContext:
         df = pd.read_sql_query(query, self.connection, params=(cdr_id, cdr_id, cdr_id))
         self.close()
         return df.drop_duplicates(subset="CDR_ID").to_dict(orient="records")
+    
+    # Haalt alle statistieken per Authentication_ID op: aantal transacties, totaal volume en totale kosten
+    def get_user_stats(self):
+        self.connect()
+
+        query = """
+        SELECT 
+            Authentication_ID,
+            COUNT(*) AS TransactionCount,
+            SUM(Volume) AS TotalVolume,
+            SUM(Calculated_Cost) AS TotalCost
+        FROM CDR
+        GROUP BY Authentication_ID
+        ORDER BY Authentication_ID
+        """
+
+        cursor = self.connection.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+        columns = [desc[0] for desc in cursor.description]
+        result = [dict(zip(columns, row)) for row in rows]
+
+        self.close()
+        return result

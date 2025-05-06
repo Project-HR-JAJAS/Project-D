@@ -1,0 +1,58 @@
+.charge-details-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.time-range-title {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.charge-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.table-header {
+    background-color: #f5f5f5;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.table-cell {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+.table-row:hover {
+    background-color: #f9f9f9;
+}
+
+.back-button {
+    padding: 8px 16px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background-color: #1565c0;
+}
+
+.loading-message,
+.no-data-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+} 

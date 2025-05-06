@@ -1,0 +1,17 @@
+.dashboard-container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}

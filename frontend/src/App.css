@@ -1,0 +1,80 @@
+.navbar {
+  background-color: #1976d2;
+  color: white;
+  padding: 1rem 0;
+}
+
+.nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.home-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.home-container h2 {
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.import-link {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #1976d2;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.export-link {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #1976d2;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.export-link:hover {
+  background-color: #1565c0;
+} 
+
+.import-link:hover {
+  background-color: #1565c0;
+} 

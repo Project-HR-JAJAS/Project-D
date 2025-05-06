@@ -1,5 +1,4 @@
 from .DbContext import DbContext
-
 class GetAll:
     def __init__(self):
         self.data = None
@@ -17,4 +16,7 @@ class GetAll:
         self.data = db.get_cdr(cdr_id)
         db.close()
         return self.data
+
+
+
 

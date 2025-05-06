@@ -23,6 +23,8 @@ const ChargeDetails: React.FC = () => {
     const [data, setData] = useState<ChargeDetail[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [inputValue, setInputValue] = useState('');
+    const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
     const itemsPerPage = 50;
     const navigate = useNavigate();
 
@@ -104,26 +106,51 @@ const ChargeDetails: React.FC = () => {
     };
 
     const formatCellValue = (column: string, value: any) => {
-        if (value === null || value === undefined) {
-            return 'N/A';
-        }
-
-        if (column === 'Calculated_Cost') {
-            return typeof value === 'number' ? `€${value.toFixed(2)}` : String(value);
-        }
-
-        if (column === 'Duration') {
-            return typeof value === 'number' ? `${value} minutes` : String(value);
-        }
-
-        if (column === 'Start_datetime' || column === 'End_datetime') {
-            return new Date(value).toLocaleString();
-        }
-
+        if (value === null || value === undefined) return 'N/A';
+        if (column === 'Calculated_Cost') return typeof value === 'number' ? `€${value.toFixed(2)}` : String(value);
+        if (column === 'Duration') return typeof value === 'number' ? `${value} minutes` : String(value);
+        if (column === 'Start_datetime' || column === 'End_datetime') return new Date(value).toLocaleString();
         return String(value);
     };
 
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+    const handleEllipsisClick = (side: 'left' | 'right') => {
+        setShowInput({ left: side === 'left', right: side === 'right' });
+        setInputValue('');
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value.replace(/[^0-9]/g, '');
+        setInputValue(val);
+    };
+
+    const handleInputSubmit = (side: 'left' | 'right') => {
+        const page = Number(inputValue);
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setShowInput({ left: false, right: false });
+            setInputValue('');
+        }
+    };
+
+    const getPageNumbers = () => {
+        const pages: (number | string)[] = [];
+        if (totalPages <= 9) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1, 2, 3);
+            if (currentPage > 5) pages.push('left-ellipsis');
+            let start = Math.max(4, currentPage - 1);
+            let end = Math.min(totalPages - 3, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (i > 3 && i < totalPages - 2) pages.push(i);
+            }
+            if (currentPage < totalPages - 4) pages.push('right-ellipsis');
+            pages.push(totalPages - 2, totalPages - 1, totalPages);
+        }
+        return pages;
+    };
 
     return (
         <div className="charge-details-container">
@@ -138,37 +165,14 @@ const ChargeDetails: React.FC = () => {
             <h2 className="time-range-title">Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
 
             {isLoading ? (
-                <div className="loading-message">
-                    Loading data...
-                </div>
+                <div className="loading-message">Loading data...</div>
             ) : data.length === 0 ? (
-                <div className="no-data-message">
-                    No charging sessions recorded for this time range
-                </div>
+                <div className="no-data-message">No charging sessions recorded for this time range</div>
             ) : (
                 <>
                     <div className="pagination-info">
                         <div>
                             Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, data.length)} of {data.length} records
-                        </div>
-                        <div className="pagination-controls">
-                            <button
-                                onClick={() => paginate(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
-                            >
-                                Previous
-                            </button>
-                            <span className="page-indicator">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => paginate(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
-                            >
-                                Next
-                            </button>
                         </div>
                     </div>
 
@@ -207,39 +211,83 @@ const ChargeDetails: React.FC = () => {
                     </div>
 
                     <div className="page-numbers">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNumber: number;
-                            if (totalPages <= 5) {
-                                pageNumber = i + 1;
-                            } else if (currentPage <= 3) {
-                                pageNumber = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                                pageNumber = totalPages - 4 + i;
-                            } else {
-                                pageNumber = currentPage - 2 + i;
+                        <button
+                            className="page-number-button"
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Vorige
+                        </button>
+
+                        {getPageNumbers().map((page, idx) => {
+                            if (page === 'left-ellipsis') {
+                                return showInput.left ? (
+                                    <input
+                                        key={idx}
+                                        type="text"
+                                        value={inputValue}
+                                        onChange={handleInputChange}
+                                        onBlur={() => setShowInput({ left: false, right: false })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleInputSubmit('left');
+                                        }}
+                                        className="page-number-input"
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span
+                                        key={idx}
+                                        className="page-number-ellipsis"
+                                        onClick={() => handleEllipsisClick('left')}
+                                    >
+                                        ...
+                                    </span>
+                                );
+                            }
+
+                            if (page === 'right-ellipsis') {
+                                return showInput.right ? (
+                                    <input
+                                        key={idx}
+                                        type="text"
+                                        value={inputValue}
+                                        onChange={handleInputChange}
+                                        onBlur={() => setShowInput({ left: false, right: false })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleInputSubmit('right');
+                                        }}
+                                        className="page-number-input"
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span
+                                        key={idx}
+                                        className="page-number-ellipsis"
+                                        onClick={() => handleEllipsisClick('right')}
+                                    >
+                                        ...
+                                    </span>
+                                );
                             }
 
                             return (
                                 <button
-                                    key={pageNumber}
-                                    onClick={() => paginate(pageNumber)}
-                                    className={`page-number-button ${currentPage === pageNumber ? 'active' : ''}`}
+                                    key={page}
+                                    onClick={() => paginate(Number(page))}
+                                    className={`page-number-button ${page === currentPage ? 'active' : ''}`}
                                 >
-                                    {pageNumber}
+                                    {page}
                                 </button>
                             );
                         })}
-                        {totalPages > 5 && currentPage < totalPages - 2 && (
-                            <span className="page-number-ellipsis">...</span>
-                        )}
-                        {totalPages > 5 && currentPage < totalPages - 2 && (
-                            <button
-                                onClick={() => paginate(totalPages)}
-                                className={`page-number-button ${currentPage === totalPages ? 'active' : ''}`}
-                            >
-                                {totalPages}
-                            </button>
-                        )}
+
+                        <button
+                            className="page-number-button"
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            Volgende
+                        </button>
                     </div>
                 </>
             )}

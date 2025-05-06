@@ -104,3 +104,23 @@
 .page-number-ellipsis {
   padding: 5px;
 }
+.page-number-input {
+  width: 50px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.overlap-search-wrapper {
+  margin-bottom: 15px;
+  text-align: right;
+}
+
+.overlap-search {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 300px;
+}

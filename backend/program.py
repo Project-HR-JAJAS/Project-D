@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from Data.GetData import GetAll
-from Data.DbContext import DbContext
+from backend.data.GetData import GetAll
+from backend.data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
@@ -316,6 +316,18 @@ async def get_overlaps_for_cdr(cdr_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# Endpoint die alle statistieken per Authentication_ID retourneert voor gebruik in frontend-tabellen
+@app.get("/api/user-stats")
+async def get_user_stats():
+    try:
+        db = DbContext()
+        stats = db.get_user_stats()
+        return stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching user stats: {str(e)}")
+
+
 @app.get("/api/charge-point-stats")
 async def get_charge_point_stats(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     try:
@@ -442,4 +454,4 @@ if __name__ == "__main__":
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

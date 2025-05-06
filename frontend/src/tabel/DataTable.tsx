@@ -109,11 +109,11 @@ const DataTable: React.FC = () => {
                             <th>CDR ID</th>
                             <th>Authentication ID</th>
                             <th>Duration</th>
-                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('volume')}>
+                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('volume')} className="sortable-header">
                                 Volume {sortConfig.key === 'volume' ? (sortConfig.direction === 'asc' ? '▲' : sortConfig.direction === 'desc' ? '▼' : '') : ''}
                             </th>
                             <th>Charge Point ID</th>
-                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('calculated_cost')}>
+                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('calculated_cost')} className="sortable-header">
                                 Calculated Cost {sortConfig.key === 'calculated_cost' ? (sortConfig.direction === 'asc' ? '▲' : sortConfig.direction === 'desc' ? '▼' : '') : ''}
                             </th>
                         </tr>

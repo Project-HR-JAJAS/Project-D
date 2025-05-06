@@ -8,6 +8,8 @@ import Home from './home/Home';
 import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 import { TabelDetails } from './tabel/TabelDetails';
 import { TabelForm } from './tabel/Tabel';
+import UserStats from './userStats/UserStats';
+
 import ChargePointStatsTable from './components/ChargePointStatsTable';
 import DataTable from './tabel/DataTable';
 
@@ -24,6 +26,7 @@ const App: React.FC = () => {
             <Link to="/import" className="nav-link">Import</Link>
             <Link to="/export" className="nav-link">Export</Link>
             <Link to="/overlapping-sessions" className="nav-link">Overlappende Sessies</Link>
+            <Link to="/user-stats" className="nav-link">Gebruiker Stats</Link>
             <Link to="/charge-point-stats" className="nav-link">Laadpunt Statistieken</Link>
             <Link to="/data-table" className="nav-link">Data Tabel</Link>
           </div>
@@ -43,6 +46,7 @@ const App: React.FC = () => {
           } />
           <Route path="/overlapping-sessions" element={<OverlappingSessions />} />
           <Route path="details/:cdrId" element={<TabelDetails />} />
+          <Route path="/user-stats" element={<UserStats />} />
           <Route path="/charge-point-stats" element={<ChargePointStatsTable />} />
           <Route path="/data-table" element={<DataTable />} />
         </Routes>

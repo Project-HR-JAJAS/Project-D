@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ImportPage from './pages/ImportPage';
 import ExportPage from './pages/ExportPage';
 import './App.css';
-import ChargeDetails from './home/ChargeDetail';
+import ChargeDetails from './ChargeDetails/ChargeDetail';
 import Home from './home/Home';
 import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 import { TabelDetails } from './tabel/TabelDetails';

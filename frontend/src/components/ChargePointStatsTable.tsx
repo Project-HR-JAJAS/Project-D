@@ -1,14 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { fetchChargePointStats, PAGE_SIZE } from './ChargePointStatsTable.api';
+import './ChargePointStatsTable.css';
 
-interface ChargePointStat {
-    Charge_Point_ID: string;
-    Charge_Point_Country: string;
-    transaction_count: number;
-    total_volume: number;
-    total_cost: number;
-}
-
-const PAGE_SIZE = 20;
+type ChargePointStat = Parameters<typeof fetchChargePointStats>[0] extends number ? Awaited<ReturnType<typeof fetchChargePointStats>>['results'][number] : never;
 
 const ChargePointStatsTable: React.FC = () => {
     const [stats, setStats] = useState<ChargePointStat[]>([]);
@@ -23,13 +17,9 @@ const ChargePointStatsTable: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`http://localhost:8000/api/charge-point-stats?page=${page}&page_size=${PAGE_SIZE}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch statistics');
-            }
-            const data = await response.json();
-            setStats(Array.isArray(data.results) ? data.results : []);
-            setTotal(typeof data.total === 'number' ? data.total : 0);
+            const { results, total } = await fetchChargePointStats(page);
+            setStats(results);
+            setTotal(total);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
@@ -51,25 +41,19 @@ const ChargePointStatsTable: React.FC = () => {
         }
     };
 
-    // Google-like advanced pagination logic
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
         if (totalPages <= 9) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
-            // Always show first 3
             pages.push(1, 2, 3);
-            // Show left ... if needed
             if (currentPage > 5) pages.push('left-ellipsis');
-            // Show currentPage-1, currentPage, currentPage+1 if in the middle
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
             for (let i = start; i <= end; i++) {
                 if (i > 3 && i < totalPages - 2) pages.push(i);
             }
-            // Show right ... if needed
             if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-            // Always show last 3
             pages.push(totalPages - 2, totalPages - 1, totalPages);
         }
         return pages;
@@ -99,34 +83,40 @@ const ChargePointStatsTable: React.FC = () => {
     if (!Array.isArray(stats) || stats.length === 0) return <div>Geen data gevonden.</div>;
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="charge-point-stats-container">
             <h2>Statistieken per laadpunt (ID)</h2>
             <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table className="charge-point-stats-table">
                     <thead>
                         <tr>
-                            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Charge Point ID</th>
-                            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Land</th>
-                            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Aantal transacties</th>
-                            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Totaal volume (kWh)</th>
-                            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Totale kosten (€)</th>
+                            <th>Charge Point ID</th>
+                            <th>Land</th>
+                            <th>Aantal transacties</th>
+                            <th>Totaal volume (kWh)</th>
+                            <th>Totale kosten (€)</th>
                         </tr>
                     </thead>
                     <tbody>
                         {stats.map((stat) => (
                             <tr key={stat.Charge_Point_ID + stat.Charge_Point_Country}>
-                                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{stat.Charge_Point_ID}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{stat.Charge_Point_Country}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'right' }}>{stat.transaction_count}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'right' }}>{stat.total_volume.toFixed(2)}</td>
-                                <td style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'right' }}>€ {stat.total_cost.toFixed(2)}</td>
+                                <td>{stat.Charge_Point_ID}</td>
+                                <td>{stat.Charge_Point_Country}</td>
+                                <td className="text-right">{stat.transaction_count}</td>
+                                <td className="text-right">{stat.total_volume.toFixed(2)}</td>
+                                <td className="text-right">€ {stat.total_cost.toFixed(2)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <button onClick={() => handlePageClick(currentPage - 1)} disabled={currentPage === 1} style={{ padding: '6px 12px' }}>Vorige</button>
+            <div className="pagination-container">
+                <button 
+                    className="pagination-button"
+                    onClick={() => handlePageClick(currentPage - 1)} 
+                    disabled={currentPage === 1}
+                >
+                    Vorige
+                </button>
                 {getPageNumbers().map((page, idx) => {
                     if (page === 'left-ellipsis') {
                         return showInput.left ? (
@@ -137,11 +127,17 @@ const ChargePointStatsTable: React.FC = () => {
                                 onChange={handleInputChange}
                                 onBlur={() => setShowInput({left: false, right: false})}
                                 onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('left'); }}
-                                style={{ width: 40, textAlign: 'center', border: '1px solid #1976d2', borderRadius: 4 }}
+                                className="pagination-input"
                                 autoFocus
                             />
                         ) : (
-                            <span key={idx} style={{ padding: '6px 12px', color: '#888', cursor: 'pointer' }} onClick={() => handleEllipsisClick('left')}>...</span>
+                            <span 
+                                key={idx} 
+                                className="pagination-ellipsis" 
+                                onClick={() => handleEllipsisClick('left')}
+                            >
+                                ...
+                            </span>
                         );
                     }
                     if (page === 'right-ellipsis') {
@@ -153,35 +149,39 @@ const ChargePointStatsTable: React.FC = () => {
                                 onChange={handleInputChange}
                                 onBlur={() => setShowInput({left: false, right: false})}
                                 onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('right'); }}
-                                style={{ width: 40, textAlign: 'center', border: '1px solid #1976d2', borderRadius: 4 }}
+                                className="pagination-input"
                                 autoFocus
                             />
                         ) : (
-                            <span key={idx} style={{ padding: '6px 12px', color: '#888', cursor: 'pointer' }} onClick={() => handleEllipsisClick('right')}>...</span>
+                            <span 
+                                key={idx} 
+                                className="pagination-ellipsis" 
+                                onClick={() => handleEllipsisClick('right')}
+                            >
+                                ...
+                            </span>
                         );
                     }
                     return (
                         <button
                             key={page}
                             onClick={() => handlePageClick(Number(page))}
-                            style={{
-                                padding: '6px 12px',
-                                fontWeight: page === currentPage ? 'bold' : 'normal',
-                                background: page === currentPage ? '#1976d2' : 'white',
-                                color: page === currentPage ? 'white' : '#1976d2',
-                                border: '1px solid #1976d2',
-                                borderRadius: '4px',
-                                margin: '0 2px',
-                                cursor: page === currentPage ? 'default' : 'pointer',
-                                pointerEvents: page === currentPage ? 'none' : 'auto',
-                            }}
-                        >{page}</button>
+                            className={`pagination-button ${page === currentPage ? 'active' : ''}`}
+                        >
+                            {page}
+                        </button>
                     );
                 })}
-                <button onClick={() => handlePageClick(currentPage + 1)} disabled={currentPage === totalPages} style={{ padding: '6px 12px' }}>Volgende</button>
+                <button 
+                    className="pagination-button"
+                    onClick={() => handlePageClick(currentPage + 1)} 
+                    disabled={currentPage === totalPages}
+                >
+                    Volgende
+                </button>
             </div>
         </div>
     );
 };
 
-export default ChargePointStatsTable; 
+export default ChargePointStatsTable;

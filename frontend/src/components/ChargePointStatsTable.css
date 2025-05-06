@@ -1,0 +1,64 @@
+.charge-point-stats-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.charge-point-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.charge-point-stats-table th,
+.charge-point-stats-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+.charge-point-stats-table td.text-right {
+    text-align: right;
+}
+
+.pagination-container {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-button {
+    padding: 6px 12px;
+    border: 1px solid #1976d2;
+    border-radius: 4px;
+    margin: 0 2px;
+    cursor: pointer;
+    background: white;
+    color: #1976d2;
+}
+
+.pagination-button.active {
+    background: #1976d2;
+    color: white;
+    cursor: default;
+    pointer-events: none;
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-ellipsis {
+    padding: 6px 12px;
+    color: #888;
+    cursor: pointer;
+}
+
+.pagination-input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #1976d2;
+    border-radius: 4px;
+}

@@ -8,6 +8,8 @@ export const TabelForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [sortField, setSortField] = useState<keyof TabelData | null>(null);
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const navigate = useNavigate();
 
     const ITEMS_PER_PAGE = 10;
@@ -32,9 +34,29 @@ export const TabelForm: React.FC = () => {
         navigate(`/details/${item.CDR_ID}`);
     };
 
+    const handleSort = (field: keyof TabelData) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
+
+    const sortedData = [...data].sort((a, b) => {
+        if (!sortField) return 0;
+        const valA = a[sortField] ?? 0;
+        const valB = b[sortField] ?? 0;
+
+        if (typeof valA === "number" && typeof valB === "number") {
+            return sortDirection === "asc" ? valA - valB : valB - valA;
+        }
+        return 0;
+    });
+
     const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const visibleData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const visibleData = sortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     if (loading) return <div>Loading data...</div>;
     if (error) return <div>{error}</div>;
@@ -50,10 +72,14 @@ export const TabelForm: React.FC = () => {
                     <tr>
                         <th>CDR ID</th>
                         <th>Authentication ID</th>
-                        <th>Duration</th>
-                        <th>Volume</th>
+                        <th> Duration</th>
+                        <th onClick={() => handleSort("Volume")} className="sortable-header">
+                            Volume {sortField === "Volume" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+                        </th>
                         <th>Charge Point ID</th>
-                        <th>Calculated Cost</th>
+                        <th onClick={() => handleSort("Calculated_Cost")} className="sortable-header">
+                            Calculated Cost {sortField === "Calculated_Cost" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -74,11 +100,11 @@ export const TabelForm: React.FC = () => {
             </div>
             <div className="pagination">
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((page) => (
+                    .filter((page) =>
                         page === 1 ||
                         page === totalPages ||
                         (page >= currentPage - 1 && page <= currentPage + 1)
-                    ))
+                    )
                     .reduce((acc: (number | "...")[], page, i, arr) => {
                         if (i > 0 && page - (arr[i - 1] as number) > 1) {
                             acc.push("...");

@@ -14,6 +14,7 @@
 .tabel-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed; /* Ensure columns don't shift */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -22,8 +23,41 @@
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* Prevent text overflow */
 }
 
+/* Set fixed widths for columns with more balanced widths */
+.tabel-table th:nth-child(1),
+.tabel-table td:nth-child(1) {
+    width: 15%; /* Adjusted width */
+}
+
+.tabel-table th:nth-child(2),
+.tabel-table td:nth-child(2) {
+    width: 20%; /* Adjusted width */
+}
+
+.tabel-table th:nth-child(3),
+.tabel-table td:nth-child(3) {
+    width: 15%; /* Adjusted width */
+}
+
+.tabel-table th:nth-child(4),
+.tabel-table td:nth-child(4) {
+    width: 15%; /* Adjusted width */
+}
+
+.tabel-table th:nth-child(5),
+.tabel-table td:nth-child(5) {
+    width: 20%; /* Adjusted width */
+}
+
+.tabel-table th:nth-child(6),
+.tabel-table td:nth-child(6) {
+    width: 15%; /* Adjusted width */
+}
+
+/* Header row styles */
 .tabel-table th {
     background-color: #f8f8f8;
     font-weight: bold;
@@ -38,6 +72,17 @@
     color: #333;
 }
 
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header:hover {
+    text-decoration: underline;
+    text-decoration-color: blue;
+    color: blue;
+}
+
+/* Mobile responsiveness */
 @media (max-width: 768px) {
     .tabel-table,
     .tabel-table thead,
@@ -85,7 +130,7 @@
         margin-bottom: 1rem;
         width: 100%;
     }
-    
+
     .pagination-info.aligned-right {
         display: flex;
         justify-content: flex-end;
@@ -109,5 +154,15 @@
         background-color: #fafafa;
         border: 1px solid #ddd;
         border-radius: 4px;
-    }    
+    }
+    
+    .sortable-header {
+        cursor: pointer;
+    }
+    
+    .sortable-header:hover {
+        text-decoration: underline;
+        text-decoration-color: lightgray;
+        color: darkblue;
+    }
 }

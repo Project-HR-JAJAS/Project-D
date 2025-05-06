@@ -6,6 +6,8 @@ import logging
 import os
 from typing import Tuple, Optional
 
+from fraude_detectie import Fraude_detectie
+
 
 class DbContext:
     def __init__(self, db_name="project-d.db"):
@@ -203,6 +205,12 @@ class DbContext:
                 f"Successfully imported {len(records)} records from {file_name}"
             )
             print(f"Successfully imported {len(records)} records from {file_name}")
+
+            # Call Fraude_detectie after importing
+            detector = Fraude_detectie.FraudeDetector(self.db_name)
+            fraude_resultaat = detector.detecteer_fraude()
+            print(f"Fraudedetectie voltooid. Gevonden cases: {len(fraude_resultaat)}")
+            
             return len(records)
 
         except Exception as e:

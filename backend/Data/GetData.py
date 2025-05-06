@@ -1,4 +1,4 @@
-from Data.DbContext import DbContext
+from data.DbContext import DbContext
 
 class GetAll:
     def __init__(self):
@@ -8,6 +8,13 @@ class GetAll:
         db = DbContext()
         db.connect()
         self.data = db.GetAllDataFromDatabase()
+        db.close()
+        return self.data
+    
+    def fetch_data_Number(self):
+        db = DbContext()
+        db.connect()
+        self.data = db.GetAllDataFromDatabaseNumber()
         db.close()
         return self.data
     

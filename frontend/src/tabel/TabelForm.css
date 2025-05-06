@@ -162,7 +162,7 @@
     
     .sortable-header:hover {
         text-decoration: underline;
-        text-decoration-color: lightgray;
-        color: darkblue;
+        text-decoration-color: blue;
+        color:blue;
     }
 }

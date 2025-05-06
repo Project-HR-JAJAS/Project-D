@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { TabelForm } from '../tabel/Tabel';
+import { SuspCharges } from './SuspCharges';
 import DataTablePreview from '../tabel/DataTablePreview';
 import { fetchChargeData, ChargeData } from './Home.api';
 
@@ -111,6 +111,10 @@ const Home: React.FC = () => {
             <Helmet>
                 <title>Charging Sessions Dashboard</title>
             </Helmet>
+            
+            {/* <div>
+                <SuspCharges />
+            </div> */}
     
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
     

@@ -116,6 +116,16 @@ class DbContext:
         else:
             print("No database connection. Call connect() first.")
             return None
+        
+    def GetAllDataFromDatabaseNumber(self):
+        """Retrieve all CDR records."""
+        if self.connection:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT COUNT(*) FROM CDR")
+            return cursor.fetchone()[0]
+        else:
+            print("No database connection. Call connect() first.")
+            return None
 
     def close(self):
         """Close the database connection."""

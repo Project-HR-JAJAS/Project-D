@@ -111,4 +111,14 @@
 .data-table th:nth-child(6),
 .data-table td:nth-child(6) {
     width: 120px;
-} 
+}
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header:hover {
+    text-decoration: underline;
+    text-decoration-color: blue;
+    color: blue;
+}

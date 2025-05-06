@@ -1,0 +1,127 @@
+.userstats-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.userstats-title {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.userstats-loading,
+.userstats-empty {
+  text-align: center;
+  padding: 40px;
+  color: #555;
+  font-size: 1.1rem;
+}
+
+.userstats-table-wrapper {
+  overflow-x: auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.userstats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.userstats-table th,
+.userstats-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.userstats-table thead {
+  background-color: #f2f2f2;
+}
+
+.userstats-table tr.even {
+  background-color: white;
+}
+
+.userstats-table tr.odd {
+  background-color: #f9f9f9;
+}
+
+.page-numbers {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.page-number-button {
+  padding: 5px 10px;
+  background-color: #f2f2f2;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-number-button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.page-number-ellipsis {
+  padding: 5px;
+}
+
+.page-number-input {
+  width: 50px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.sortable-header {
+  cursor: pointer;
+}
+
+.sortable-header:hover {
+  text-decoration: underline;
+  text-decoration-color: blue;
+  color: blue;
+}
+
+/* Zorg voor consistente kolombreedtes zodat ▲▼ geen layoutverschuiving veroorzaakt */
+.userstats-table th:nth-child(1),
+.userstats-table td:nth-child(1) {
+width: 220px; /* Authentication ID */
+}
+
+.userstats-table th:nth-child(2),
+.userstats-table td:nth-child(2) {
+width: 160px; /* Aantal Transacties */
+}
+
+.userstats-table th:nth-child(3),
+.userstats-table td:nth-child(3) {
+width: 180px; /* Totaal Volume */
+}
+
+.userstats-table th:nth-child(4),
+.userstats-table td:nth-child(4) {
+width: 180px; /* Totaal Kosten */
+}
+
+.userstats-search-wrapper {
+  margin-bottom: 15px;
+  text-align: right;
+}
+
+.userstats-search {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 300px;
+}

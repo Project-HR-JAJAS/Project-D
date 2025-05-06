@@ -30,7 +30,7 @@ const DataTablePreview: React.FC = () => {
     if (!Array.isArray(data) || data.length === 0) return <div>Geen data gevonden.</div>;
 
     return (
-        <div className="data-table-container" style={{ maxWidth: 900, margin: '0 auto', padding: 0 }}>
+        <div className="data-table-container" style={{ maxWidth: 1200, margin: '0 auto', padding: 0 }}>
             <h2 style={{ fontSize: '1.3rem', marginBottom: 10 }}>Laatste transacties</h2>
             <div style={{ overflowX: 'auto' }}>
                 <table className="data-table">

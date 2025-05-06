@@ -3,6 +3,7 @@ import { Chart as ChartJS, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { TabelForm } from '../tabel/Tabel';
+import DataTablePreview from '../tabel/DataTablePreview';
 
 ChartJS.register(...registerables);
 
@@ -130,9 +131,7 @@ const Home: React.FC = () => {
                 <canvas id="chargeChart" ref={chartRef} height="400"></canvas>
             </div>
     
-            <div className="tabel-wrapper">
-                <TabelForm />
-            </div>
+            <DataTablePreview />
         </div>
     );
 };

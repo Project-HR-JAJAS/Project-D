@@ -220,7 +220,7 @@ async def get_all_records():
 @app.get("/tabel/allNumbers")
 async def get_all_records():
     getAllInstance = GetAll()
-    data = getAllInstance.fetch_data_()
+    data = getAllInstance.fetch_data_Number()
     return data
 
 @app.get("/tabel/{cdrID}")

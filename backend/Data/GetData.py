@@ -11,6 +11,13 @@ class GetAll:
         db.close()
         return self.data
     
+    def fetch_data_Number(self):
+        db = DbContext()
+        db.connect()
+        self.data = db.GetAllDataFromDatabaseNumber()
+        db.close()
+        return self.data
+    
     def fetch_one_data(self, cdr_id):
         db = DbContext()
         db.connect()

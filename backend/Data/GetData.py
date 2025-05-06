@@ -1,4 +1,4 @@
-from Data.DbContext import DbContext
+from .DbContext import DbContext
 
 class GetAll:
     def __init__(self):

@@ -220,3 +220,6 @@ backend/import_log.txt
 backend/program.py
 frontend/package-lock.json
 frontend/yarn.lock
+backend/__init__.py
+Tests/UnitTests/__init__.py
+Tests/UnitTests/ChargePointStats/__init__.py

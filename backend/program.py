@@ -371,6 +371,61 @@ async def get_charge_point_stats(page: int = Query(1, ge=1), page_size: int = Qu
             db.close()
         raise HTTPException(status_code=500, detail=f"Error fetching charge point statistics: {str(e)}")
 
+@app.get("/api/data-table")
+async def get_data_table(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    sort_by: str = Query(None),
+    sort_dir: str = Query(None)
+):
+    try:
+        db = DbContext()
+        db.connect()
+        
+        # Calculate offset for pagination
+        offset = (page - 1) * page_size
+        
+        # Get total count
+        cursor = db.connection.cursor()
+        cursor.execute("SELECT COUNT(*) FROM CDR")
+        total = cursor.fetchone()[0]
+        
+        # Validate sorting
+        valid_sort_columns = {'volume': 'Volume', 'calculated_cost': 'Calculated_Cost'}
+        valid_sort_dirs = {'asc', 'desc'}
+        order_clause = "ORDER BY Start_datetime DESC"
+        if sort_by in valid_sort_columns and sort_dir in valid_sort_dirs:
+            order_clause = f"ORDER BY {valid_sort_columns[sort_by]} {sort_dir.upper()}"
+        
+        # Get paginated data with correct columns
+        query = f"""
+            SELECT 
+                CDR_ID as id,
+                Authentication_ID as authentication_id,
+                Duration as duration,
+                CAST(Volume AS FLOAT) as volume,
+                Charge_Point_ID as charge_point_id,
+                CAST(Calculated_Cost AS FLOAT) as calculated_cost
+            FROM CDR 
+            {order_clause}
+            LIMIT ? OFFSET ?
+        """
+        
+        cursor.execute(query, (page_size, offset))
+        columns = [description[0] for description in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+        db.close()
+        return {
+            "results": results,
+            "total": total
+        }
+        
+    except Exception as e:
+        if db.connection:
+            db.close()
+        raise HTTPException(status_code=500, detail=f"Error fetching data table: {str(e)}")
+
 def main():
     pass
 

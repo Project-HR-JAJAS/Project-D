@@ -2,12 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { TabelForm } from '../tabel/Tabel';
-<<<<<<< HEAD:frontend/src/Home/home.tsx
 import { SuspCharges } from './SuspCharges';
-=======
 import DataTablePreview from '../tabel/DataTablePreview';
->>>>>>> bf444163d5c3a8c03a7555c33eec65028a665c07:frontend/src/Home/Home.tsx
 
 ChartJS.register(...registerables);
 

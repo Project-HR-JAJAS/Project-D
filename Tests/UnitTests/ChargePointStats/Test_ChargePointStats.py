@@ -1,16 +1,5 @@
 import unittest
 from fastapi.testclient import TestClient
-import sys
-import os
-from pathlib import Path
-
-# Add both the project root and backend directory to the Python path
-project_root = str(Path(__file__).parent.parent.parent)
-backend_path = os.path.join(project_root, 'backend')
-sys.path.insert(0, project_root)
-sys.path.insert(0, backend_path)
-
-# Now we can import the app
 from backend.program import app
 
 class TestChargePointStats(unittest.TestCase):

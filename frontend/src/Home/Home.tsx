@@ -4,13 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { SuspCharges } from './SuspCharges';
 import DataTablePreview from '../tabel/DataTablePreview';
+import { fetchChargeData, ChargeData } from './Home.api';
 
 ChartJS.register(...registerables);
-
-interface ChargeData {
-    TimeRange: string;
-    TotalCharges: number;
-}
 
 const Home: React.FC = () => {
     const chartRef = useRef<HTMLCanvasElement | null>(null);
@@ -19,18 +15,9 @@ const Home: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/charge-counts')
-            .then(res => res.json())
-            .then(data => {
-                const timeRanges = ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000'];
-                const completeData = timeRanges.map(tr => 
-                    data.find((item: ChargeData) => item.TimeRange === tr) || 
-                    { TimeRange: tr, TotalCharges: 0 }
-                );
-                setChargeData(completeData);
-            })
-            .catch(error => console.error('Error fetching charge data:', error));
+        fetchChargeData().then(setChargeData);
     }, []);
+    
 
     useEffect(() => {
         if (chartRef.current && chargeData.length > 0) {

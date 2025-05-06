@@ -316,6 +316,18 @@ async def get_overlaps_for_cdr(cdr_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# Endpoint die alle statistieken per Authentication_ID retourneert voor gebruik in frontend-tabellen
+@app.get("/api/user-stats")
+async def get_user_stats():
+    try:
+        db = DbContext()
+        stats = db.get_user_stats()
+        return stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching user stats: {str(e)}")
+
+
 @app.get("/api/charge-point-stats")
 async def get_charge_point_stats(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     try:

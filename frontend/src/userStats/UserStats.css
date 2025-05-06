@@ -1,83 +1,52 @@
-.overlap-container {
+.userstats-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.overlap-title {
+.userstats-title {
   margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: bold;
 }
 
-.overlap-loading,
-.overlap-empty {
+.userstats-loading,
+.userstats-empty {
   text-align: center;
   padding: 40px;
   color: #555;
   font-size: 1.1rem;
 }
 
-.overlap-table-wrapper {
+.userstats-table-wrapper {
   overflow-x: auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.overlap-table {
+.userstats-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.overlap-table th,
-.overlap-table td {
+.userstats-table th,
+.userstats-table td {
   padding: 12px;
   border: 1px solid #ddd;
   text-align: left;
   white-space: nowrap;
 }
 
-.overlap-table thead {
+.userstats-table thead {
   background-color: #f2f2f2;
 }
 
-.overlap-table tr.even {
+.userstats-table tr.even {
   background-color: white;
 }
 
-.overlap-table tr.odd {
+.userstats-table tr.odd {
   background-color: #f9f9f9;
-}
-
-.overlap-pagination-info {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.overlap-pagination-controls {
-  display: flex;
-  gap: 10px;
-}
-
-.overlap-pagination-button {
-  padding: 6px 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.overlap-pagination-button.disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.overlap-page-indicator {
-  padding: 6px 10px;
 }
 
 .page-numbers {
@@ -104,6 +73,7 @@
 .page-number-ellipsis {
   padding: 5px;
 }
+
 .page-number-input {
   width: 50px;
   padding: 5px;
@@ -112,12 +82,43 @@
   text-align: center;
 }
 
-.overlap-search-wrapper {
+.sortable-header {
+  cursor: pointer;
+}
+
+.sortable-header:hover {
+  text-decoration: underline;
+  text-decoration-color: blue;
+  color: blue;
+}
+
+/* Zorg voor consistente kolombreedtes zodat ▲▼ geen layoutverschuiving veroorzaakt */
+.userstats-table th:nth-child(1),
+.userstats-table td:nth-child(1) {
+width: 220px; /* Authentication ID */
+}
+
+.userstats-table th:nth-child(2),
+.userstats-table td:nth-child(2) {
+width: 160px; /* Aantal Transacties */
+}
+
+.userstats-table th:nth-child(3),
+.userstats-table td:nth-child(3) {
+width: 180px; /* Totaal Volume */
+}
+
+.userstats-table th:nth-child(4),
+.userstats-table td:nth-child(4) {
+width: 180px; /* Totaal Kosten */
+}
+
+.userstats-search-wrapper {
   margin-bottom: 15px;
   text-align: right;
 }
 
-.overlap-search {
+.userstats-search {
   padding: 8px 12px;
   font-size: 14px;
   border: 1px solid #ccc;

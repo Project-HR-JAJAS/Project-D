@@ -112,9 +112,9 @@ const Home: React.FC = () => {
                 <title>Charging Sessions Dashboard</title>
             </Helmet>
             
-            <div>
+            {/* <div>
                 <SuspCharges />
-            </div>
+            </div> */}
     
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
     

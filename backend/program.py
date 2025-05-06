@@ -4,8 +4,6 @@ from data.GetData import GetAll
 from data.DbContext import DbContext
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from data.GetData import GetAll
-from data.DbContext import DbContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk

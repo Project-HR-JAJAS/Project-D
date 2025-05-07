@@ -388,29 +388,38 @@ async def get_data_table(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     sort_by: str = Query(None),
-    sort_dir: str = Query(None)
+    sort_dir: str = Query(None),
+    search: str = Query(None)
 ):
     try:
         db = DbContext()
         db.connect()
-        
-        # Calculate offset for pagination
+
         offset = (page - 1) * page_size
-        
-        # Get total count
         cursor = db.connection.cursor()
-        cursor.execute("SELECT COUNT(*) FROM CDR")
+
+        # Prepare filtering clause
+        where_clause = ""
+        params = []
+
+        if search:
+            where_clause = "WHERE LOWER(Authentication_ID) LIKE ?"
+            params.append(f"%{search.lower()}%")
+
+        # Total count with search
+        total_query = f"SELECT COUNT(*) FROM CDR {where_clause}"
+        cursor.execute(total_query, params)
         total = cursor.fetchone()[0]
-        
+
         # Validate sorting
         valid_sort_columns = {'volume': 'Volume', 'calculated_cost': 'Calculated_Cost'}
         valid_sort_dirs = {'asc', 'desc'}
         order_clause = "ORDER BY Start_datetime DESC"
         if sort_by in valid_sort_columns and sort_dir in valid_sort_dirs:
             order_clause = f"ORDER BY {valid_sort_columns[sort_by]} {sort_dir.upper()}"
-        
-        # Get paginated data with correct columns
-        query = f"""
+
+        # Data query with search
+        data_query = f"""
             SELECT 
                 CDR_ID as id,
                 Authentication_ID as authentication_id,
@@ -418,21 +427,23 @@ async def get_data_table(
                 Volume as volume,
                 Charge_Point_ID as charge_point_id,
                 Calculated_Cost as calculated_cost
-            FROM CDR 
+            FROM CDR
+            {where_clause}
             {order_clause}
             LIMIT ? OFFSET ?
         """
-        
-        cursor.execute(query, (page_size, offset))
+        params.extend([page_size, offset])
+        cursor.execute(data_query, params)
+
         columns = [description[0] for description in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+
         db.close()
         return {
             "results": results,
             "total": total
         }
-        
+
     except Exception as e:
         if db.connection:
             db.close()
@@ -454,4 +465,4 @@ if __name__ == "__main__":
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

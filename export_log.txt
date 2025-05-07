@@ -1,0 +1,1 @@
+2025-05-07 13:51:05,203 - INFO - Successfully exported 12924 records to C:\Users\dauvi\AppData\Local\Temp\tmpzhddd6hh.xlsx

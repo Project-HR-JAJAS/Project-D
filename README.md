@@ -7,6 +7,9 @@
 - Jasper van der Laan 1073788
 - Stéphane Dauvillier 1060531
 
-backend run: ```python -m backend.program``` or ```python program.py```
-frontend run: ```yarn start```
+Inside Project-D directory -> run backend with: 
+```python -m backend.program``` 
+
+In frontend directory run frontend with: 
+```yarn start```
 ---

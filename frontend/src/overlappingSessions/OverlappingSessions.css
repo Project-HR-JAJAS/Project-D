@@ -27,6 +27,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  background-color: white;
 }
 
 .overlap-table th,
@@ -62,59 +63,60 @@
   gap: 10px;
 }
 
-.overlap-pagination-button {
-  padding: 6px 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.pagination-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.overlap-pagination-button.disabled {
-  background-color: #ccc;
+.pagination-button {
+  padding: 6px 12px;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
+  margin: 0 2px;
+  cursor: pointer;
+  background: white;
+  color: #1976d2;
+}
+
+.pagination-button.active {
+  background: #1976d2;
+  color: white;
+  cursor: default;
+  pointer-events: none;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.overlap-page-indicator {
-  padding: 6px 10px;
-}
-
-.page-numbers {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-}
-
-.page-number-button {
-  padding: 5px 10px;
-  background-color: #f2f2f2;
-  color: #333;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.pagination-ellipsis {
+  padding: 6px 12px;
+  color: #888;
   cursor: pointer;
 }
 
-.page-number-button.active {
-  background-color: #007bff;
-  color: white;
-}
-
-.page-number-ellipsis {
-  padding: 5px;
-}
-.page-number-input {
-  width: 50px;
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.pagination-input {
+  width: 40px;
   text-align: center;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
 }
 
 .overlap-search-wrapper {
   margin-bottom: 15px;
-  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.overlap-search-wrapper h2 {
+  margin: 0;
+  font-size: 24px;
 }
 
 .overlap-search {
@@ -123,4 +125,45 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 300px;
+}
+
+.sortable-header {
+  cursor: pointer;
+}
+
+.sortable-header:hover {
+  text-decoration: underline;
+  text-decoration-color: blue;
+  color: blue;
+}
+
+/* Consistent column widths */
+.overlap-table th:nth-child(1),
+.overlap-table td:nth-child(1) {
+  width: 220px; /* Authentication ID */
+}
+
+.overlap-table th:nth-child(2),
+.overlap-table td:nth-child(2) {
+  width: 180px; /* Start Time */
+}
+
+.overlap-table th:nth-child(3),
+.overlap-table td:nth-child(3) {
+  width: 180px; /* End Time */
+}
+
+.overlap-table th:nth-child(4),
+.overlap-table td:nth-child(4) {
+  width: 120px; /* City */
+}
+
+.overlap-table th:nth-child(5),
+.overlap-table td:nth-child(5) {
+  width: 120px; /* Volume */
+}
+
+.overlap-table th:nth-child(6),
+.overlap-table td:nth-child(6) {
+  width: 100px; /* Overlaps */
 }

@@ -1,20 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './OverlappingSessions.css';
 import OverlappingModal from './OverlappingModal';
-
-interface OverlappingSession {
-  CDR_ID: string;
-  Authentication_ID: string;
-  Start_datetime: string;
-  End_datetime: string;
-  Charge_Point_City: string;
-  Volume: number;
-  OverlappingCount?: number;
-}
+import { useData } from '../context/DataContext';
 
 const OverlappingSessions: React.FC = () => {
-  const [data, setData] = useState<OverlappingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { overlappingSessions, loading, error } = useData();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCdrId, setSelectedCdrId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -24,16 +14,9 @@ const OverlappingSessions: React.FC = () => {
 
   const itemsPerPage = 50;
 
-  useEffect(() => {
-    fetch("http://localhost:8000/api/overlapping-sessions")
-      .then(res => res.json())
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, []);
-
   const formatDate = (value: string) => new Date(value).toLocaleString();
 
-  const filteredData = data.filter(item =>
+  const filteredData = overlappingSessions.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -89,9 +72,8 @@ const OverlappingSessions: React.FC = () => {
 
   return (
     <div className="overlap-container">
-      <h2 className="overlap-title">Overlapping Sessions per Charge Card</h2>
-
       <div className="overlap-search-wrapper">
+        <h2 className="overlap-title">Overlapping Sessions per Charge Card</h2>
         <input
           type="text"
           placeholder="Zoek op Authentication ID..."
@@ -104,8 +86,10 @@ const OverlappingSessions: React.FC = () => {
         />
       </div>
 
-      {loading ? (
+      {loading.overlappingSessions ? (
         <div className="overlap-loading">Loading...</div>
+      ) : error.overlappingSessions ? (
+        <div className="overlap-empty">Error: {error.overlappingSessions}</div>
       ) : filteredData.length === 0 ? (
         <div className="overlap-empty">Geen resultaten gevonden</div>
       ) : (

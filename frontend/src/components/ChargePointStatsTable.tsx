@@ -1,37 +1,65 @@
-import React, { useEffect, useState } from 'react';
-import { fetchChargePointStats, PAGE_SIZE } from './ChargePointStatsTable.api';
+import React, { useState } from 'react';
+import { PAGE_SIZE } from './ChargePointStatsTable.api';
+import { useData } from '../context/DataContext';
 import './ChargePointStatsTable.css';
 
-type ChargePointStat = Parameters<typeof fetchChargePointStats>[0] extends number ? Awaited<ReturnType<typeof fetchChargePointStats>>['results'][number] : never;
+interface ChargePointStat {
+    Charge_Point_ID: string;
+    Charge_Point_Country: string;
+    transaction_count: number;
+    total_volume: number;
+    total_cost: number;
+}
 
 const ChargePointStatsTable: React.FC = () => {
-    const [stats, setStats] = useState<ChargePointStat[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { chargePointStats, loading, error } = useData();
     const [currentPage, setCurrentPage] = useState(1);
-    const [total, setTotal] = useState(0);
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchField, setSearchField] = useState<'Charge_Point_ID' | 'Charge_Point_Country'>('Charge_Point_ID');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof ChargePointStat | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
 
-    const fetchStats = async (page: number) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { results, total } = await fetchChargePointStats(page);
-            setStats(results);
-            setTotal(total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
+    // Client-side filtering
+    const filteredStats = chargePointStats.filter((stat: ChargePointStat) => {
+        const value = stat[searchField] ?? '';
+        return value.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    // Client-side sorting
+    const sortedStats = [...filteredStats];
+    if (sortConfig.key && sortConfig.direction) {
+        sortedStats.sort((a, b) => {
+            const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+            const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+            return 0;
+        });
+    }
+
+    const totalPages = Math.ceil(sortedStats.length / PAGE_SIZE);
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const currentStats = sortedStats.slice(startIndex, endIndex);
+
+    const handleSort = (key: keyof ChargePointStat) => {
+        setSortConfig(prev => {
+            if (prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            if (prev.direction === 'desc') return { key: null, direction: null };
+            return { key, direction: 'asc' };
+        });
+        setCurrentPage(1);
     };
 
-    useEffect(() => {
-        fetchStats(currentPage);
-    }, [currentPage]);
-
-    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const getSortIndicator = (key: keyof ChargePointStat) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+        }
+        return '';
+    };
 
     const handlePageClick = (page: number) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {
@@ -78,34 +106,69 @@ const ChargePointStatsTable: React.FC = () => {
         }
     };
 
-    if (loading) return <div>Laden...</div>;
-    if (error) return <div>Error: {error}</div>;
-    if (!Array.isArray(stats) || stats.length === 0) return <div>Geen data gevonden.</div>;
+    if (loading.chargePoints) return <div>Laden...</div>;
+    if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
 
     return (
         <div className="charge-point-stats-container">
-            <h2>Statistieken per laadpunt (ID)</h2>
+            <div className="userstats-search-wrapper">
+                <h2>Charge Point Statistieken</h2>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <select
+                        value={searchField}
+                        onChange={e => setSearchField(e.target.value as 'Charge_Point_ID' | 'Charge_Point_Country')}
+                        className="userstats-search-dropdown"
+                    >
+                        <option value="Charge_Point_ID">Charge Point ID</option>
+                        <option value="Charge_Point_Country">Land</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder={searchField === 'Charge_Point_ID' ? 'Zoek op Charge Point ID...' : 'Zoek op Land...'}
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="userstats-search"
+                    />
+                </div>
+            </div>
             <div style={{ overflowX: 'auto' }}>
                 <table className="charge-point-stats-table">
                     <thead>
                         <tr>
                             <th>Charge Point ID</th>
                             <th>Land</th>
-                            <th>Aantal transacties</th>
-                            <th>Totaal volume (kWh)</th>
-                            <th>Totale kosten (€)</th>
+                            <th className="sortable-header" onClick={() => handleSort('transaction_count')}>
+                                Aantal Transacties{getSortIndicator('transaction_count')}
+                            </th>
+                            <th className="sortable-header" onClick={() => handleSort('total_volume')}>
+                                Totaal Volume{getSortIndicator('total_volume')}
+                            </th>
+                            <th className="sortable-header" onClick={() => handleSort('total_cost')}>
+                                Totaal Kosten{getSortIndicator('total_cost')}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {stats.map((stat) => (
-                            <tr key={stat.Charge_Point_ID + stat.Charge_Point_Country}>
-                                <td>{stat.Charge_Point_ID}</td>
-                                <td>{stat.Charge_Point_Country}</td>
-                                <td className="text-right">{stat.transaction_count}</td>
-                                <td className="text-right">{stat.total_volume.toFixed(2)}</td>
-                                <td className="text-right">€ {stat.total_cost.toFixed(2)}</td>
+                        {currentStats.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="no-data-row">
+                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                </td>
                             </tr>
-                        ))}
+                        ) : (
+                            currentStats.map((stat: ChargePointStat) => (
+                                <tr key={stat.Charge_Point_ID}>
+                                    <td>{stat.Charge_Point_ID}</td>
+                                    <td>{stat.Charge_Point_Country}</td>
+                                    <td>{stat.transaction_count}</td>
+                                    <td>{stat.total_volume}</td>
+                                    <td>{stat.total_cost}</td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>

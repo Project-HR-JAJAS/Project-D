@@ -1,58 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { fetchDataTable, PAGE_SIZE } from './DataTable.api';
+import React, { useState } from 'react';
+import { PAGE_SIZE } from './DataTable.api';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
 import './DataTable.css';
 
-type DataTableItem = Parameters<typeof fetchDataTable>[0] extends number ? Awaited<ReturnType<typeof fetchDataTable>>['results'][number] : never;
+interface DataTableItem {
+    id: number;
+    authentication_id: string;
+    duration: string;
+    volume: number;
+    charge_point_id: string;
+    calculated_cost: number;
+}
 
 const DataTable: React.FC = () => {
-    const [data, setData] = useState<DataTableItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { dataTableItems, loading, error } = useData();
     const [currentPage, setCurrentPage] = useState(1);
-    const [total, setTotal] = useState(0);
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{key: 'volume' | 'calculated_cost' | null, direction: 'asc' | 'desc' | null}>({key: null, direction: null});
     const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-    // Debounce logic
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm);
-        }, 1000); // Adjust debounce delay as needed
-
-        return () => clearTimeout(handler);
-    }, [searchTerm]);
-
-    const fetchData = async (
-        page: number,
-        sortKey: 'volume' | 'calculated_cost' | null,
-        sortDir: 'asc' | 'desc' | null
-    ) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { results, total } = await fetchDataTable(page, sortKey, sortDir, PAGE_SIZE, debouncedSearchTerm); // Use debounced search term
-            setData(results);
-            setTotal(total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData(currentPage, sortConfig.key, sortConfig.direction);
-    }, [currentPage, sortConfig, debouncedSearchTerm]); // Use debouncedSearchTerm here
-
-    const filteredData = data.filter(item =>
-        (item.authentication_id ?? '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) // Use debounced search term
+    // Client-side filtering
+    const filteredData = dataTableItems.filter(item =>
+        (item.authentication_id ?? '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Client-side sorting
     const sortedData = [...filteredData];
     if (sortConfig.key && sortConfig.direction) {
         sortedData.sort((a, b) => {
@@ -65,8 +40,10 @@ const DataTable: React.FC = () => {
         });
     }
 
-    const totalPages = Math.ceil(total / PAGE_SIZE);
-    const currentItems = sortedData;
+    const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const currentItems = sortedData.slice(startIndex, endIndex);
 
     const handlePageClick = (page: number) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {
@@ -129,10 +106,8 @@ const DataTable: React.FC = () => {
         setCurrentPage(1);
     };
 
-    if (loading) return <div>Laden...</div>;
-    if (error) return <div>Error: {error}</div>;
-    // if (!Array.isArray(data) || data.length === 0) return <div>Geen data gevonden.</div>;
-    
+    if (loading.dataTable) return <div>Laden...</div>;
+    if (error.dataTable) return <div>Error: {error.dataTable}</div>;
 
     return (
         <div className="data-table-container">
@@ -143,8 +118,8 @@ const DataTable: React.FC = () => {
                     placeholder="Zoek op Authentication ID..."
                     value={searchTerm}
                     onChange={e => {
-                        setSearchTerm(e.target.value); // Set search term here
-                        setCurrentPage(1); // Reset to page 1 on new search
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
                     }}
                     className="userstats-search"
                 />
@@ -168,23 +143,23 @@ const DataTable: React.FC = () => {
                     <tbody>
                         {currentItems.length === 0 ? (
                             <tr>
-                            <td colSpan={6} className="no-data-row">
-                                Geen data gevonden voor de zoekterm: <strong>{debouncedSearchTerm}</strong>
-                            </td>
+                                <td colSpan={6} className="no-data-row">
+                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                </td>
                             </tr>
                         ) : (
                             currentItems.map((item) => (
-                            <tr key={item.id} className="clickable-row">
-                                <td>{item.id}</td>
-                                <td>{item.authentication_id}</td>
-                                <td>{item.duration}</td>
-                                <td className="text-right">{item.volume}</td>
-                                <td>{item.charge_point_id}</td>
-                                <td className="text-right">{item.calculated_cost}</td>
-                            </tr>
+                                <tr key={item.id} className="clickable-row">
+                                    <td>{item.id}</td>
+                                    <td>{item.authentication_id}</td>
+                                    <td>{item.duration}</td>
+                                    <td className="text-right">{item.volume}</td>
+                                    <td>{item.charge_point_id}</td>
+                                    <td className="text-right">{item.calculated_cost}</td>
+                                </tr>
                             ))
                         )}
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
             <div className="pagination-container">

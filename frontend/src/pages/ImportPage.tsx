@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import './ImportPage.css';
+import { useData } from '../context/DataContext';
 
 const ImportPage: React.FC = () => {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [uploadTime, setUploadTime] = useState<number | null>(null);
+  const { refreshData } = useData();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
+    if (event.target.files) {
+      setFiles(Array.from(event.target.files));
       setMessage(null);
       setUploadTime(null);
     }
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      setMessage({ type: 'error', text: 'Please select a file first' });
+    if (!files.length) {
+      setMessage({ type: 'error', text: 'Please select at least one file' });
       return;
     }
 
@@ -25,42 +27,47 @@ const ImportPage: React.FC = () => {
     setMessage(null);
     setUploadTime(null);
 
-    const startTime = performance.now();
-    const formData = new FormData();
-    formData.append('file', file);
+    let allSuccess = true;
+    let messages: string[] = [];
+    let totalProcessingTime = 0;
 
-    try {
-      const response = await fetch('http://localhost:8000/api/import', {
-        method: 'POST',
-        body: formData,
-      });
+    for (const file of files) {
+      const startTime = performance.now();
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const data = await response.json();
-      const endTime = performance.now();
-      const clientProcessingTime = (endTime - startTime) / 1000;
-
-      if (data.success) {
-        setMessage({ 
-          type: 'success', 
-          text: `${data.message} (Client processing time: ${clientProcessingTime.toFixed(2)}s)` 
+      try {
+        const response = await fetch('http://localhost:8000/api/import', {
+          method: 'POST',
+          body: formData,
         });
-        setUploadTime(data.processingTime);
-      } else {
-        setMessage({ 
-          type: 'error', 
-          text: `${data.message} (Client processing time: ${clientProcessingTime.toFixed(2)}s)` 
-        });
+
+        const data = await response.json();
+        const endTime = performance.now();
+        const clientProcessingTime = (endTime - startTime) / 1000;
+
+        if (data.success) {
+          totalProcessingTime += data.processingTime || 0;
+          messages.push(`✔️ ${file.name}: ${data.message} (Client: ${clientProcessingTime.toFixed(2)}s)`);
+        } else {
+          allSuccess = false;
+          messages.push(`❌ ${file.name}: ${data.message} (Client: ${clientProcessingTime.toFixed(2)}s)`);
+        }
+      } catch (error) {
+        allSuccess = false;
+        messages.push(`❌ ${file.name}: Error uploading file.`);
       }
-    } catch (error) {
-      const endTime = performance.now();
-      const clientProcessingTime = (endTime - startTime) / 1000;
-      setMessage({ 
-        type: 'error', 
-        text: `Error uploading file. Please try again. (Client processing time: ${clientProcessingTime.toFixed(2)}s)` 
-      });
-    } finally {
-      setLoading(false);
     }
+
+    await refreshData();
+
+    setUploadTime(totalProcessingTime);
+    setMessage({
+      type: allSuccess ? 'success' : 'error',
+      text: messages.join('\n'),
+    });
+
+    setLoading(false);
   };
 
   return (
@@ -72,33 +79,36 @@ const ImportPage: React.FC = () => {
           accept=".xlsx,.xls"
           id="file-input"
           type="file"
+          multiple
           onChange={handleFileChange}
         />
         <label htmlFor="file-input" className="file-input-label">
-          Select File
+          Select File(s)
         </label>
-        {file && (
-          <p className="selected-file">Selected file: {file.name}</p>
+        {files.length > 0 && (
+          <ul className="selected-file">
+            {files.map(file => <li key={file.name}>{file.name}</li>)}
+          </ul>
         )}
       </div>
 
       <button
         className="upload-button"
         onClick={handleUpload}
-        disabled={!file || loading}
+        disabled={!files.length || loading}
       >
         {loading ? <div className="loading-spinner"></div> : 'Upload'}
       </button>
 
       {message && (
-        <div className={`message ${message.type}`}>
+        <div className={`message ${message.type}`} style={{ whiteSpace: 'pre-line' }}>
           {message.text}
         </div>
       )}
 
-      {uploadTime && (
+      {uploadTime !== null && (
         <p className="processing-time">
-          Server processing time: {uploadTime.toFixed(2)} seconds
+          Total server processing time: {uploadTime.toFixed(2)} seconds
         </p>
       )}
     </div>

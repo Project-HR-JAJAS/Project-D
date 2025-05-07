@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useData } from '../context/DataContext';
 import './UserStats.css';
 
 interface UserStat {
@@ -9,8 +10,7 @@ interface UserStat {
 }
 
 const UserStats: React.FC = () => {
-  const [data, setData] = useState<UserStat[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { userStats, loading, error } = useData();
   const [currentPage, setCurrentPage] = useState(1);
   const [inputValue, setInputValue] = useState('');
   const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
@@ -22,14 +22,7 @@ const UserStats: React.FC = () => {
 
   const itemsPerPage = 50;
 
-  useEffect(() => {
-    fetch('http://localhost:8000/api/user-stats')
-      .then(res => res.json())
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, []);
-
-  const filteredData = data.filter(item =>
+  const filteredData = userStats.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -112,11 +105,13 @@ const UserStats: React.FC = () => {
     return '';
   };
 
+  if (loading.userStats) return <div className="userstats-loading">Loading...</div>;
+  if (error.userStats) return <div className="userstats-loading">Error: {error.userStats}</div>;
+
   return (
     <div className="userstats-container">
-      <h2 className="userstats-title">Gebruiker Statistieken per PasID</h2>
-
       <div className="userstats-search-wrapper">
+        <h2 className="userstats-title">Gebruiker Statistieken per PasID</h2>
         <input
           type="text"
           placeholder="Zoek op Authentication ID..."
@@ -129,9 +124,7 @@ const UserStats: React.FC = () => {
         />
       </div>
 
-      {loading ? (
-        <div className="userstats-loading">Loading...</div>
-      ) : sortedData.length === 0 ? (
+      {sortedData.length === 0 ? (
         <div className="userstats-empty">Geen gegevens gevonden</div>
       ) : (
         <>

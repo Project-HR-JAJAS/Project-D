@@ -1,5 +1,4 @@
-from data.DbContext import DbContext
-
+from .DbContext import DbContext
 class GetAll:
     def __init__(self):
         self.data = None
@@ -11,17 +10,13 @@ class GetAll:
         db.close()
         return self.data
     
-    def fetch_data_Number(self):
-        db = DbContext()
-        db.connect()
-        self.data = db.GetAllDataFromDatabaseNumber()
-        db.close()
-        return self.data
-    
     def fetch_one_data(self, cdr_id):
         db = DbContext()
         db.connect()
         self.data = db.get_cdr(cdr_id)
         db.close()
         return self.data
+
+
+
 

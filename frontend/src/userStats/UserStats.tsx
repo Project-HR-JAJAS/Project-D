@@ -1,49 +1,67 @@
 import React, { useEffect, useState } from 'react';
-import './OverlappingSessions.css';
-import OverlappingModal from './OverlappingModal';
+import './UserStats.css';
 
-interface OverlappingSession {
-  CDR_ID: string;
+interface UserStat {
   Authentication_ID: string;
-  Start_datetime: string;
-  End_datetime: string;
-  Charge_Point_City: string;
-  Volume: number;
-  OverlappingCount?: number;
+  TransactionCount: number;
+  TotalVolume: number;
+  TotalCost: number;
 }
 
-const OverlappingSessions: React.FC = () => {
-  const [data, setData] = useState<OverlappingSession[]>([]);
+const UserStats: React.FC = () => {
+  const [data, setData] = useState<UserStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCdrId, setSelectedCdrId] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
+  const [sortConfig, setSortConfig] = useState<{ key: keyof UserStat | null; direction: 'asc' | 'desc' | null }>({
+    key: null,
+    direction: null,
+  });
   const [searchTerm, setSearchTerm] = useState('');
 
   const itemsPerPage = 50;
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/overlapping-sessions")
+    fetch('http://localhost:8000/api/user-stats')
       .then(res => res.json())
       .then(setData)
       .finally(() => setLoading(false));
   }, []);
 
-  const formatDate = (value: string) => new Date(value).toLocaleString();
-
   const filteredData = data.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const sortedData = [...filteredData];
+  if (sortConfig.key && sortConfig.direction) {
+    sortedData.sort((a, b) => {
+      const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+      const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      return 0;
+    });
+  }
+
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
+  const handleSort = (key: keyof UserStat) => {
+    setSortConfig(prev => {
+      if (prev.key !== key) return { key, direction: 'asc' };
+      if (prev.direction === 'asc') return { key, direction: 'desc' };
+      if (prev.direction === 'desc') return { key: null, direction: null };
+      return { key, direction: 'asc' };
+    });
+    setCurrentPage(1);
+  };
+
+  const handlePageClick = (page: number) => {
+    if (page !== currentPage && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       setShowInput({ left: false, right: false });
       setInputValue('');
@@ -87,11 +105,18 @@ const OverlappingSessions: React.FC = () => {
     return pages;
   };
 
-  return (
-    <div className="overlap-container">
-      <h2 className="overlap-title">Overlapping Sessions per Charge Card</h2>
+  const getSortIndicator = (key: keyof UserStat) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+    }
+    return '';
+  };
 
-      <div className="overlap-search-wrapper">
+  return (
+    <div className="userstats-container">
+      <h2 className="userstats-title">Gebruiker Statistieken per PasID</h2>
+
+      <div className="userstats-search-wrapper">
         <input
           type="text"
           placeholder="Zoek op Authentication ID..."
@@ -100,51 +125,39 @@ const OverlappingSessions: React.FC = () => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="overlap-search"
+          className="userstats-search"
         />
       </div>
 
       {loading ? (
-        <div className="overlap-loading">Loading...</div>
-      ) : filteredData.length === 0 ? (
-        <div className="overlap-empty">Geen resultaten gevonden</div>
+        <div className="userstats-loading">Loading...</div>
+      ) : sortedData.length === 0 ? (
+        <div className="userstats-empty">Geen gegevens gevonden</div>
       ) : (
         <>
-          <div className="overlap-pagination-info">
-            <div>
-              Toont sessies {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, filteredData.length)} van {filteredData.length}
-            </div>
-          </div>
-
-          <div className="overlap-table-wrapper">
-            <table className="overlap-table">
+          <div className="userstats-table-wrapper">
+            <table className="userstats-table">
               <thead>
                 <tr>
                   <th>Authentication ID</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>City</th>
-                  <th>Volume (kWh)</th>
-                  <th>Overlaps</th>
+                  <th className="sortable-header" onClick={() => handleSort('TransactionCount')}>
+                    Aantal Transacties{getSortIndicator('TransactionCount')}
+                  </th>
+                  <th className="sortable-header" onClick={() => handleSort('TotalVolume')}>
+                    Totaal Volume (kWh){getSortIndicator('TotalVolume')}
+                  </th>
+                  <th className="sortable-header" onClick={() => handleSort('TotalCost')}>
+                    Totaal Kosten (€){getSortIndicator('TotalCost')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((row, i) => (
-                  <tr
-                    key={i}
-                    className={i % 2 === 0 ? 'even' : 'odd'}
-                    onClick={() => {
-                      setSelectedCdrId(row.CDR_ID);
-                      setShowModal(true);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
+                  <tr key={i} className={i % 2 === 0 ? 'even' : 'odd'}>
                     <td>{row.Authentication_ID}</td>
-                    <td>{formatDate(row.Start_datetime)}</td>
-                    <td>{formatDate(row.End_datetime)}</td>
-                    <td>{row.Charge_Point_City}</td>
-                    <td>{row.Volume}</td>
-                    <td>{row.OverlappingCount ?? '-'}</td>
+                    <td>{row.TransactionCount}</td>
+                    <td>{row.TotalVolume.toFixed(2)}</td>
+                    <td>{row.TotalCost.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -152,7 +165,7 @@ const OverlappingSessions: React.FC = () => {
           </div>
 
           <div className="page-numbers">
-            <button className="page-number-button" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+            <button className="page-number-button" onClick={() => handlePageClick(currentPage - 1)} disabled={currentPage === 1}>
               Vorige
             </button>
 
@@ -165,7 +178,7 @@ const OverlappingSessions: React.FC = () => {
                     value={inputValue}
                     onChange={handleInputChange}
                     onBlur={() => setShowInput({ left: false, right: false })}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter') handleInputSubmit('left');
                     }}
                     className="page-number-input"
@@ -186,7 +199,7 @@ const OverlappingSessions: React.FC = () => {
                     value={inputValue}
                     onChange={handleInputChange}
                     onBlur={() => setShowInput({ left: false, right: false })}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter') handleInputSubmit('right');
                     }}
                     className="page-number-input"
@@ -202,7 +215,7 @@ const OverlappingSessions: React.FC = () => {
               return (
                 <button
                   key={page}
-                  onClick={() => goToPage(Number(page))}
+                  onClick={() => handlePageClick(Number(page))}
                   className={`page-number-button ${page === currentPage ? 'active' : ''}`}
                 >
                   {page}
@@ -210,24 +223,14 @@ const OverlappingSessions: React.FC = () => {
               );
             })}
 
-            <button className="page-number-button" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+            <button className="page-number-button" onClick={() => handlePageClick(currentPage + 1)} disabled={currentPage === totalPages}>
               Volgende
             </button>
           </div>
-
-          {showModal && selectedCdrId && (
-            <OverlappingModal
-              cdrId={selectedCdrId}
-              onClose={() => {
-                setShowModal(false);
-                setSelectedCdrId(null);
-              }}
-            />
-          )}
         </>
       )}
     </div>
   );
 };
 
-export default OverlappingSessions;
+export default UserStats;

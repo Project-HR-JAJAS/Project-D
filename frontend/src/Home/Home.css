@@ -1,6 +1,6 @@
 .dashboard-container {
     width: 90%;
-    margin: 0 auto;
+    margin: auto;
     padding: 20px;
 }
 
@@ -12,6 +12,8 @@
 .chart-container {
     background-color: white;
     padding: 20px;
+    width: 80%;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin : 0 auto;
 }

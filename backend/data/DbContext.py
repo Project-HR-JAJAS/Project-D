@@ -6,7 +6,7 @@ import logging
 import os
 from typing import Tuple, Optional
 
-from fraude_detectie import Fraude_detectie
+from backend.fraude_detectie import Fraude_detectie
 
 
 class DbContext:

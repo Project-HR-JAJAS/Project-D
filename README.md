@@ -7,5 +7,6 @@
 - Jasper van der Laan 1073788
 - Stéphane Dauvillier 1060531
 
-
+backend run: ```python -m backend.program``` or ```python program.py```
+frontend run: ```yarn start```
 ---

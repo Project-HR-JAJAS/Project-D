@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchDataTable, PAGE_SIZE } from './DataTable.api';
+import { useNavigate } from 'react-router-dom';
 import './DataTable.css';
 
 type DataTableItem = Parameters<typeof fetchDataTable>[0] extends number ? Awaited<ReturnType<typeof fetchDataTable>>['results'][number] : never;
@@ -13,6 +14,7 @@ const DataTable: React.FC = () => {
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
     const [sortConfig, setSortConfig] = useState<{key: 'volume' | 'calculated_cost' | null, direction: 'asc' | 'desc' | null}>({key: null, direction: null});
+    const navigate = useNavigate();
 
     const fetchData = async (page: number, sortKey: 'volume' | 'calculated_cost' | null, sortDir: 'asc' | 'desc' | null) => {
         setLoading(true);
@@ -120,13 +122,17 @@ const DataTable: React.FC = () => {
                     </thead>
                     <tbody>
                         {data.map((item) => (
-                            <tr key={item.id}>
+                            <tr 
+                                key={item.id}
+                                onClick={() => navigate(`/details/${item.id}`)}
+                                className="clickable-row"
+                            >
                                 <td>{item.id}</td>
                                 <td>{item.authentication_id}</td>
                                 <td>{item.duration}</td>
-                                <td className="text-right">{Number(item.volume).toFixed(3)}</td>
+                                <td className="text-right">{item.volume}</td>
                                 <td>{item.charge_point_id}</td>
-                                <td className="text-right">{Number(item.calculated_cost).toFixed(2)}</td>
+                                <td className="text-right">{item.calculated_cost}</td>
                             </tr>
                         ))}
                     </tbody>

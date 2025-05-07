@@ -46,13 +46,17 @@ const DataTablePreview: React.FC = () => {
                     </thead>
                     <tbody>
                         {data.map((item) => (
-                            <tr key={item.id}>
+                            <tr 
+                                key={item.id}
+                                onClick={() => navigate(`/details/${item.id}`)}
+                                className="clickable-row"
+                            >
                                 <td>{item.id}</td>
                                 <td>{item.authentication_id}</td>
                                 <td>{item.duration}</td>
-                                <td className="text-right">{Number(item.volume).toFixed(3)}</td>
+                                <td className="text-right">{item.volume}</td>
                                 <td>{item.charge_point_id}</td>
-                                <td className="text-right">{Number(item.calculated_cost).toFixed(2)}</td>
+                                <td className="text-right">{item.calculated_cost}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -440,9 +440,9 @@ async def get_data_table(
                 CDR_ID as id,
                 Authentication_ID as authentication_id,
                 Duration as duration,
-                CAST(Volume AS FLOAT) as volume,
+                Volume as volume,
                 Charge_Point_ID as charge_point_id,
-                CAST(Calculated_Cost AS FLOAT) as calculated_cost
+                Calculated_Cost as calculated_cost
             FROM CDR 
             {order_clause}
             LIMIT ? OFFSET ?

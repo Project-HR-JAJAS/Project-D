@@ -55,20 +55,37 @@ const DataTable: React.FC = () => {
 
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
-        if (totalPages <= 9) {
+        if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
-            pages.push(1, 2, 3);
-            if (currentPage > 5) pages.push('left-ellipsis');
+            // Always show first 3
+            const firstPages = [1, 2, 3];
+            // Always show last 3
+            const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+            // Sliding window
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
+            const middlePages = [];
             for (let i = start; i <= end; i++) {
-                if (i > 3 && i < totalPages - 2) pages.push(i);
+                middlePages.push(i);
             }
-            if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-            pages.push(totalPages - 2, totalPages - 1, totalPages);
+            let allPages: (number | string)[] = [];
+            // Add first 3
+            allPages.push(...firstPages);
+            // Add ellipsis if gap between first 3 and middle
+            if (start > 4) allPages.push('ellipsis1');
+            // Add middle pages
+            for (const p of middlePages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            // Add ellipsis if gap between middle and last 3
+            if (end < totalPages - 3) allPages.push('ellipsis2');
+            // Add last 3
+            for (const p of lastPages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            return allPages;
         }
-        return pages;
     };
 
     const handleEllipsisClick = (side: 'left' | 'right') => {
@@ -170,61 +187,19 @@ const DataTable: React.FC = () => {
                 >
                     Vorige
                 </button>
-                {getPageNumbers().map((page, idx) => {
-                    if (page === 'left-ellipsis') {
-                        return showInput.left ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('left'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('left')}
-                            >
-                                ...
-                            </span>
-                        );
-                    }
-                    if (page === 'right-ellipsis') {
-                        return showInput.right ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('right'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('right')}
-                            >
-                                ...
-                            </span>
-                        );
-                    }
-                    return (
+                {(getPageNumbers() ?? []).map((page) => (
+                    typeof page === 'number' ? (
                         <button
                             key={page}
-                            onClick={() => handlePageClick(Number(page))}
+                            onClick={() => handlePageClick(page)}
                             className={`pagination-button ${page === currentPage ? 'active' : ''}`}
                         >
                             {page}
                         </button>
-                    );
-                })}
+                    ) : (
+                        <span key={page} className="pagination-ellipsis">...</span>
+                    )
+                ))}
                 <button 
                     className="pagination-button"
                     onClick={() => handlePageClick(currentPage + 1)} 

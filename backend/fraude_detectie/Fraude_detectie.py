@@ -3,14 +3,15 @@ import os
 import pandas as pd
 
 # Configurabele drempelwaarden
-MAX_VOLUME_KWH = 22  # Alles boven 22 kWh
-MAX_DUUR_MINUTEN = 60  # Korter dan 60 minuten
+max_volume_kwh = 22  # Alles boven 22 kWh
+max_duur_minuten = 60  # Korter dan 60 minuten
+
 
 cost_threshold = 50  # Kostdrempel
 volume_threshold = 1  # Volume drempel
 ratio_threshold = 5.0  # Kost/volume ratio drempel
 
-REDEN = "Hoog volume in korte tijd"
+reden = "Hoog volume in korte tijd"
 
 
 class FraudeDetector:
@@ -33,13 +34,13 @@ class FraudeDetector:
         cursor = conn.cursor()
         update_query = f"""
         UPDATE CDR
-        SET FraudeReden = '{REDEN}'
-        WHERE CAST(REPLACE(Volume, ',', '.') AS REAL) > {MAX_VOLUME_KWH}
+        SET FraudeReden = '{reden}'
+        WHERE CAST(REPLACE(Volume, ',', '.') AS REAL) > {max_volume_kwh}
           AND (
               (CAST(SUBSTR(Duration, 1, 2) AS INTEGER) * 60) +
               (CAST(SUBSTR(Duration, 4, 2) AS INTEGER)) +
               (CAST(SUBSTR(Duration, 7, 2) AS INTEGER) / 60.0)
-          ) < {MAX_DUUR_MINUTEN}
+          ) < {max_duur_minuten}
         """
         cursor.execute(update_query)
         affected = cursor.rowcount
@@ -60,7 +61,7 @@ class FraudeDetector:
             ) AS DurationMinuten,
             CAST(REPLACE(Volume, ',', '.') AS REAL) AS VolumeNum
         FROM CDR
-        WHERE FraudeReden = '{REDEN}'
+        WHERE FraudeReden = '{reden}'
         """
 
         df = pd.read_sql_query(query, conn)

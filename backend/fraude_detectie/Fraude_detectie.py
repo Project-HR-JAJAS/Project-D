@@ -6,7 +6,12 @@ import pandas as pd
 MAX_VOLUME_KWH = 22  # Alles boven 22 kWh
 MAX_DUUR_MINUTEN = 60  # Korter dan 60 minuten
 
+cost_threshold = 50  # Kostdrempel
+volume_threshold = 1  # Volume drempel
+ratio_threshold = 5.0  # Kost/volume ratio drempel
+
 REDEN = "Hoog volume in korte tijd"
+
 
 class FraudeDetector:
     def __init__(self, db_path):
@@ -62,10 +67,35 @@ class FraudeDetector:
         conn.close()
         return df
 
+    def detecteer_ongebruikelijke_kost(
+        self, cost_threshold, volume_threshold, ratio_threshold
+    ):
+        self.connect()
+        query = """
+            SELECT *,
+                Calculated_Cost / Volume AS Cost_per_kWh
+            FROM CDR
+            WHERE 
+                Calculated_Cost IS NOT NULL AND 
+                Volume IS NOT NULL AND 
+                Volume > 0 AND 
+                Calculated_Cost > ? AND 
+                Volume < ? AND 
+                (Calculated_Cost / Volume) > ?
+        """
+        df = pd.read_sql_query(
+            query,
+            self.connection,
+            params=(cost_threshold, volume_threshold, ratio_threshold),
+        )
+        df["Reden"] = "Ongebruikelijke kost per kWh"
+        self.close()
+        return df.to_dict(orient="records")
+
+
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     db_file = os.path.join(base_dir, "project-d.db")
 
     detector = FraudeDetector(db_file)
     fraude_df = detector.detecteer_fraude()
-    

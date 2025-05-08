@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 import { SuspCharges } from './SuspCharges';
 import DataTablePreview from '../tabel/DataTablePreview';
 import { fetchChargeData, ChargeData } from './Home.api';
+import './Home.css';
 
 ChartJS.register(...registerables);
 
@@ -119,7 +120,7 @@ const Home: React.FC = () => {
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
     
             <div className="chart-container">
-                <canvas id="chargeChart" ref={chartRef} height="400"></canvas>
+                <canvas id="chargeChart" ref={chartRef}></canvas>
             </div>
     
             <DataTablePreview />

@@ -1,2 +1,19 @@
 2025-05-07 13:52:07,238 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx
 2025-05-07 13:59:06,839 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx
+2025-05-07 23:52:34,659 - INFO - Successfully imported 36896 records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx
+2025-05-07 23:52:46,358 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx
+2025-05-07 23:52:55,091 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx
+2025-05-07 23:53:01,599 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx
+2025-05-07 23:53:11,898 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx
+2025-05-08 00:17:58,630 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx
+2025-05-08 00:19:51,163 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx
+2025-05-08 00:20:28,942 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx
+2025-05-08 00:23:10,226 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx
+2025-05-08 00:23:32,564 - INFO - Successfully imported 36896 records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx
+2025-05-08 00:26:02,278 - INFO - Successfully imported 36896 records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx
+2025-05-08 00:26:14,403 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx
+2025-05-08 00:28:04,623 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx
+2025-05-08 00:28:09,977 - INFO - Successfully imported 36896 records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx
+2025-05-08 00:28:16,164 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx
+2025-05-08 00:28:18,539 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx
+2025-05-08 00:28:23,817 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx

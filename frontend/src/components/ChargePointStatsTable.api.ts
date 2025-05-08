@@ -8,16 +8,14 @@ interface ChargePointStat {
 
 const PAGE_SIZE = 20;
 
-export const fetchChargePointStats = async (page: number): Promise<{ results: ChargePointStat[], total: number }> => {
-    const response = await fetch(`http://localhost:8000/api/charge-point-stats?page=${page}&page_size=${PAGE_SIZE}`);
+export const fetchChargePointStats = async (): Promise<ChargePointStat[]> => {
+    const response = await fetch('http://localhost:8000/api/charge-point-stats-all');
     if (!response.ok) {
-        throw new Error('Failed to fetch statistics');
+        throw new Error('Failed to fetch data');
     }
+
     const data = await response.json();
-    return {
-        results: Array.isArray(data.results) ? data.results : [],
-        total: typeof data.total === 'number' ? data.total : 0
-    };
+    return Array.isArray(data) ? data : [];
 };
 
 export { PAGE_SIZE };

@@ -125,7 +125,6 @@ const ChargePointStatsTable: React.FC = () => {
 
     if (loading.chargePoints) return <div>Laden...</div>;
     if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
-    if (totalPages === 0) return null;
 
     return (
         <div className="charge-point-stats-container">
@@ -190,28 +189,30 @@ const ChargePointStatsTable: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            <div className="pagination-container">
-                <button 
-                    className="pagination-button"
-                    onClick={() => handlePageClick(currentPage - 1)} 
-                    disabled={currentPage === 1}
-                >
-                    Vorige
-                </button>
-                {(getPageNumbers() ?? []).map((page) => (
-                    typeof page === 'number' ? (
-                        <button
-                            key={page}
-                            onClick={() => handlePageClick(page)}
-                            className={`pagination-button ${page === currentPage ? 'active' : ''}`}
-                        >
-                            {page}
-                        </button>
-                    ) : (
-                        <span key={page} className="pagination-ellipsis">...</span>
-                    )
-                ))}
-            </div>
+            {currentStats.length > 0 && (
+                <div className="pagination-container">
+                    <button 
+                        className="pagination-button"
+                        onClick={() => handlePageClick(currentPage - 1)} 
+                        disabled={currentPage === 1}
+                    >
+                        Vorige
+                    </button>
+                    {(getPageNumbers() ?? []).map((page) => (
+                        typeof page === 'number' ? (
+                            <button
+                                key={page}
+                                onClick={() => handlePageClick(page)}
+                                className={`pagination-button ${page === currentPage ? 'active' : ''}`}
+                            >
+                                {page}
+                            </button>
+                        ) : (
+                            <span key={page} className="pagination-ellipsis">...</span>
+                        )
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

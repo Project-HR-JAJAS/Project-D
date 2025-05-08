@@ -1,0 +1,2 @@
+2025-05-07 13:52:07,238 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx
+2025-05-07 13:59:06,839 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx

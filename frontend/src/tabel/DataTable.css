@@ -4,6 +4,26 @@
     margin: 0 auto;
 }
 
+.userstats-search-wrapper {
+    margin-bottom: 15px;
+    display: flex; /* Use flexbox for horizontal layout */
+    justify-content: space-between; /* Ensure space between title and search bar */
+    align-items: center; /* Vertically align them */
+}
+
+.userstats-search-wrapper h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.userstats-search {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -121,4 +141,17 @@
     text-decoration: underline;
     text-decoration-color: blue;
     color: blue;
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+.clickable-row:hover {
+    background-color: #f0f0f0;
+}
+
+.no-data-row {
+    text-align: center;
+    color: #999;
+    background-color: #fcfcfc;
 }

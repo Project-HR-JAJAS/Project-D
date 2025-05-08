@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchDataTable } from './DataTable.api';
+import { useNavigate } from 'react-router-dom';
 import './DataTable.css';
 
 interface DataTableItem {
@@ -15,6 +16,7 @@ const DataTablePreview: React.FC = () => {
     const [data, setData] = useState<DataTableItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadData = async () => {
@@ -62,7 +64,11 @@ const DataTablePreview: React.FC = () => {
                             </tr>
                         ) : (
                             data.map((item) => (
-                                <tr key={item.id} className="clickable-row">
+                                <tr 
+                                    key={item.id} 
+                                    onClick={() => navigate(`/details/${item.id}`)}
+                                    className="clickable-row"
+                                >
                                     <td>{item.id}</td>
                                     <td>{item.authentication_id}</td>
                                     <td>{item.duration}</td>

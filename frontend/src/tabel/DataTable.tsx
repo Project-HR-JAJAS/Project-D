@@ -166,7 +166,11 @@ const DataTable: React.FC = () => {
                             </tr>
                         ) : (
                             currentItems.map((item) => (
-                                <tr key={item.id} className="clickable-row">
+                                <tr 
+                                    key={item.id} 
+                                    onClick={() => navigate(`/details/${item.id}`)}
+                                    className="clickable-row"
+                                >
                                     <td>{item.id}</td>
                                     <td>{item.authentication_id}</td>
                                     <td>{item.duration}</td>

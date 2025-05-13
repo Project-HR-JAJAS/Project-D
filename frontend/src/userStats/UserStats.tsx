@@ -178,19 +178,40 @@ const UserStats: React.FC = () => {
             <button className="page-number-button" onClick={() => handlePageClick(currentPage - 1)} disabled={currentPage === 1}>
               Vorige
             </button>
-            {(getPageNumbers() ?? []).map((page) => (
-              typeof page === 'number' ? (
-                <button
-                  key={page}
-                  onClick={() => handlePageClick(page)}
-                  className={`page-number-button ${page === currentPage ? 'active' : ''}`}
-                >
-                  {page}
-                </button>
-              ) : (
-                <span key={page} className="pagination-ellipsis">...</span>
-              )
-            ))}
+            {(getPageNumbers() ?? []).map((page) => {
+              if (typeof page === 'number') {
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageClick(page)}
+                    className={`page-number-button ${page === currentPage ? 'active' : ''}`}
+                  >
+                    {page}
+                  </button>
+                );
+              } else if (page === 'ellipsis1' || page === 'ellipsis2') {
+                const side = page === 'ellipsis1' ? 'left' : 'right';
+                return (
+                  <span key={page} className="pagination-ellipsis">
+                    {showInput[side] ? (
+                      <input
+                        type="text"
+                        className="page-number-input"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        onBlur={() => handleInputSubmit(side)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleInputSubmit(side);
+                        }}
+                        autoFocus
+                      />
+                    ) : (
+                      <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                    )}
+                  </span>
+                );
+              }
+            })}
             <button className="page-number-button" onClick={() => handlePageClick(currentPage + 1)} disabled={currentPage === totalPages}>
               Volgende
             </button>

@@ -11,19 +11,49 @@ const OverlappingSessions: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchField, setSearchField] = useState<'Authentication_ID' | 'Charge_Point_City'>('Authentication_ID');
+  const [sortConfig, setSortConfig] = useState<{ key: 'Volume' | 'OverlappingCount' | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
 
   const itemsPerPage = 50;
 
   const formatDate = (value: string) => new Date(value).toLocaleString();
 
-  const filteredData = overlappingSessions.filter(item =>
-    (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = overlappingSessions.filter(item => {
+    const value = item[searchField] ?? '';
+    return value.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (!sortConfig.key || !sortConfig.direction) return 0;
+    const aVal = a[sortConfig.key] ?? 0;
+    const bVal = b[sortConfig.key] ?? 0;
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleSort = (key: 'Volume' | 'OverlappingCount') => {
+    setSortConfig(prev => {
+      if (prev.key !== key) return { key, direction: 'asc' };
+      if (prev.direction === 'asc') return { key, direction: 'desc' };
+      if (prev.direction === 'desc') return { key: null, direction: null };
+      return { key, direction: 'asc' };
+    });
+    setCurrentPage(1);
+  };
+
+  const getSortIndicator = (key: 'Volume' | 'OverlappingCount') => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+    }
+    return '';
+  };
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -91,29 +121,44 @@ const OverlappingSessions: React.FC = () => {
     <div className="overlap-container">
       <div className="overlap-search-wrapper">
         <h2 className="overlap-title">Overlapping Sessions per Charge Card</h2>
-        <input
-          type="text"
-          placeholder="Zoek op Authentication ID..."
-          value={searchTerm}
-          onChange={e => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="overlap-search"
-        />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <select
+            value={searchField}
+            onChange={e => {
+              setSearchField(e.target.value as 'Authentication_ID' | 'Charge_Point_City');
+              setSearchTerm('');
+              setCurrentPage(1);
+            }}
+            className="userstats-search-dropdown"
+            title="Kies zoekveld"
+          >
+            <option value="Authentication_ID">Authentication ID</option>
+            <option value="Charge_Point_City">City</option>
+          </select>
+          <input
+            type="text"
+            placeholder={searchField === 'Authentication_ID' ? 'Zoek op Authentication ID...' : 'Zoek op stad...'}
+            value={searchTerm}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="userstats-search"
+          />
+        </div>
       </div>
 
       {loading.overlappingSessions ? (
         <div className="overlap-loading">Loading...</div>
       ) : error.overlappingSessions ? (
         <div className="overlap-empty">Error: {error.overlappingSessions}</div>
-      ) : filteredData.length === 0 ? (
+      ) : sortedData.length === 0 ? (
         <div className="overlap-empty">Geen resultaten gevonden</div>
       ) : (
         <>
           <div className="overlap-pagination-info">
             <div>
-              Toont sessies {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, filteredData.length)} van {filteredData.length}
+              Toont sessies {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, sortedData.length)} van {sortedData.length}
             </div>
           </div>
 
@@ -125,8 +170,18 @@ const OverlappingSessions: React.FC = () => {
                   <th>Start Time</th>
                   <th>End Time</th>
                   <th>City</th>
-                  <th>Volume (kWh)</th>
-                  <th>Overlaps</th>
+                  <th 
+                    className="sortable-header"
+                    onClick={() => handleSort('Volume')}
+                  >
+                    Volume (kWh){getSortIndicator('Volume')}
+                  </th>
+                  <th 
+                    className="sortable-header"
+                    onClick={() => handleSort('OverlappingCount')}
+                  >
+                    Overlaps{getSortIndicator('OverlappingCount')}
+                  </th>
                 </tr>
               </thead>
               <tbody>

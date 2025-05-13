@@ -135,3 +135,11 @@
 .charge-point-stats-table td:nth-child(5) {
     width: 120px; /* Total Cost */
 }
+
+.pagination-input {
+  width: 50px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}

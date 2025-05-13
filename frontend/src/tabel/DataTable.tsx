@@ -19,13 +19,16 @@ const DataTable: React.FC = () => {
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchField, setSearchField] = useState<'authentication_id' | 'charge_point_id' | 'id'>('authentication_id');
     const [sortConfig, setSortConfig] = useState<{key: 'volume' | 'calculated_cost' | null, direction: 'asc' | 'desc' | null}>({key: null, direction: null});
     const navigate = useNavigate();
 
     // Client-side filtering
-    const filteredData = dataTableItems.filter(item =>
-        (item.authentication_id ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredData = dataTableItems.filter(item => {
+        const value = item[searchField];
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     // Client-side sorting
     const sortedData = [...filteredData];
@@ -130,16 +133,36 @@ const DataTable: React.FC = () => {
         <div className="data-table-container">
             <div className="userstats-search-wrapper">
                 <h2>Data Tabel</h2>
-                <input
-                    type="text"
-                    placeholder="Zoek op Authentication ID..."
-                    value={searchTerm}
-                    onChange={e => {
-                        setSearchTerm(e.target.value);
-                        setCurrentPage(1);
-                    }}
-                    className="userstats-search"
-                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <select
+                        value={searchField}
+                        onChange={e => {
+                            setSearchField(e.target.value as 'authentication_id' | 'charge_point_id' | 'id');
+                            setSearchTerm('');
+                            setCurrentPage(1);
+                        }}
+                        className="userstats-search-dropdown"
+                        title="Kies zoekveld"
+                    >
+                        <option value="authentication_id">Authentication ID</option>
+                        <option value="charge_point_id">Charge Point ID</option>
+                        <option value="id">CDR ID</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder={
+                            searchField === 'authentication_id' ? 'Zoek op Authentication ID...' : 
+                            searchField === 'charge_point_id' ? 'Zoek op Charge Point ID...' :
+                            'Zoek op CDR ID...'
+                        }
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="userstats-search"
+                    />
+                </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
                 <table className="data-table">

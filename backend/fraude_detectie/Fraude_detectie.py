@@ -23,6 +23,7 @@ class FraudeDetector:
             Reden TEXT,
             Reden2 TEXT,
             Reden3 TEXT,
+            Reden4 TEXT,
             FOREIGN KEY (CDR_ID) REFERENCES CDR(CDR_ID)
         )
         """)
@@ -145,10 +146,11 @@ class FraudeDetector:
         for cdr_id, ratio in fraud_data:
             reason = f"Ongebruikelijke kost per kWh (ratio: {ratio:.2f})"
             self._vul_fraudetabel(cursor, reason, [cdr_id], "Reden2")
-    
+
     def detecteer_snelle_opeenvolgende_sessies(self, cursor):
         """Detecteert sessies die snel na elkaar op hetzelfde laadpunt plaatsvinden."""
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT CDR_ID
             FROM (
                 SELECT 
@@ -165,15 +167,38 @@ class FraudeDetector:
                 AND (
                     (julianday(Start_datetime) - julianday(PrevEnd)) * 1440 < ?
                 )
-        """, (MIN_TIME_GAP_MINUTEN,))
-        
+        """,
+            (MIN_TIME_GAP_MINUTEN,),
+        )
+
         fraud_ids = [row[0] for row in cursor.fetchall()]
         self._vul_fraudetabel(
-            cursor, 
-            f"Snel opeenvolgend (<{MIN_TIME_GAP_MINUTEN} min)", 
-            fraud_ids, 
-            "Reden3"
+            cursor,
+            f"Snel opeenvolgend (<{MIN_TIME_GAP_MINUTEN} min)",
+            fraud_ids,
+            "Reden3",
         )
+
+    def detecteer_overlappende_sessies(self, cursor):
+        """Detecteert sessies die overlappen voor dezelfde Authentication_ID."""
+        cursor.execute("""
+            WITH Overlaps AS (
+                SELECT a.CDR_ID
+                FROM CDR a
+                JOIN CDR b
+                ON a.Authentication_ID = b.Authentication_ID
+                AND a.CDR_ID != b.CDR_ID
+                AND (
+                    datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+                    OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
+                    OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
+                )
+            )
+            SELECT CDR_ID FROM Overlaps
+            GROUP BY CDR_ID
+        """)
+        fraud_ids = [row[0] for row in cursor.fetchall()]
+        self._vul_fraudetabel(cursor, "Overlappende sessies", fraud_ids, "Reden4")
 
     def detecteer_fraude(self) -> pd.DataFrame:
         """Voert alle detectiemethodes uit en geeft elk fraudegeval met reden terug als DataFrame."""
@@ -188,6 +213,7 @@ class FraudeDetector:
             self.detecteer_hoog_volume_korte_duur(cursor)
             self.detecteer_hoge_kosten_laag_volume(cursor)
             self.detecteer_snelle_opeenvolgende_sessies(cursor)
+            self.detecteer_overlappende_sessies(cursor)
 
             conn.commit()
 
@@ -199,6 +225,7 @@ class FraudeDetector:
                     fg.Reden AS Reden1,
                     fg.Reden2 AS Reden2,
                     fg.Reden3 AS Reden3,
+                    fg.Reden4 AS Reden4,
                     c.Volume,
                     c.Calculated_Cost,
                     CASE 

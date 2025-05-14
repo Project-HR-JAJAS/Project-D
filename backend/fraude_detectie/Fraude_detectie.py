@@ -163,9 +163,9 @@ class FraudeDetector:
             WHERE 
                 PrevEnd IS NOT NULL
                 AND (
-                    (julianday(Start_datetime) - julianday(PrevEnd)) * 1440 < {MIN_TIME_GAP_MINUTEN}
+                    (julianday(Start_datetime) - julianday(PrevEnd)) * 1440 < ?
                 )
-        """)
+        """, (MIN_TIME_GAP_MINUTEN,))
         
         fraud_ids = [row[0] for row in cursor.fetchall()]
         self._vul_fraudetabel(

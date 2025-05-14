@@ -8,6 +8,7 @@ MAX_VOLUME_KWH = 22  # Everything above 22 kWh
 MAX_DUUR_MINUTEN = 60  # Shorter than 60 minutes
 MIN_COST_THRESHOLD = 20  # Cost > X
 MAX_VOLUME_THRESHOLD = 22  # Volume < Y
+MIN_TIME_GAP_MINUTEN = 30  # Time gap between sessions in minutes
 
 
 class FraudeDetector:
@@ -144,6 +145,35 @@ class FraudeDetector:
         for cdr_id, ratio in fraud_data:
             reason = f"Ongebruikelijke kost per kWh (ratio: {ratio:.2f})"
             self._vul_fraudetabel(cursor, reason, [cdr_id], "Reden2")
+    
+    def detecteer_snelle_opeenvolgende_sessies(self, cursor):
+        """Detecteert sessies die snel na elkaar op hetzelfde laadpunt plaatsvinden."""
+        cursor.execute(f"""
+            SELECT CDR_ID
+            FROM (
+                SELECT 
+                    CDR_ID,
+                    LAG(End_datetime) OVER (
+                        PARTITION BY Authentication_ID, Charge_Point_ID 
+                        ORDER BY Start_datetime
+                    ) AS PrevEnd,
+                    Start_datetime
+                FROM CDR
+            )
+            WHERE 
+                PrevEnd IS NOT NULL
+                AND (
+                    (julianday(Start_datetime) - julianday(PrevEnd)) * 1440 < ?
+                )
+        """, (MIN_TIME_GAP_MINUTEN,))
+        
+        fraud_ids = [row[0] for row in cursor.fetchall()]
+        self._vul_fraudetabel(
+            cursor, 
+            f"Snel opeenvolgend (<{MIN_TIME_GAP_MINUTEN} min)", 
+            fraud_ids, 
+            "Reden3"
+        )
 
     def detecteer_fraude(self) -> pd.DataFrame:
         """Voert alle detectiemethodes uit en geeft elk fraudegeval met reden terug als DataFrame."""
@@ -157,6 +187,7 @@ class FraudeDetector:
             # Roep detectiemethoden aan
             self.detecteer_hoog_volume_korte_duur(cursor)
             self.detecteer_hoge_kosten_laag_volume(cursor)
+            self.detecteer_snelle_opeenvolgende_sessies(cursor)
 
             conn.commit()
 

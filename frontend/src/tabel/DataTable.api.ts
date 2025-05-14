@@ -1,5 +1,5 @@
 interface DataTableItem {
-    id: number;
+    id: string;
     authentication_id: string;
     duration: string;
     volume: number;

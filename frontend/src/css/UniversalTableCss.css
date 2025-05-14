@@ -1,10 +1,10 @@
-/* .charge-point-stats-container {
+.table-container {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.charge-point-stats-table {
+.table-form {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
@@ -12,23 +12,23 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.charge-point-stats-table th,
-.charge-point-stats-table td {
+.table-form th,
+.table-form td {
     padding: 12px;
     border: 1px solid #ddd;
     text-align: left;
     white-space: nowrap;
 }
 
-.charge-point-stats-table thead {
+.table-form thead {
     background-color: #f2f2f2;
 }
 
-.charge-point-stats-table tr.even {
+.table-form tr.even {
     background-color: white;
 }
 
-.charge-point-stats-table tr.odd {
+.table-form tr.odd {
     background-color: #f9f9f9;
 }
 
@@ -80,19 +80,35 @@
     border-radius: 4px;
 }
 
-.userstats-search-wrapper {
+.pagination-input {
+  width: 50px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.table-search-wrapper {
     margin-bottom: 15px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: right;
 }
 
-.userstats-search-wrapper h2 {
+.table-search-wrapper h2 {
     margin: 0;
     font-size: 24px;
 }
 
-.userstats-search {
+.table-search-dropdown {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    align-items: right;
+}
+
+.table-search {
     padding: 8px 12px;
     font-size: 14px;
     border: 1px solid #ccc;
@@ -110,36 +126,47 @@
     color: blue;
 }
 
-
-.charge-point-stats-table th:nth-child(1),
-.charge-point-stats-table td:nth-child(1) {
-    width: 220px; 
+/* Consistent column widths */
+.table-form th:nth-child(1),
+.table-form td:nth-child(1) {
+    width: 220px; /* Charge Point ID */
 }
 
-.charge-point-stats-table th:nth-child(2),
-.charge-point-stats-table td:nth-child(2) {
-    width: 160px; 
+.table-form th:nth-child(2),
+.table-form td:nth-child(2) {
+    width: 160px; /* Country */
 }
 
-.charge-point-stats-table th:nth-child(3),
-.charge-point-stats-table td:nth-child(3) {
-    width: 120px; 
+.table-form th:nth-child(3),
+.table-form td:nth-child(3) {
+    width: 120px; /* Transaction Count */
 }
 
-.charge-point-stats-table th:nth-child(4),
-.charge-point-stats-table td:nth-child(4) {
-    width: 120px; 
+.table-form th:nth-child(4),
+.table-form td:nth-child(4) {
+    width: 120px; /* Total Volume */
 }
 
-.charge-point-stats-table th:nth-child(5),
-.charge-point-stats-table td:nth-child(5) {
-    width: 120px; 
+.table-form th:nth-child(5),
+.table-form td:nth-child(5) {
+    width: 120px; /* Total Cost */
 }
 
-.pagination-input {
-  width: 50px;
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: center;
-} */
+.table-form th:nth-child(6),
+.table-form td:nth-child(6) {
+    width: 120px; /* Calculated Cost */
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #f0f0f0;
+}
+
+.no-data-row {
+    text-align: center;
+    color: #999;
+    background-color: #fcfcfc;
+}

@@ -1,4 +1,4 @@
-.data-table-container {
+/* .data-table-container {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
@@ -74,9 +74,9 @@
 }
 
 .pagination-input {
-    width: 40px;
+    width: 100px;
     text-align: center;
-    border: 1px solid #1976d2;
+    border: 1px solid #ddd;
     border-radius: 4px;
 }
 
@@ -110,35 +110,35 @@
     color: blue;
 }
 
-/* Consistent column widths */
+
 .data-table th:nth-child(1),
 .data-table td:nth-child(1) {
-    width: 100px; /* CDR ID */
+    width: 100px; 
 }
 
 .data-table th:nth-child(2),
 .data-table td:nth-child(2) {
-    width: 220px; /* Authentication ID */
+    width: 220px; 
 }
 
 .data-table th:nth-child(3),
 .data-table td:nth-child(3) {
-    width: 160px; /* Duration */
+    width: 160px; 
 }
 
 .data-table th:nth-child(4),
 .data-table td:nth-child(4) {
-    width: 120px; /* Volume */
+    width: 120px; 
 }
 
 .data-table th:nth-child(5),
 .data-table td:nth-child(5) {
-    width: 180px; /* Charge Point ID */
+    width: 180px; 
 }
 
 .data-table th:nth-child(6),
 .data-table td:nth-child(6) {
-    width: 120px; /* Calculated Cost */
+    width: 120px; 
 }
 
 .clickable-row {
@@ -153,4 +153,4 @@
     text-align: center;
     color: #999;
     background-color: #fcfcfc;
-}
+} */

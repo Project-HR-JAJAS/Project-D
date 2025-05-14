@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './DataTable.css';
 
 interface DataTableItem {
-    id: number;
+    id: string;
     authentication_id: string;
     duration: string;
     volume: number;

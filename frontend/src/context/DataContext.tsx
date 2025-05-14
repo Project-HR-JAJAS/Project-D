@@ -3,7 +3,7 @@ import { fetchDataTable } from '../tabel/DataTable.api';
 import { fetchChargePointStats } from '../components/ChargePointStatsTable.api';
 
 interface DataTableItem {
-    id: number;
+    id: string;
     authentication_id: string;
     duration: string;
     volume: number;
@@ -81,7 +81,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(prev => ({ ...prev, dataTable: true }));
         try {
             const data = await fetchDataTable();
-            setDataTableItems(data);
+
+            const cleanedData = data.map(item => ({
+                ...item,
+                volume: parseFloat((item.volume ?? '0').toString().replace(',', '.')),
+                calculated_cost: parseFloat((item.calculated_cost ?? '0').toString().replace(',', '.')),
+            }));
+
+            setDataTableItems(cleanedData);
             setError(prev => ({ ...prev, dataTable: null }));
         } catch (err) {
             setError(prev => ({ 

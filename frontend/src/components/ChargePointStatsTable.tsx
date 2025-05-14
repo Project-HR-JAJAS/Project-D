@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { PAGE_SIZE } from './ChargePointStatsTable.api';
 import { useData } from '../context/DataContext';
-import './ChargePointStatsTable.css';
+import '../css/UniversalTableCss.css';
+
 
 interface ChargePointStat {
     Charge_Point_ID: string;
@@ -127,17 +128,17 @@ const ChargePointStatsTable: React.FC = () => {
     if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
 
     return (
-        <div className="charge-point-stats-container">
-            <div className="userstats-search-wrapper">
+        <div className="table-container">
+            <div className="table-search-wrapper">
                 <h2>Charge Point Statistieken</h2>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div>
                     <select
                         value={searchField}
                         onChange={e => setSearchField(e.target.value as 'Charge_Point_ID' | 'Charge_Point_Country')}
-                        className="userstats-search-dropdown"
+                        className="table-search-dropdown"
                     >
                         <option value="Charge_Point_ID">Charge Point ID</option>
-                        <option value="Charge_Point_Country">Land</option>
+                        <option value="Charge_Point_Country">Country</option>
                     </select>
                     <input
                         type="text"
@@ -147,12 +148,12 @@ const ChargePointStatsTable: React.FC = () => {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="userstats-search"
+                        className="table-search"
                     />
                 </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
-                <table className="charge-point-stats-table">
+                <table className="table-form">
                     <thead>
                         <tr>
                             <th>Charge Point ID</th>

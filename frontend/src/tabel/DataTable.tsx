@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { PAGE_SIZE } from './DataTable.api';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import './DataTable.css';
+import '../css/UniversalTableCss.css';
 
 interface DataTableItem {
-    id: number;
+    id: string;
     authentication_id: string;
     duration: string;
     volume: number;
@@ -19,26 +19,28 @@ const DataTable: React.FC = () => {
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortConfig, setSortConfig] = useState<{key: 'volume' | 'calculated_cost' | null, direction: 'asc' | 'desc' | null}>({key: null, direction: null});
+    const [searchField, setSearchField] = useState<'id' | 'authentication_id' | 'charge_point_id'>('id');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof DataTableItem | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
     const navigate = useNavigate();
 
     // Client-side filtering
-    const filteredData = dataTableItems.filter(item =>
-        (item.authentication_id ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStats = dataTableItems.filter((stat: DataTableItem) => {
+        const value = stat[searchField] ?? '';
+        return value.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     // Client-side sorting
-    const sortedData = [...filteredData];
-    if (sortConfig.key && sortConfig.direction) {
-        sortedData.sort((a, b) => {
-            const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
-            const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
-            if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-            }
-            return 0;
-        });
-    }
+    const sortedData = [...filteredStats];
+  if (sortConfig.key && sortConfig.direction) {
+    sortedData.sort((a, b) => {
+      const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+      const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      return 0;
+    });
+  }
 
     const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
     const startIndex = (currentPage - 1) * PAGE_SIZE;
@@ -107,53 +109,71 @@ const DataTable: React.FC = () => {
         }
     };
 
-    const handleSort = (key: 'volume' | 'calculated_cost') => {
-        setSortConfig((prev) => {
-            if (prev.key !== key) {
-                return { key, direction: 'asc' };
-            }
-            if (prev.direction === 'asc') {
-                return { key, direction: 'desc' };
-            }
-            if (prev.direction === 'desc') {
-                return { key: null, direction: null };
-            }
+    const handleSort = (key: keyof DataTableItem) => {
+        setSortConfig(prev => {
+            if (prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            if (prev.direction === 'desc') return { key: null, direction: null };
             return { key, direction: 'asc' };
         });
         setCurrentPage(1);
+    };
+
+    const getSortIndicator = (key: keyof DataTableItem) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+        }
+        return '';
     };
 
     if (loading.dataTable) return <div>Laden...</div>;
     if (error.dataTable) return <div>Error: {error.dataTable}</div>;
 
     return (
-        <div className="data-table-container">
-            <div className="userstats-search-wrapper">
+        <div className="table-container">
+            <div className="table-search-wrapper">
                 <h2>Data Tabel</h2>
-                <input
-                    type="text"
-                    placeholder="Zoek op Authentication ID..."
-                    value={searchTerm}
-                    onChange={e => {
-                        setSearchTerm(e.target.value);
-                        setCurrentPage(1);
-                    }}
-                    className="userstats-search"
-                />
+                <div>
+                    <select
+                        value={searchField}
+                        onChange={e => setSearchField(e.target.value as 'id' | 'authentication_id' | 'charge_point_id')}
+                        className="table-search-dropdown"
+                    >
+                        <option value="id">CDR ID</option>
+                        <option value="authentication_id">Authentication ID</option>
+                        <option value="charge_point_id">Charge Point ID</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder={
+                            searchField === 'id'
+                                ? 'Zoek op CDR ID...'
+                                : searchField === 'authentication_id'
+                                ? 'Zoek op Authentication ID...'
+                                : 'Zoek op Charge Point ID...'
+                        }
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="table-search"
+                    />
+                </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
+                <table className="table-form">
                     <thead>
                         <tr>
                             <th>CDR ID</th>
                             <th>Authentication ID</th>
                             <th>Duration</th>
-                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('volume')} className="sortable-header">
-                                Volume {sortConfig.key === 'volume' ? (sortConfig.direction === 'asc' ? '▲' : sortConfig.direction === 'desc' ? '▼' : '') : ''}
+                            <th className="sortable-header" onClick={() => handleSort('volume')}>
+                                Volume{getSortIndicator('volume')}
                             </th>
                             <th>Charge Point ID</th>
-                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('calculated_cost')} className="sortable-header">
-                                Calculated Cost {sortConfig.key === 'calculated_cost' ? (sortConfig.direction === 'asc' ? '▲' : sortConfig.direction === 'desc' ? '▼' : '') : ''}
+                            <th className="sortable-header" onClick={() => handleSort('calculated_cost')}>
+                                Calculated Cost {getSortIndicator('calculated_cost')}
                             </th>
                         </tr>
                     </thead>

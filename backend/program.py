@@ -329,19 +329,31 @@ async def get_user_stats():
 
 
 @app.get("/api/charge-point-stats")
-async def get_charge_point_stats(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
+async def get_charge_point_stats(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: str = Query(None)
+):
     try:
         db = DbContext()
         db.connect()
         
+        # Prepare filtering clause
+        where_clause = ""
+        params = []
+
+        if search:
+            where_clause = "WHERE LOWER(Charge_Point_ID) LIKE ?"
+            params.append(f"%{search.lower()}%")
+
         # Totaal aantal unieke laadpunten
-        count_query = """
+        count_query = f"""
             SELECT COUNT(*) FROM (
-                SELECT Charge_Point_ID, Charge_Point_Country FROM CDR GROUP BY Charge_Point_ID, Charge_Point_Country
+                SELECT Charge_Point_ID, Charge_Point_Country FROM CDR {where_clause} GROUP BY Charge_Point_ID, Charge_Point_Country
             )
         """
         cursor = db.connection.cursor()
-        cursor.execute(count_query)
+        cursor.execute(count_query, params)
         total_count = cursor.fetchone()[0]
 
         # Data ophalen met LIMIT/OFFSET
@@ -354,11 +366,13 @@ async def get_charge_point_stats(page: int = Query(1, ge=1), page_size: int = Qu
                 SUM(Volume) as total_volume,
                 SUM(Calculated_Cost) as total_cost
             FROM CDR 
+            {where_clause}
             GROUP BY Charge_Point_ID, Charge_Point_Country
             ORDER BY transaction_count DESC
             LIMIT ? OFFSET ?
         """
-        cursor.execute(data_query, (page_size, offset))
+        params.extend([page_size, offset])
+        cursor.execute(data_query, params)
         columns = [description[0] for description in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
@@ -443,6 +457,84 @@ async def get_data_table(
             "results": results,
             "total": total
         }
+
+    except Exception as e:
+        if db.connection:
+            db.close()
+        raise HTTPException(status_code=500, detail=f"Error fetching data table: {str(e)}")
+
+@app.get("/api/charge-point-stats-all")
+async def get_all_charge_point_stats():
+    try:
+        db = DbContext()
+        db.connect()
+        
+        query = """
+            SELECT 
+                Charge_Point_ID,
+                Charge_Point_Country,
+                COUNT(*) as transaction_count,
+                SUM(Volume) as total_volume,
+                SUM(Calculated_Cost) as total_cost
+            FROM CDR 
+            GROUP BY Charge_Point_ID, Charge_Point_Country
+            ORDER BY transaction_count DESC
+        """
+        
+        cursor = db.connection.cursor()
+        cursor.execute(query)
+        columns = [description[0] for description in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+        db.close()
+        return Response(
+            content=json.dumps(results),
+            media_type="application/json",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+        
+    except Exception as e:
+        if db.connection:
+            db.close()
+        raise HTTPException(status_code=500, detail=f"Error fetching charge point statistics: {str(e)}")
+
+@app.get("/api/data-table-all")
+async def get_all_data_table():
+    try:
+        db = DbContext()
+        db.connect()
+        cursor = db.connection.cursor()
+
+        query = """
+            SELECT 
+                CDR_ID as id,
+                Authentication_ID as authentication_id,
+                Duration as duration,
+                Volume as volume,
+                Charge_Point_ID as charge_point_id,
+                Calculated_Cost as calculated_cost
+            FROM CDR
+            ORDER BY Start_datetime DESC
+        """
+        
+        cursor.execute(query)
+        columns = [description[0] for description in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        db.close()
+        return Response(
+            content=json.dumps(results),
+            media_type="application/json",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
 
     except Exception as e:
         if db.connection:

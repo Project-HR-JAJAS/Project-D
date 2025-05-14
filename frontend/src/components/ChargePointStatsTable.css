@@ -7,15 +7,32 @@
 .charge-point-stats-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 14px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .charge-point-stats-table th,
 .charge-point-stats-table td {
-    border: 1px solid #ccc;
-    padding: 8px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
 }
 
-.charge-point-stats-table td.text-right {
+.charge-point-stats-table thead {
+    background-color: #f2f2f2;
+}
+
+.charge-point-stats-table tr.even {
+    background-color: white;
+}
+
+.charge-point-stats-table tr.odd {
+    background-color: #f9f9f9;
+}
+
+.text-right {
     text-align: right;
 }
 
@@ -61,4 +78,68 @@
     text-align: center;
     border: 1px solid #1976d2;
     border-radius: 4px;
+}
+
+.userstats-search-wrapper {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.userstats-search-wrapper h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.userstats-search {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+}
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header:hover {
+    text-decoration: underline;
+    text-decoration-color: blue;
+    color: blue;
+}
+
+/* Consistent column widths */
+.charge-point-stats-table th:nth-child(1),
+.charge-point-stats-table td:nth-child(1) {
+    width: 220px; /* Charge Point ID */
+}
+
+.charge-point-stats-table th:nth-child(2),
+.charge-point-stats-table td:nth-child(2) {
+    width: 160px; /* Country */
+}
+
+.charge-point-stats-table th:nth-child(3),
+.charge-point-stats-table td:nth-child(3) {
+    width: 120px; /* Transaction Count */
+}
+
+.charge-point-stats-table th:nth-child(4),
+.charge-point-stats-table td:nth-child(4) {
+    width: 120px; /* Total Volume */
+}
+
+.charge-point-stats-table th:nth-child(5),
+.charge-point-stats-table td:nth-child(5) {
+    width: 120px; /* Total Cost */
+}
+
+.pagination-input {
+  width: 50px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
 }

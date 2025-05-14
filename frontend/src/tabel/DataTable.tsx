@@ -1,58 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { fetchDataTable, PAGE_SIZE } from './DataTable.api';
+import React, { useState } from 'react';
+import { PAGE_SIZE } from './DataTable.api';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
 import './DataTable.css';
 
-type DataTableItem = Parameters<typeof fetchDataTable>[0] extends number ? Awaited<ReturnType<typeof fetchDataTable>>['results'][number] : never;
+interface DataTableItem {
+    id: number;
+    authentication_id: string;
+    duration: string;
+    volume: number;
+    charge_point_id: string;
+    calculated_cost: number;
+}
 
 const DataTable: React.FC = () => {
-    const [data, setData] = useState<DataTableItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { dataTableItems, loading, error } = useData();
     const [currentPage, setCurrentPage] = useState(1);
-    const [total, setTotal] = useState(0);
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{key: 'volume' | 'calculated_cost' | null, direction: 'asc' | 'desc' | null}>({key: null, direction: null});
     const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-    // Debounce logic
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm);
-        }, 1000); // Adjust debounce delay as needed
-
-        return () => clearTimeout(handler);
-    }, [searchTerm]);
-
-    const fetchData = async (
-        page: number,
-        sortKey: 'volume' | 'calculated_cost' | null,
-        sortDir: 'asc' | 'desc' | null
-    ) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { results, total } = await fetchDataTable(page, sortKey, sortDir, PAGE_SIZE, debouncedSearchTerm); // Use debounced search term
-            setData(results);
-            setTotal(total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData(currentPage, sortConfig.key, sortConfig.direction);
-    }, [currentPage, sortConfig, debouncedSearchTerm]); // Use debouncedSearchTerm here
-
-    const filteredData = data.filter(item =>
-        (item.authentication_id ?? '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) // Use debounced search term
+    // Client-side filtering
+    const filteredData = dataTableItems.filter(item =>
+        (item.authentication_id ?? '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Client-side sorting
     const sortedData = [...filteredData];
     if (sortConfig.key && sortConfig.direction) {
         sortedData.sort((a, b) => {
@@ -65,8 +40,10 @@ const DataTable: React.FC = () => {
         });
     }
 
-    const totalPages = Math.ceil(total / PAGE_SIZE);
-    const currentItems = sortedData;
+    const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const currentItems = sortedData.slice(startIndex, endIndex);
 
     const handlePageClick = (page: number) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {
@@ -78,20 +55,37 @@ const DataTable: React.FC = () => {
 
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
-        if (totalPages <= 9) {
+        if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
-            pages.push(1, 2, 3);
-            if (currentPage > 5) pages.push('left-ellipsis');
+            // Always show first 3
+            const firstPages = [1, 2, 3];
+            // Always show last 3
+            const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+            // Sliding window
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
+            const middlePages = [];
             for (let i = start; i <= end; i++) {
-                if (i > 3 && i < totalPages - 2) pages.push(i);
+                middlePages.push(i);
             }
-            if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-            pages.push(totalPages - 2, totalPages - 1, totalPages);
+            let allPages: (number | string)[] = [];
+            // Add first 3
+            allPages.push(...firstPages);
+            // Add ellipsis if gap between first 3 and middle
+            if (start > 4) allPages.push('ellipsis1');
+            // Add middle pages
+            for (const p of middlePages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            // Add ellipsis if gap between middle and last 3
+            if (end < totalPages - 3) allPages.push('ellipsis2');
+            // Add last 3
+            for (const p of lastPages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            return allPages;
         }
-        return pages;
     };
 
     const handleEllipsisClick = (side: 'left' | 'right') => {
@@ -129,10 +123,8 @@ const DataTable: React.FC = () => {
         setCurrentPage(1);
     };
 
-    if (loading) return <div>Laden...</div>;
-    if (error) return <div>Error: {error}</div>;
-    // if (!Array.isArray(data) || data.length === 0) return <div>Geen data gevonden.</div>;
-    
+    if (loading.dataTable) return <div>Laden...</div>;
+    if (error.dataTable) return <div>Error: {error.dataTable}</div>;
 
     return (
         <div className="data-table-container">
@@ -143,8 +135,8 @@ const DataTable: React.FC = () => {
                     placeholder="Zoek op Authentication ID..."
                     value={searchTerm}
                     onChange={e => {
-                        setSearchTerm(e.target.value); // Set search term here
-                        setCurrentPage(1); // Reset to page 1 on new search
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
                     }}
                     className="userstats-search"
                 />
@@ -168,23 +160,27 @@ const DataTable: React.FC = () => {
                     <tbody>
                         {currentItems.length === 0 ? (
                             <tr>
-                            <td colSpan={6} className="no-data-row">
-                                Geen data gevonden voor de zoekterm: <strong>{debouncedSearchTerm}</strong>
-                            </td>
+                                <td colSpan={6} className="no-data-row">
+                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                </td>
                             </tr>
                         ) : (
                             currentItems.map((item) => (
-                            <tr key={item.id} className="clickable-row">
-                                <td>{item.id}</td>
-                                <td>{item.authentication_id}</td>
-                                <td>{item.duration}</td>
-                                <td className="text-right">{item.volume}</td>
-                                <td>{item.charge_point_id}</td>
-                                <td className="text-right">{item.calculated_cost}</td>
-                            </tr>
+                                <tr 
+                                    key={item.id} 
+                                    onClick={() => navigate(`/details/${item.id}`)}
+                                    className="clickable-row"
+                                >
+                                    <td>{item.id}</td>
+                                    <td>{item.authentication_id}</td>
+                                    <td>{item.duration}</td>
+                                    <td className="text-right">{item.volume}</td>
+                                    <td>{item.charge_point_id}</td>
+                                    <td className="text-right">{item.calculated_cost}</td>
+                                </tr>
                             ))
                         )}
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
             <div className="pagination-container">
@@ -195,60 +191,39 @@ const DataTable: React.FC = () => {
                 >
                     Vorige
                 </button>
-                {getPageNumbers().map((page, idx) => {
-                    if (page === 'left-ellipsis') {
-                        return showInput.left ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('left'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('left')}
+                {(getPageNumbers() ?? []).map((page) => {
+                    if (typeof page === 'number') {
+                        return (
+                            <button
+                                key={page}
+                                onClick={() => handlePageClick(page)}
+                                className={`pagination-button ${page === currentPage ? 'active' : ''}`}
                             >
-                                ...
+                                {page}
+                            </button>
+                        );
+                    } else if (page === 'ellipsis1' || page === 'ellipsis2') {
+                        const side = page === 'ellipsis1' ? 'left' : 'right';
+                        return (
+                            <span key={page} className="pagination-ellipsis">
+                                {showInput[side] ? (
+                                    <input
+                                        type="text"
+                                        className="pagination-input"
+                                        value={inputValue}
+                                        onChange={handleInputChange}
+                                        onBlur={() => handleInputSubmit(side)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleInputSubmit(side);
+                                        }}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                                )}
                             </span>
                         );
                     }
-                    if (page === 'right-ellipsis') {
-                        return showInput.right ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('right'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('right')}
-                            >
-                                ...
-                            </span>
-                        );
-                    }
-                    return (
-                        <button
-                            key={page}
-                            onClick={() => handlePageClick(Number(page))}
-                            className={`pagination-button ${page === currentPage ? 'active' : ''}`}
-                        >
-                            {page}
-                        </button>
-                    );
                 })}
                 <button 
                     className="pagination-button"

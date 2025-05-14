@@ -1,37 +1,65 @@
-import React, { useEffect, useState } from 'react';
-import { fetchChargePointStats, PAGE_SIZE } from './ChargePointStatsTable.api';
+import React, { useState } from 'react';
+import { PAGE_SIZE } from './ChargePointStatsTable.api';
+import { useData } from '../context/DataContext';
 import './ChargePointStatsTable.css';
 
-type ChargePointStat = Parameters<typeof fetchChargePointStats>[0] extends number ? Awaited<ReturnType<typeof fetchChargePointStats>>['results'][number] : never;
+interface ChargePointStat {
+    Charge_Point_ID: string;
+    Charge_Point_Country: string;
+    transaction_count: number;
+    total_volume: number;
+    total_cost: number;
+}
 
 const ChargePointStatsTable: React.FC = () => {
-    const [stats, setStats] = useState<ChargePointStat[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { chargePointStats, loading, error } = useData();
     const [currentPage, setCurrentPage] = useState(1);
-    const [total, setTotal] = useState(0);
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchField, setSearchField] = useState<'Charge_Point_ID' | 'Charge_Point_Country'>('Charge_Point_ID');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof ChargePointStat | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
 
-    const fetchStats = async (page: number) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { results, total } = await fetchChargePointStats(page);
-            setStats(results);
-            setTotal(total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
+    // Client-side filtering
+    const filteredStats = chargePointStats.filter((stat: ChargePointStat) => {
+        const value = stat[searchField] ?? '';
+        return value.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    // Client-side sorting
+    const sortedStats = [...filteredStats];
+    if (sortConfig.key && sortConfig.direction) {
+        sortedStats.sort((a, b) => {
+            const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+            const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+            return 0;
+        });
+    }
+
+    const totalPages = Math.ceil(sortedStats.length / PAGE_SIZE);
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const currentStats = sortedStats.slice(startIndex, endIndex);
+
+    const handleSort = (key: keyof ChargePointStat) => {
+        setSortConfig(prev => {
+            if (prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            if (prev.direction === 'desc') return { key: null, direction: null };
+            return { key, direction: 'asc' };
+        });
+        setCurrentPage(1);
     };
 
-    useEffect(() => {
-        fetchStats(currentPage);
-    }, [currentPage]);
-
-    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const getSortIndicator = (key: keyof ChargePointStat) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+        }
+        return '';
+    };
 
     const handlePageClick = (page: number) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {
@@ -43,20 +71,37 @@ const ChargePointStatsTable: React.FC = () => {
 
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
-        if (totalPages <= 9) {
+        if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
-            pages.push(1, 2, 3);
-            if (currentPage > 5) pages.push('left-ellipsis');
+            // Always show first 3
+            const firstPages = [1, 2, 3];
+            // Always show last 3
+            const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+            // Sliding window
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
+            const middlePages = [];
             for (let i = start; i <= end; i++) {
-                if (i > 3 && i < totalPages - 2) pages.push(i);
+                middlePages.push(i);
             }
-            if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-            pages.push(totalPages - 2, totalPages - 1, totalPages);
+            let allPages: (number | string)[] = [];
+            // Add first 3
+            allPages.push(...firstPages);
+            // Add ellipsis if gap between first 3 and middle
+            if (start > 4) allPages.push('ellipsis1');
+            // Add middle pages
+            for (const p of middlePages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            // Add ellipsis if gap between middle and last 3
+            if (end < totalPages - 3) allPages.push('ellipsis2');
+            // Add last 3
+            for (const p of lastPages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            return allPages;
         }
-        return pages;
     };
 
     const handleEllipsisClick = (side: 'left' | 'right') => {
@@ -78,108 +123,117 @@ const ChargePointStatsTable: React.FC = () => {
         }
     };
 
-    if (loading) return <div>Laden...</div>;
-    if (error) return <div>Error: {error}</div>;
-    if (!Array.isArray(stats) || stats.length === 0) return <div>Geen data gevonden.</div>;
+    if (loading.chargePoints) return <div>Laden...</div>;
+    if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
 
     return (
         <div className="charge-point-stats-container">
-            <h2>Statistieken per laadpunt (ID)</h2>
+            <div className="userstats-search-wrapper">
+                <h2>Charge Point Statistieken</h2>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <select
+                        value={searchField}
+                        onChange={e => setSearchField(e.target.value as 'Charge_Point_ID' | 'Charge_Point_Country')}
+                        className="userstats-search-dropdown"
+                    >
+                        <option value="Charge_Point_ID">Charge Point ID</option>
+                        <option value="Charge_Point_Country">Land</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder={searchField === 'Charge_Point_ID' ? 'Zoek op Charge Point ID...' : 'Zoek op Land...'}
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="userstats-search"
+                    />
+                </div>
+            </div>
             <div style={{ overflowX: 'auto' }}>
                 <table className="charge-point-stats-table">
                     <thead>
                         <tr>
                             <th>Charge Point ID</th>
                             <th>Land</th>
-                            <th>Aantal transacties</th>
-                            <th>Totaal volume (kWh)</th>
-                            <th>Totale kosten (€)</th>
+                            <th className="sortable-header" onClick={() => handleSort('transaction_count')}>
+                                Aantal Transacties{getSortIndicator('transaction_count')}
+                            </th>
+                            <th className="sortable-header" onClick={() => handleSort('total_volume')}>
+                                Totaal Volume{getSortIndicator('total_volume')}
+                            </th>
+                            <th className="sortable-header" onClick={() => handleSort('total_cost')}>
+                                Totaal Kosten{getSortIndicator('total_cost')}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {stats.map((stat) => (
-                            <tr key={stat.Charge_Point_ID + stat.Charge_Point_Country}>
-                                <td>{stat.Charge_Point_ID}</td>
-                                <td>{stat.Charge_Point_Country}</td>
-                                <td className="text-right">{stat.transaction_count}</td>
-                                <td className="text-right">{stat.total_volume.toFixed(2)}</td>
-                                <td className="text-right">€ {stat.total_cost.toFixed(2)}</td>
+                        {currentStats.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="no-data-row">
+                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                </td>
                             </tr>
-                        ))}
+                        ) : (
+                            currentStats.map((stat: ChargePointStat) => (
+                                <tr key={stat.Charge_Point_ID}>
+                                    <td>{stat.Charge_Point_ID}</td>
+                                    <td>{stat.Charge_Point_Country}</td>
+                                    <td>{stat.transaction_count}</td>
+                                    <td>{stat.total_volume}</td>
+                                    <td>{stat.total_cost}</td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
-            <div className="pagination-container">
-                <button 
-                    className="pagination-button"
-                    onClick={() => handlePageClick(currentPage - 1)} 
-                    disabled={currentPage === 1}
-                >
-                    Vorige
-                </button>
-                {getPageNumbers().map((page, idx) => {
-                    if (page === 'left-ellipsis') {
-                        return showInput.left ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('left'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('left')}
-                            >
-                                ...
-                            </span>
-                        );
-                    }
-                    if (page === 'right-ellipsis') {
-                        return showInput.right ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('right'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('right')}
-                            >
-                                ...
-                            </span>
-                        );
-                    }
-                    return (
-                        <button
-                            key={page}
-                            onClick={() => handlePageClick(Number(page))}
-                            className={`pagination-button ${page === currentPage ? 'active' : ''}`}
-                        >
-                            {page}
-                        </button>
-                    );
-                })}
-                <button 
-                    className="pagination-button"
-                    onClick={() => handlePageClick(currentPage + 1)} 
-                    disabled={currentPage === totalPages}
-                >
-                    Volgende
-                </button>
-            </div>
+            {currentStats.length > 0 && (
+                <div className="pagination-container">
+                    <button 
+                        className="pagination-button"
+                        onClick={() => handlePageClick(currentPage - 1)} 
+                        disabled={currentPage === 1}
+                    >
+                        Vorige
+                    </button>
+                    {(getPageNumbers() ?? []).map((page) => {
+                        if (typeof page === 'number') {
+                            return (
+                                <button
+                                    key={page}
+                                    onClick={() => handlePageClick(page)}
+                                    className={`pagination-button ${page === currentPage ? 'active' : ''}`}
+                                >
+                                    {page}
+                                </button>
+                            );
+                        } else if (page === 'ellipsis1' || page === 'ellipsis2') {
+                            const side = page === 'ellipsis1' ? 'left' : 'right';
+                            return (
+                                <span key={page} className="pagination-ellipsis">
+                                    {showInput[side] ? (
+                                        <input
+                                            type="text"
+                                            className="pagination-input"
+                                            value={inputValue}
+                                            onChange={handleInputChange}
+                                            onBlur={() => handleInputSubmit(side)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleInputSubmit(side);
+                                            }}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                                    )}
+                                </span>
+                            );
+                        }
+                    })}
+                </div>
+            )}
         </div>
     );
 };

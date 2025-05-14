@@ -1,20 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './OverlappingSessions.css';
 import OverlappingModal from './OverlappingModal';
-
-interface OverlappingSession {
-  CDR_ID: string;
-  Authentication_ID: string;
-  Start_datetime: string;
-  End_datetime: string;
-  Charge_Point_City: string;
-  Volume: number;
-  OverlappingCount?: number;
-}
+import { useData } from '../context/DataContext';
 
 const OverlappingSessions: React.FC = () => {
-  const [data, setData] = useState<OverlappingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { overlappingSessions, loading, error } = useData();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCdrId, setSelectedCdrId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -24,16 +14,9 @@ const OverlappingSessions: React.FC = () => {
 
   const itemsPerPage = 50;
 
-  useEffect(() => {
-    fetch("http://localhost:8000/api/overlapping-sessions")
-      .then(res => res.json())
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, []);
-
   const formatDate = (value: string) => new Date(value).toLocaleString();
 
-  const filteredData = data.filter(item =>
+  const filteredData = overlappingSessions.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -71,27 +54,43 @@ const OverlappingSessions: React.FC = () => {
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    if (totalPages <= 9) {
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      pages.push(1, 2, 3);
-      if (currentPage > 5) pages.push('left-ellipsis');
+      // Always show first 3
+      const firstPages = [1, 2, 3];
+      // Always show last 3
+      const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+      // Sliding window
       let start = Math.max(4, currentPage - 1);
       let end = Math.min(totalPages - 3, currentPage + 1);
+      const middlePages = [];
       for (let i = start; i <= end; i++) {
-        if (i > 3 && i < totalPages - 2) pages.push(i);
+        middlePages.push(i);
       }
-      if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-      pages.push(totalPages - 2, totalPages - 1, totalPages);
+      let allPages: (number | string)[] = [];
+      // Add first 3
+      allPages.push(...firstPages);
+      // Add ellipsis if gap between first 3 and middle
+      if (start > 4) allPages.push('ellipsis1');
+      // Add middle pages
+      for (const p of middlePages) {
+        if (!allPages.includes(p)) allPages.push(p);
+      }
+      // Add ellipsis if gap between middle and last 3
+      if (end < totalPages - 3) allPages.push('ellipsis2');
+      // Add last 3
+      for (const p of lastPages) {
+        if (!allPages.includes(p)) allPages.push(p);
+      }
+      return allPages;
     }
-    return pages;
   };
 
   return (
     <div className="overlap-container">
-      <h2 className="overlap-title">Overlapping Sessions per Charge Card</h2>
-
       <div className="overlap-search-wrapper">
+        <h2 className="overlap-title">Overlapping Sessions per Charge Card</h2>
         <input
           type="text"
           placeholder="Zoek op Authentication ID..."
@@ -104,8 +103,10 @@ const OverlappingSessions: React.FC = () => {
         />
       </div>
 
-      {loading ? (
+      {loading.overlappingSessions ? (
         <div className="overlap-loading">Loading...</div>
+      ) : error.overlappingSessions ? (
+        <div className="overlap-empty">Error: {error.overlappingSessions}</div>
       ) : filteredData.length === 0 ? (
         <div className="overlap-empty">Geen resultaten gevonden</div>
       ) : (
@@ -155,66 +156,44 @@ const OverlappingSessions: React.FC = () => {
             <button className="page-number-button" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
               Vorige
             </button>
-
-            {getPageNumbers().map((page, idx) => {
-              if (page === 'left-ellipsis') {
-                return showInput.left ? (
-                  <input
-                    key={idx}
-                    type="text"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onBlur={() => setShowInput({ left: false, right: false })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleInputSubmit('left');
-                    }}
-                    className="page-number-input"
-                    autoFocus
-                  />
-                ) : (
-                  <span key={idx} className="page-number-ellipsis" onClick={() => handleEllipsisClick('left')}>
-                    ...
+            {(getPageNumbers() ?? []).map((page) => {
+              if (typeof page === 'number') {
+                return (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    className={`page-number-button ${page === currentPage ? 'active' : ''}`}
+                  >
+                    {page}
+                  </button>
+                );
+              } else if (page === 'ellipsis1' || page === 'ellipsis2') {
+                const side = page === 'ellipsis1' ? 'left' : 'right';
+                return (
+                  <span key={page} className="pagination-ellipsis">
+                    {showInput[side] ? (
+                      <input
+                        type="text"
+                        className="page-number-input"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        onBlur={() => handleInputSubmit(side)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleInputSubmit(side);
+                        }}
+                        autoFocus
+                      />
+                    ) : (
+                      <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                    )}
                   </span>
                 );
               }
-
-              if (page === 'right-ellipsis') {
-                return showInput.right ? (
-                  <input
-                    key={idx}
-                    type="text"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onBlur={() => setShowInput({ left: false, right: false })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleInputSubmit('right');
-                    }}
-                    className="page-number-input"
-                    autoFocus
-                  />
-                ) : (
-                  <span key={idx} className="page-number-ellipsis" onClick={() => handleEllipsisClick('right')}>
-                    ...
-                  </span>
-                );
-              }
-
-              return (
-                <button
-                  key={page}
-                  onClick={() => goToPage(Number(page))}
-                  className={`page-number-button ${page === currentPage ? 'active' : ''}`}
-                >
-                  {page}
-                </button>
-              );
             })}
-
             <button className="page-number-button" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
               Volgende
             </button>
           </div>
-
           {showModal && selectedCdrId && (
             <OverlappingModal
               cdrId={selectedCdrId}

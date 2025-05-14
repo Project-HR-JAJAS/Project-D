@@ -1,4 +1,4 @@
-.userstats-container {
+/* .userstats-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -107,25 +107,25 @@
   color: blue;
 }
 
-/* Zorg voor consistente kolombreedtes zodat ▲▼ geen layoutverschuiving veroorzaakt */
+
 .userstats-table th:nth-child(1),
 .userstats-table td:nth-child(1) {
-width: 220px; /* Authentication ID */
+width: 220px; 
 }
 
 .userstats-table th:nth-child(2),
 .userstats-table td:nth-child(2) {
-width: 160px; /* Aantal Transacties */
+width: 160px; 
 }
 
 .userstats-table th:nth-child(3),
 .userstats-table td:nth-child(3) {
-width: 180px; /* Totaal Volume */
+width: 180px; 
 }
 
 .userstats-table th:nth-child(4),
 .userstats-table td:nth-child(4) {
-width: 180px; /* Totaal Kosten */
+width: 180px; 
 }
 
 .userstats-search-wrapper {
@@ -139,4 +139,4 @@ width: 180px; /* Totaal Kosten */
   border: 1px solid #ccc;
   border-radius: 4px;
   width: 300px;
-}
+} */

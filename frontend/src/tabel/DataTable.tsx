@@ -59,6 +59,7 @@ const DataTable: React.FC = () => {
         const pages: (number | string)[] = [];
         if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
         } else {
             // Always show first 3
             const firstPages = [1, 2, 3];
@@ -126,7 +127,7 @@ const DataTable: React.FC = () => {
         return '';
     };
 
-    if (loading.dataTable) return <div>Laden...</div>;
+    if (loading.dataTable) return <div>Loading...</div>;
     if (error.dataTable) return <div>Error: {error.dataTable}</div>;
 
     return (
@@ -209,7 +210,7 @@ const DataTable: React.FC = () => {
                     onClick={() => handlePageClick(currentPage - 1)} 
                     disabled={currentPage === 1}
                 >
-                    Vorige
+                    Previous
                 </button>
                 {(getPageNumbers() ?? []).map((page) => {
                     if (typeof page === 'number') {
@@ -250,7 +251,7 @@ const DataTable: React.FC = () => {
                     onClick={() => handlePageClick(currentPage + 1)} 
                     disabled={currentPage === totalPages}
                 >
-                    Volgende
+                    Next
                 </button>
             </div>
         </div>

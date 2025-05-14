@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import './UserStats.css';
+import '../css/UniversalTableCss.css';
 
 interface UserStat {
   Authentication_ID: string;
@@ -81,39 +81,40 @@ const UserStats: React.FC = () => {
   };
 
   const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      // Always show first 3
-      const firstPages = [1, 2, 3];
-      // Always show last 3
-      const lastPages = [totalPages - 2, totalPages - 1, totalPages];
-      // Sliding window
-      let start = Math.max(4, currentPage - 1);
-      let end = Math.min(totalPages - 3, currentPage + 1);
-      const middlePages = [];
-      for (let i = start; i <= end; i++) {
-        middlePages.push(i);
-      }
-      let allPages: (number | string)[] = [];
-      // Add first 3
-      allPages.push(...firstPages);
-      // Add ellipsis if gap between first 3 and middle
-      if (start > 4) allPages.push('ellipsis1');
-      // Add middle pages
-      for (const p of middlePages) {
-        if (!allPages.includes(p)) allPages.push(p);
-      }
-      // Add ellipsis if gap between middle and last 3
-      if (end < totalPages - 3) allPages.push('ellipsis2');
-      // Add last 3
-      for (const p of lastPages) {
-        if (!allPages.includes(p)) allPages.push(p);
-      }
-      return allPages;
-    }
-  };
+        const pages: (number | string)[] = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
+        } else {
+            // Always show first 3
+            const firstPages = [1, 2, 3];
+            // Always show last 3
+            const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+            // Sliding window
+            let start = Math.max(4, currentPage - 1);
+            let end = Math.min(totalPages - 3, currentPage + 1);
+            const middlePages = [];
+            for (let i = start; i <= end; i++) {
+                middlePages.push(i);
+            }
+            let allPages: (number | string)[] = [];
+            // Add first 3
+            allPages.push(...firstPages);
+            // Add ellipsis if gap between first 3 and middle
+            if (start > 4) allPages.push('ellipsis1');
+            // Add middle pages
+            for (const p of middlePages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            // Add ellipsis if gap between middle and last 3
+            if (end < totalPages - 3) allPages.push('ellipsis2');
+            // Add last 3
+            for (const p of lastPages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            return allPages;
+        }
+    };
 
   const getSortIndicator = (key: keyof UserStat) => {
     if (sortConfig.key === key) {
@@ -122,13 +123,13 @@ const UserStats: React.FC = () => {
     return '';
   };
 
-  if (loading.userStats) return <div className="userstats-loading">Loading...</div>;
-  if (error.userStats) return <div className="userstats-loading">Error: {error.userStats}</div>;
+  if (loading.userStats) return <div> Loading...</div>;
+  if (error.userStats) return <div> Error: {error.userStats}</div>;
 
   return (
-    <div className="userstats-container">
-      <div className="userstats-search-wrapper">
-        <h2 className="userstats-title">Gebruiker Statistieken per PasID</h2>
+    <div className="table-container">
+      <div className="table-search-wrapper">
+        <h2 >Gebruiker Statistieken per PasID</h2>
         <input
           type="text"
           placeholder="Zoek op Authentication ID..."
@@ -137,16 +138,11 @@ const UserStats: React.FC = () => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="userstats-search"
+          className="table-search"
         />
       </div>
-
-      {sortedData.length === 0 ? (
-        <div className="userstats-empty">Geen gegevens gevonden</div>
-      ) : (
-        <>
           <div className="userstats-table-wrapper">
-            <table className="userstats-table">
+            <table className="table-form">
               <thead>
                 <tr>
                   <th>Authentication ID</th>
@@ -162,21 +158,32 @@ const UserStats: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentItems.map((row, i) => (
+                {currentItems.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} className="no-data-row">
+                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                </td>
+                            </tr>
+                        ) : (
+                currentItems.map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'even' : 'odd'}>
                     <td>{row.Authentication_ID}</td>
                     <td>{row.TransactionCount}</td>
                     <td>{row.TotalVolume.toFixed(2)}</td>
                     <td>{row.TotalCost.toFixed(2)}</td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
 
-          <div className="page-numbers">
-            <button className="page-number-button" onClick={() => handlePageClick(currentPage - 1)} disabled={currentPage === 1}>
-              Vorige
+          <div className="pagination-container">
+            <button 
+              className="pagination-button"
+              onClick={() => handlePageClick(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
             </button>
             {(getPageNumbers() ?? []).map((page) => {
               if (typeof page === 'number') {
@@ -184,7 +191,7 @@ const UserStats: React.FC = () => {
                   <button
                     key={page}
                     onClick={() => handlePageClick(page)}
-                    className={`page-number-button ${page === currentPage ? 'active' : ''}`}
+                    className={`pagination-button ${page === currentPage ? 'active' : ''}`}
                   >
                     {page}
                   </button>
@@ -196,7 +203,7 @@ const UserStats: React.FC = () => {
                     {showInput[side] ? (
                       <input
                         type="text"
-                        className="page-number-input"
+                        className="pagination-input"
                         value={inputValue}
                         onChange={handleInputChange}
                         onBlur={() => handleInputSubmit(side)}
@@ -212,12 +219,14 @@ const UserStats: React.FC = () => {
                 );
               }
             })}
-            <button className="page-number-button" onClick={() => handlePageClick(currentPage + 1)} disabled={currentPage === totalPages}>
-              Volgende
+            <button 
+              className="pagination-button" 
+              onClick={() => handlePageClick(currentPage + 1)} 
+              disabled={currentPage === totalPages}
+            >
+              Next
             </button>
-          </div>
-        </>
-      )}
+        </div>
     </div>
   );
 };

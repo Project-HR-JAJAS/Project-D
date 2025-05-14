@@ -122,7 +122,9 @@ const Home: React.FC = () => {
             <div className="chart-container">
                 <canvas id="chargeChart" ref={chartRef}></canvas>
             </div>
-    
+            <div>
+                <p></p>
+            </div>
             <DataTablePreview />
         </div>
     );

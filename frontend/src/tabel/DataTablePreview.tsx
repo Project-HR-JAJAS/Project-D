@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchDataTable } from './DataTable.api';
 import { useNavigate } from 'react-router-dom';
-import './DataTable.css';
+import '../css/UniversalTableCss.css';
 
 interface DataTableItem {
     id: string;
@@ -39,12 +39,12 @@ const DataTablePreview: React.FC = () => {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div className="data-table-container">
-            <div className="userstats-search-wrapper">
+        <div className="table-container">
+            <div className="table-search-wrapper">
                 <h2>Data Tabel Preview</h2>
             </div>
             <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
+                <table className="table-form">
                     <thead>
                         <tr>
                             <th>CDR ID</th>

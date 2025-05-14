@@ -141,7 +141,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 throw new Error('Failed to fetch overlapping sessions');
             }
             const data = await response.json();
-            setOverlappingSessions(Array.isArray(data) ? data : []);
+
+            const cleanedData: OverlappingSession[] = data.map((item: OverlappingSession) => ({
+                ...item,
+                Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')),
+                OverlappingCount: item.OverlappingCount !== undefined ? Number(item.OverlappingCount) : undefined,
+            }));
+
+            setOverlappingSessions(Array.isArray(cleanedData) ? cleanedData : []);
             setError(prev => ({ ...prev, overlappingSessions: undefined }));
         } catch (err) {
             setError(prev => ({

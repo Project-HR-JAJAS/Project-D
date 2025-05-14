@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GetDataByCDR, RawApiResponse } from "./Tabel.api";
-import '../home/ChargeDetail.css'; // Make sure this imports the CSS file with the class names
+import '../css/UniversalTableCss.css';
 
-// Field name mapping
+// Moet worden aangepast, zodat het meer relevante informatie toont
+// voor het bekijken van fraude
+// Zal dan ook waarschijnlijk niet meer een standaard tabel zijn
+
 const fieldMapping: { [key: string]: string } = {
     Start_datetime: "Start datetime",
     End_datetime: "End datetime",
@@ -61,27 +64,26 @@ export function TabelDetails() {
     };
 
     return (
-        <div className="charge-details-container">
-            <h2 className="time-range-title">Details for CDR ID: {cdrId}</h2>
-            <div className="table-container">
-                <table className="charge-details-table">
+        <div className="table-container">
+            <h2>Details for CDR ID: {cdrId}</h2>
+                <table className="table-form">
                     <thead>
-                        <tr className="table-row">
+                        <tr>
                             {/* Table Headers */}
                             {Object.entries(fieldMapping).map(([key]) => (
-                                <th key={key} className="table-header">
+                                <th key={key}>
                                     {fieldMapping[key]} {/* Display mapped header name */}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                    <tr className="table-row">
+                    <tr>
                         {/* Render the data for the single item */}
                         {Object.entries(fieldMapping).map(([key]) => {
                             const rawKey = key as keyof RawApiResponse;
                             return (
-                                <td key={rawKey} className="table-cell">
+                                <td key={rawKey}>
                                     {rawKey === "Start_datetime" || rawKey === "End_datetime"
                                         ? formatDatetime(item[rawKey])
                                         : rawKey === "Calculated_Cost"
@@ -93,8 +95,12 @@ export function TabelDetails() {
                     </tr>
                 </tbody>
                 </table>
-            </div>
-            <button className="back-button" onClick={() => navigate(-1)}>Back</button>
+            <button 
+                className="pagination-button" 
+                onClick={() => navigate(-1)}
+            >
+                Back
+            </button>
         </div>
     );
 }

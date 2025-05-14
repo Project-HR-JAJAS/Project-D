@@ -31,16 +31,16 @@ const DataTable: React.FC = () => {
 
     // Client-side sorting
     const sortedData = [...filteredStats];
-  if (sortConfig.key && sortConfig.direction) {
-    sortedData.sort((a, b) => {
-      const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
-      const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-      }
-      return 0;
-    });
-  }
+    if (sortConfig.key && sortConfig.direction) {
+        sortedData.sort((a, b) => {
+        const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+        const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return 0;
+        });
+    }
 
     const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
     const startIndex = (currentPage - 1) * PAGE_SIZE;

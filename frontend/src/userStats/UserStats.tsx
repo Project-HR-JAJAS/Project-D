@@ -166,7 +166,7 @@ const UserStats: React.FC = () => {
                             </tr>
                         ) : (
                 currentItems.map((row, i) => (
-                  <tr key={i} className={i % 2 === 0 ? 'even' : 'odd'}>
+                  <tr key={i}> {/*className={i % 2 === 0 ? 'even' : 'odd'}>*/}
                     <td>{row.Authentication_ID}</td>
                     <td>{row.TransactionCount}</td>
                     <td>{row.TotalVolume.toFixed(2)}</td>

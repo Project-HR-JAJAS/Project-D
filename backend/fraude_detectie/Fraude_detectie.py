@@ -1,71 +1,201 @@
 import sqlite3
 import os
 import pandas as pd
+from typing import Optional
 
-# Configurabele drempelwaarden
-MAX_VOLUME_KWH = 22  # Alles boven 22 kWh
-MAX_DUUR_MINUTEN = 60  # Korter dan 60 minuten
+# Configurable threshold values
+MAX_VOLUME_KWH = 22  # Everything above 22 kWh
+MAX_DUUR_MINUTEN = 60  # Shorter than 60 minutes
+MIN_COST_THRESHOLD = 20  # Cost > X
+MAX_VOLUME_THRESHOLD = 22  # Volume < Y
 
-REDEN = "Hoog volume in korte tijd"
 
 class FraudeDetector:
     def __init__(self, db_path):
         self.db_path = db_path
 
-    def voeg_fraude_kolom_toe(self, conn):
-        cursor = conn.cursor()
-        # Check of kolom al bestaat
-        cursor.execute("PRAGMA table_info(CDR)")
-        kolommen = [rij[1].lower() for rij in cursor.fetchall()]
-        if "fraudereden" not in kolommen:
-            cursor.execute("ALTER TABLE CDR ADD COLUMN FraudeReden TEXT")
-            print("Kolom 'FraudeReden' toegevoegd aan CDR-tabel.")
-        else:
-            print("Kolom 'FraudeReden' bestaat al.")
-        conn.commit()
+    def _maak_fraudetabel(self, cursor):
+        """Maakt de tabel FraudeGeval aan als die nog niet bestaat."""
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS FraudeGeval (
+            CDR_ID TEXT NOT NULL,
+            Reden TEXT,
+            Reden2 TEXT,
+            Reden3 TEXT,
+            FOREIGN KEY (CDR_ID) REFERENCES CDR(CDR_ID)
+        )
+        """)
 
-    def update_fraude_rijen(self, conn):
-        cursor = conn.cursor()
-        update_query = f"""
-        UPDATE CDR
-        SET FraudeReden = '{REDEN}'
-        WHERE CAST(REPLACE(Volume, ',', '.') AS REAL) > {MAX_VOLUME_KWH}
-          AND (
-              (CAST(SUBSTR(Duration, 1, 2) AS INTEGER) * 60) +
-              (CAST(SUBSTR(Duration, 4, 2) AS INTEGER)) +
-              (CAST(SUBSTR(Duration, 7, 2) AS INTEGER) / 60.0)
-          ) < {MAX_DUUR_MINUTEN}
+    def _safe_float(self, value: Optional[str]) -> Optional[float]:
+        """Safely convert string to float, handling None and comma decimals."""
+        if value is None:
+            return None
+        try:
+            return float(str(value).replace(",", "."))
+        except (ValueError, TypeError):
+            return None
+
+    def _vul_fraudetabel(
+        self, cursor, reden: str, ids: list, reden_field: str = "Reden"
+    ):
+        """Voegt voor elk CDR_ID in ids een nieuwe reden toe aan het opgegeven redenveld."""
+        if not ids:
+            return
+
+        # Check if records already exist
+        placeholders = ",".join(["?"] * len(ids))
+        cursor.execute(
+            f"""
+        SELECT CDR_ID FROM FraudeGeval 
+        WHERE CDR_ID IN ({placeholders})
+        """,
+            ids,
+        )
+        existing_ids = [row[0] for row in cursor.fetchall()]
+
+        # For existing records, update the specified reason field
+        update_sql = f"""
+        UPDATE FraudeGeval 
+        SET {reden_field} = ?
+        WHERE CDR_ID = ?
         """
-        cursor.execute(update_query)
-        affected = cursor.rowcount
-        conn.commit()
-        print(f"{affected} rijen gemarkeerd als fraude.")
+        cursor.executemany(update_sql, [(reden, cdr_id) for cdr_id in existing_ids])
 
-    def detecteer_fraude(self):
-        conn = sqlite3.connect(self.db_path)
-        self.voeg_fraude_kolom_toe(conn)
-        self.update_fraude_rijen(conn)
+        # For new records, insert with the specified reason field
+        new_ids = [cdr_id for cdr_id in ids if cdr_id not in existing_ids]
+        if new_ids:
+            insert_sql = f"""
+            INSERT INTO FraudeGeval (CDR_ID, {reden_field}) 
+            VALUES (?, ?)
+            """
+            cursor.executemany(insert_sql, [(cdr_id, reden) for cdr_id in new_ids])
 
-        query = f"""
-        SELECT *, 
-            (
-                (CAST(SUBSTR(Duration, 1, 2) AS INTEGER) * 60) + 
-                (CAST(SUBSTR(Duration, 4, 2) AS INTEGER)) + 
-                (CAST(SUBSTR(Duration, 7, 2) AS INTEGER) / 60.0)
-            ) AS DurationMinuten,
-            CAST(REPLACE(Volume, ',', '.') AS REAL) AS VolumeNum
+    def detecteer_hoog_volume_korte_duur(self, cursor):
+        """Detecteert calls met te hoog volume in te korte tijd."""
+        cursor.execute("""
+        SELECT CDR_ID
         FROM CDR
-        WHERE FraudeReden = '{REDEN}'
-        """
+        WHERE
+            Volume IS NOT NULL
+        AND Volume != ''
+        AND Duration IS NOT NULL
+        AND Duration != ''
+        """)
 
-        df = pd.read_sql_query(query, conn)
-        conn.close()
-        return df
+        valid_records = cursor.fetchall()
+        fraud_ids = []
+
+        for row in valid_records:
+            cdr_id = row[0]
+            cursor.execute(
+                """
+            SELECT Volume, Duration
+            FROM CDR
+            WHERE CDR_ID = ?
+            """,
+                (cdr_id,),
+            )
+            volume_str, duration = cursor.fetchone()
+
+            try:
+                volume = self._safe_float(volume_str)
+                if volume is None:
+                    continue
+
+                # Parse duration (HH:MM:SS)
+                h, m, s = map(int, duration.split(":"))
+                duration_minutes = h * 60 + m + s / 60
+
+                if volume > MAX_VOLUME_KWH and duration_minutes < MAX_DUUR_MINUTEN:
+                    fraud_ids.append(cdr_id)
+            except (ValueError, AttributeError):
+                continue
+
+        self._vul_fraudetabel(cursor, "Hoog volume in korte duur", fraud_ids, "Reden")
+
+    def detecteer_hoge_kosten_laag_volume(self, cursor):
+        """Detecteert sessies met hoge kosten en laag volume."""
+        cursor.execute("""
+        SELECT CDR_ID, Volume, Calculated_Cost
+        FROM CDR
+        WHERE 
+            Volume IS NOT NULL
+        AND Volume != ''
+        AND Calculated_Cost IS NOT NULL
+        """)
+
+        results = cursor.fetchall()
+        fraud_data = []
+
+        for row in results:
+            cdr_id, volume_str, cost = row
+            try:
+                volume = self._safe_float(volume_str)
+                if volume is None or cost is None:
+                    continue
+
+                if cost > MIN_COST_THRESHOLD and volume < MAX_VOLUME_THRESHOLD:
+                    ratio = cost / volume
+                    fraud_data.append((cdr_id, ratio))
+            except (ValueError, TypeError, ZeroDivisionError):
+                continue
+
+        # Update the table with the new reasons in Reden2
+        for cdr_id, ratio in fraud_data:
+            reason = f"Ongebruikelijke kost per kWh (ratio: {ratio:.2f})"
+            self._vul_fraudetabel(cursor, reason, [cdr_id], "Reden2")
+
+    def detecteer_fraude(self) -> pd.DataFrame:
+        """Voert alle detectiemethodes uit en geeft elk fraudegeval met reden terug als DataFrame."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            # Maak de fraudetabel aan
+            self._maak_fraudetabel(cursor)
+
+            # Roep detectiemethoden aan
+            self.detecteer_hoog_volume_korte_duur(cursor)
+            self.detecteer_hoge_kosten_laag_volume(cursor)
+
+            conn.commit()
+
+            # Haal fraudegevallen op
+            df = pd.read_sql_query(
+                """
+                SELECT 
+                    fg.CDR_ID, 
+                    fg.Reden AS Reden1,
+                    fg.Reden2 AS Reden2,
+                    fg.Reden3 AS Reden3,
+                    c.Volume,
+                    c.Calculated_Cost,
+                    CASE 
+                        WHEN c.Volume IS NOT NULL AND c.Volume != '' 
+                             AND c.Calculated_Cost IS NOT NULL 
+                        THEN ROUND(c.Calculated_Cost / CAST(REPLACE(c.Volume, ',', '.') AS REAL), 2)
+                        ELSE NULL
+                    END AS CostPerKwh
+                FROM FraudeGeval AS fg
+                JOIN CDR AS c ON c.CDR_ID = fg.CDR_ID
+                ORDER BY fg.CDR_ID
+                """,
+                conn,
+            )
+            return df
+
+        except Exception as e:
+            print(f"Fout tijdens fraude detectie: {str(e)}")
+            return pd.DataFrame()
+        finally:
+            if "conn" in locals():
+                conn.close()
+
 
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     db_file = os.path.join(base_dir, "project-d.db")
 
     detector = FraudeDetector(db_file)
     fraude_df = detector.detecteer_fraude()
-    
+    print(fraude_df)

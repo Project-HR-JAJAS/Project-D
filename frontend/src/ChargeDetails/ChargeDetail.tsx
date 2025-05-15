@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-import './ChargeDetail.css';
+import '../css/UniversalTableCss.css';
 
 interface ChargeDetail {
     CDR_ID: string;
@@ -25,8 +24,35 @@ const ChargeDetails: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [inputValue, setInputValue] = useState('');
     const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
-    const itemsPerPage = 50;
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchField, setSearchField] = useState<'CDR_ID' | 'Address' | 'City' | 'Country' | 'Charge_Point_ID'>('CDR_ID');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof ChargeDetail | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
     const navigate = useNavigate();
+    const itemsPerPage = 10;
+
+    const filteredStats = data.filter((stat: ChargeDetail) => {
+        const fieldMap: Record<typeof searchField, keyof ChargeDetail> = {
+            CDR_ID: 'CDR_ID',
+            Address: 'Charge_Point_Address',
+            City: 'Charge_Point_City',
+            Country: 'Charge_Point_Country',
+            Charge_Point_ID: 'Charge_Point_ID',
+        };
+        const value = stat[fieldMap[searchField]] ?? '';
+        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    const sortedData = [...filteredStats];
+    if (sortConfig.key && sortConfig.direction) {
+        sortedData.sort((a, b) => {
+        const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+        const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return 0;
+        });
+    }
 
     const columnsToShow: (keyof ChargeDetail)[] = [
         'CDR_ID',
@@ -58,12 +84,11 @@ const ChargeDetails: React.FC = () => {
                     }
                     return res.json();
                 })
-                .then(data => {
-                    const processedData = data.map((item: any) => ({
+                .then((data: any[]) => {
+                    const processedData: ChargeDetail[] = data.map((item): ChargeDetail => ({
                         ...item,
-                        Calculated_Cost: typeof item.Calculated_Cost === 'string' ?
-                            parseFloat(item.Calculated_Cost) :
-                            item.Calculated_Cost
+                        Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')),
+                Calculated_Cost: parseFloat((item.Calculated_Cost ?? '0').toString().replace(',', '.')),
                     }));
                     setData(processedData);
                     setIsLoading(false);
@@ -75,10 +100,10 @@ const ChargeDetails: React.FC = () => {
         }
     }, [timeRange]);
 
-    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
     const formatColumnName = (name: string) => {
         const nameMap: Record<string, string> = {
@@ -110,10 +135,16 @@ const ChargeDetails: React.FC = () => {
         if (column === 'Calculated_Cost') return typeof value === 'number' ? `€${value.toFixed(2)}` : String(value);
         if (column === 'Duration') return typeof value === 'number' ? `${value} minutes` : String(value);
         if (column === 'Start_datetime' || column === 'End_datetime') return new Date(value).toLocaleString();
-        return String(value);
+        return value;
     };
 
-    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+    const handlePageClick = (page: number) => {
+        if (page !== currentPage && page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setShowInput({left: false, right: false});
+            setInputValue('');
+        }
+    };
 
     const handleEllipsisClick = (side: 'left' | 'right') => {
         setShowInput({ left: side === 'left', right: side === 'right' });
@@ -136,161 +167,203 @@ const ChargeDetails: React.FC = () => {
 
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
-        if (totalPages <= 9) {
+        if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
         } else {
-            pages.push(1, 2, 3);
-            if (currentPage > 5) pages.push('left-ellipsis');
+            // Always show first 3
+            const firstPages = [1, 2, 3];
+            // Always show last 3
+            const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+            // Sliding window
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
+            const middlePages = [];
             for (let i = start; i <= end; i++) {
-                if (i > 3 && i < totalPages - 2) pages.push(i);
+                middlePages.push(i);
             }
-            if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-            pages.push(totalPages - 2, totalPages - 1, totalPages);
+            let allPages: (number | string)[] = [];
+            // Add first 3
+            allPages.push(...firstPages);
+            // Add ellipsis if gap between first 3 and middle
+            if (start > 4) allPages.push('ellipsis1');
+            // Add middle pages
+            for (const p of middlePages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            // Add ellipsis if gap between middle and last 3
+            if (end < totalPages - 3) allPages.push('ellipsis2');
+            // Add last 3
+            for (const p of lastPages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            return allPages;
         }
-        return pages;
     };
 
+    const handleSort = (key: keyof ChargeDetail) => {
+        setSortConfig(prev => {
+            if (prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            if (prev.direction === 'desc') return { key: null, direction: null };
+            return { key, direction: 'asc' };
+        });
+        setCurrentPage(1);
+    };
+
+    const getSortIndicator = (key: keyof ChargeDetail) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+        }
+        return '';
+    };
+
+    if (isLoading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>Error: No charging sessions recorded for this time range</div>;
+
     return (
-        <div className="charge-details-container">
-            <Helmet>
-                <title>Charge Details - {timeRange}</title>
-            </Helmet>
+        <div className="table-container">
+            <div className= 'table-search-wrapper'>
+                <h2>Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
+                <div>
+                    <select
+                        value={searchField}
+                        onChange={e => setSearchField(e.target.value as 'CDR_ID' | 'Address' | 'City' | 'Country' | 'Charge_Point_ID')}
+                        className="table-search-dropdown"
+                    >
+                        <option value="CDR_ID">CDR ID</option>
+                        <option value="Address">Address</option>
+                        <option value="City">City</option>
+                        <option value="Country">Country</option>
+                        <option value="Charge_Point_ID">Charge Point ID</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder={
+                            searchField === 'CDR_ID'
+                                ? 'Search by CDR ID...'
+                                : searchField === 'Address'
+                                ? 'Search by Address...'
+                                : searchField === 'City'
+                                ? 'Search by City...'
+                                : searchField === 'Country'
+                                ? 'Search by Country...'
+                                : 'Search by Charge Point ID...'
+                        }
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="table-search"
+                    />
+                </div>
+            </div>
 
-            <button className="back-button" onClick={() => navigate(-1)}>
-                Back to Dashboard
-            </button>
-
-            <h2 className="time-range-title">Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
-
-            {isLoading ? (
-                <div className="loading-message">Loading data...</div>
-            ) : data.length === 0 ? (
-                <div className="no-data-message">No charging sessions recorded for this time range</div>
-            ) : (
-                <>
-                    <div className="pagination-info">
-                        <div>
-                            Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, data.length)} of {data.length} records
-                        </div>
-                    </div>
-
-                    <div className="table-container">
-                        <table className="charge-details-table">
-                            <colgroup>
-                                {columnsToShow.map(column => (
-                                    <col key={column} className={`column-${column}`} />
-                                ))}
-                            </colgroup>
-                            <thead>
-                                <tr className="table-header">
-                                    {columnsToShow.map((column) => (
-                                        <th key={column} className="table-header-cell">
-                                            {formatColumnName(column)}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {currentItems.map((item, index) => (
-                                    <tr key={index} className={`table-row ${index % 2 === 0 ? 'even' : 'odd'}`}>
-                                        {columnsToShow.map((column) => (
-                                            <td
-                                                key={column}
-                                                className="table-cell"
-                                                title={String(item[column as keyof ChargeDetail])}
-                                            >
-                                                {formatCellValue(column, item[column as keyof ChargeDetail])}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div className="page-numbers">
-                        <button
-                            className="page-number-button"
-                            onClick={() => paginate(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Vorige
-                        </button>
-
-                        {getPageNumbers().map((page, idx) => {
-                            if (page === 'left-ellipsis') {
-                                return showInput.left ? (
-                                    <input
-                                        key={idx}
-                                        type="text"
-                                        value={inputValue}
-                                        onChange={handleInputChange}
-                                        onBlur={() => setShowInput({ left: false, right: false })}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') handleInputSubmit('left');
-                                        }}
-                                        className="page-number-input"
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <span
-                                        key={idx}
-                                        className="page-number-ellipsis"
-                                        onClick={() => handleEllipsisClick('left')}
-                                    >
-                                        ...
-                                    </span>
-                                );
-                            }
-
-                            if (page === 'right-ellipsis') {
-                                return showInput.right ? (
-                                    <input
-                                        key={idx}
-                                        type="text"
-                                        value={inputValue}
-                                        onChange={handleInputChange}
-                                        onBlur={() => setShowInput({ left: false, right: false })}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') handleInputSubmit('right');
-                                        }}
-                                        className="page-number-input"
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <span
-                                        key={idx}
-                                        className="page-number-ellipsis"
-                                        onClick={() => handleEllipsisClick('right')}
-                                    >
-                                        ...
-                                    </span>
-                                );
-                            }
-
-                            return (
-                                <button
-                                    key={page}
-                                    onClick={() => paginate(Number(page))}
-                                    className={`page-number-button ${page === currentPage ? 'active' : ''}`}
+            <div style={{ overflowX: 'auto' }}>
+                <table className="table-form">
+                    <thead>
+                        <tr>
+                            <th> CDR ID</th>
+                            <th>Start DateTime</th>
+                            <th>End DateTime</th>
+                            <th>Duration </th>
+                            <th className="sortable-header" onClick={() => handleSort('Volume')}>
+                                Volume {getSortIndicator('Volume')}
+                            </th>
+                            <th>Address</th>
+                            <th>ZIP</th>
+                            <th>City</th>
+                            <th>Country</th>
+                            <th>Type</th>
+                            <th>Charge Point ID </th>
+                            <th className="sortable-header" onClick={() => handleSort('Calculated_Cost')}>
+                                Cost {getSortIndicator('Calculated_Cost')}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentItems.length === 0 ? (
+                            <tr>
+                                <td colSpan={12} className="no-data-row">
+                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                </td>
+                            </tr>
+                        ) : (
+                            currentItems.map((item) => (
+                                <tr
+                                    key={item.CDR_ID}
+                                    onClick={() => navigate(`/details/${item.CDR_ID}`)}
+                                    className="clickable-row"
                                 >
-                                    {page}
-                                </button>
-                            );
-                        })}
-
-                        <button
-                            className="page-number-button"
-                            onClick={() => paginate(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Volgende
-                        </button>
-                    </div>
-                </>
-            )}
+                                    <td>{formatCellValue('CDR_ID', item.CDR_ID)}</td>
+                                    <td>{formatCellValue('Start_datetime', item.Start_datetime)}</td>
+                                    <td>{formatCellValue('End_datetime', item.End_datetime)}</td>
+                                    <td>{formatCellValue('Duration', item.Duration)}</td>
+                                    <td className="text-right">{formatCellValue('Volume', item.Volume)}</td>
+                                    <td>{formatCellValue('Charge_Point_Address', item.Charge_Point_Address)}</td>
+                                    <td>{formatCellValue('Charge_Point_ZIP', item.Charge_Point_ZIP)}</td>
+                                    <td>{formatCellValue('Charge_Point_City', item.Charge_Point_City)}</td>
+                                    <td>{formatCellValue('Charge_Point_Country', item.Charge_Point_Country)}</td>
+                                    <td>{formatCellValue('Charge_Point_Type', item.Charge_Point_Type)}</td>
+                                    <td>{formatCellValue('Charge_Point_ID', item.Charge_Point_ID)}</td>
+                                    <td className="text-right">{formatCellValue('Calculated_Cost', item.Calculated_Cost)}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            <div className="pagination-container">
+                <button 
+                    className="pagination-button"
+                    onClick={() => handlePageClick(currentPage - 1)} 
+                    disabled={currentPage === 1}
+                >
+                    Previous
+                </button>
+                {(getPageNumbers() ?? []).map((page) => {
+                    if (typeof page === 'number') {
+                        return (
+                            <button
+                                key={page}
+                                onClick={() => handlePageClick(page)}
+                                className={`pagination-button ${page === currentPage ? 'active' : ''}`}
+                            >
+                                {page}
+                            </button>
+                        );
+                    } else if (page === 'ellipsis1' || page === 'ellipsis2') {
+                        const side = page === 'ellipsis1' ? 'left' : 'right';
+                        return (
+                            <span key={page} className="pagination-ellipsis">
+                                {showInput[side] ? (
+                                    <input
+                                        type="text"
+                                        className="pagination-input"
+                                        value={inputValue}
+                                        onChange={handleInputChange}
+                                        onBlur={() => handleInputSubmit(side)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleInputSubmit(side);
+                                        }}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                                )}
+                            </span>
+                        );
+                    }
+                })}
+                <button 
+                    className="pagination-button"
+                    onClick={() => handlePageClick(currentPage + 1)} 
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </button>
+            </div>
         </div>
     );
 };

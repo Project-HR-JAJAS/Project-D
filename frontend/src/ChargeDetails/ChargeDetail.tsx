@@ -233,8 +233,8 @@ const ChargeDetails: React.FC = () => {
                     >
                         <option value="CDR_ID">CDR ID</option>
                         <option value="Address">Address</option>
-                        <option value="Charge_Point_City">City</option>
-                        <option value="Charge_Point_Country">Country</option>
+                        <option value="City">City</option>
+                        <option value="Country">Country</option>
                         <option value="Charge_Point_ID">Charge Point ID</option>
                     </select>
                     <input

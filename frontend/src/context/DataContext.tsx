@@ -34,6 +34,7 @@ export interface OverlappingSession {
     Charge_Point_City: string;
     Volume: number;
     OverlappingCount?: number;
+    Calculated_Cost: number;
 }
 
 interface DataContextType {

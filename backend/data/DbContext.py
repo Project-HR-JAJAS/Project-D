@@ -271,7 +271,7 @@ class DbContext:
 
         query = """
         WITH Overlaps AS (
-            SELECT a.CDR_ID AS main_id, b.CDR_ID AS overlap_id, a.*
+            SELECT a.CDR_ID AS main_id, b.CDR_ID AS overlap_id, a.*, a.Calculated_Cost
             FROM CDR a
             JOIN CDR b
             ON a.Authentication_ID = b.Authentication_ID
@@ -283,7 +283,7 @@ class DbContext:
             )
         )
         SELECT o.main_id AS CDR_ID, o.Authentication_ID, o.Start_datetime, o.End_datetime,
-            o.Charge_Point_City, o.Volume,
+            o.Charge_Point_City, o.Volume,  o.Calculated_Cost,
             COUNT(o.overlap_id) AS OverlappingCount
         FROM Overlaps o
         GROUP BY o.main_id
@@ -299,7 +299,8 @@ class DbContext:
         self.connect()
 
         query = f"""
-        SELECT b.*
+        SELECT b.CDR_ID, b.Start_datetime, b.End_datetime, b.Charge_Point_City, b.Volume, b.Authentication_ID,
+            b.Charge_Point_ID, b.Charge_Point_Country, b.Calculated_Cost
         FROM CDR a
         JOIN CDR b
             ON a.Authentication_ID = b.Authentication_ID
@@ -313,7 +314,8 @@ class DbContext:
 
         UNION
 
-        SELECT a.*
+        SELECT a.CDR_ID, a.Start_datetime, a.End_datetime, a.Charge_Point_City, a.Volume, a.Authentication_ID,
+            a.Charge_Point_ID, a.Charge_Point_Country, a.Calculated_Cost
         FROM CDR a
         JOIN CDR b
             ON b.Authentication_ID = a.Authentication_ID
@@ -327,7 +329,8 @@ class DbContext:
 
         UNION
 
-        SELECT *
+        SELECT CDR_ID, Start_datetime, End_datetime, Charge_Point_City, Volume, Authentication_ID,
+            Charge_Point_ID, Charge_Point_Country, Calculated_Cost
         FROM CDR
         WHERE CDR_ID = ?
         """

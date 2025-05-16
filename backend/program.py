@@ -541,6 +541,23 @@ async def get_all_data_table():
             db.close()
         raise HTTPException(status_code=500, detail=f"Error fetching data table: {str(e)}")
 
+@app.get("/import-log")
+async def get_import_logs():
+    parse_import = GetAll()
+    parsed_lines = []
+
+    try:
+        with open("import_log.txt", "r") as f:
+            lines = f.readlines()[-20:]  # get last 20 lines
+            for line in lines:
+                parsed = parse_import.parse_import_log_line(line)
+                if parsed:
+                    parsed_lines.append(parsed)
+    except FileNotFoundError:
+        return [{"error": "import_log.txt not found"}]
+
+    return list(reversed(parsed_lines))
+
 def main():
     pass
 

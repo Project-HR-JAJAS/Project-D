@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import './ImportPage.css';
 import { useData } from '../context/DataContext';
+import ImportHistory from './ImportHistory';
 
 const ImportPage: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [uploadTime, setUploadTime] = useState<number | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const { refreshData } = useData();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,46 +73,62 @@ const ImportPage: React.FC = () => {
   };
 
   return (
-    <div className="import-container">
-      <h1>Import Excel File</h1>
-
-      <div className="file-upload-container">
-        <input
-          accept=".xlsx,.xls"
-          id="file-input"
-          type="file"
-          multiple
-          onChange={handleFileChange}
-        />
-        <label htmlFor="file-input" className="file-input-label">
-          Select File(s)
-        </label>
-        {files.length > 0 && (
-          <ul className="selected-file">
-            {files.map(file => <li key={file.name}>{file.name}</li>)}
-          </ul>
-        )}
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button className="history-button" onClick={() => setShowHistory(true)}>
+          Import History
+        </button>
+        
       </div>
 
-      <button
-        className="upload-button"
-        onClick={handleUpload}
-        disabled={!files.length || loading}
-      >
-        {loading ? <div className="loading-spinner"></div> : 'Upload'}
-      </button>
+      <div className='import-container'>
+        <h1>Import Excel File</h1>
 
-      {message && (
-        <div className={`message ${message.type}`} style={{ whiteSpace: 'pre-line' }}>
-          {message.text}
+        <div className="file-upload-container">
+          <input
+            accept=".xlsx,.xls"
+            id="file-input"
+            type="file"
+            multiple
+            onChange={handleFileChange}
+          />
+          <label htmlFor="file-input" className="file-input-label">
+            Select File(s)
+          </label>
+          {files.length > 0 && (
+            <ul className="selected-file">
+              {files.map(file => <li key={file.name}>{file.name}</li>)}
+            </ul>
+          )}
         </div>
-      )}
 
-      {uploadTime !== null && (
-        <p className="processing-time">
-          Total server processing time: {uploadTime.toFixed(2)} seconds
-        </p>
-      )}
+        <button
+          className="upload-button"
+          onClick={handleUpload}
+          disabled={!files.length || loading}
+        >
+          {loading ? <div className="loading-spinner"></div> : 'Upload'}
+        </button>
+
+        {message && (
+          <div className={`message ${message.type}`} style={{ whiteSpace: 'pre-line' }}>
+            {message.text}
+          </div>
+        )}
+
+        {uploadTime !== null && (
+          <p className="processing-time">
+            Total server processing time: {uploadTime.toFixed(2)} seconds
+          </p>
+        )}
+      </div>
+      {showHistory && (
+            <ImportHistory
+              onClose={() => {
+                setShowHistory(false);
+              }}
+            />
+          )}
     </div>
   );
 };

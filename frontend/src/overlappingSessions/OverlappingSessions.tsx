@@ -11,7 +11,7 @@ const OverlappingSessions: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchField, setSearchField] = useState<'Authentication_ID' | 'Charge_Point_City'>('Authentication_ID');
+  const [searchField, setSearchField] = useState<'Authentication_ID'>('Authentication_ID');
   const [sortConfig, setSortConfig] = useState<{ key: keyof OverlappingSession | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
   
 
@@ -128,19 +128,14 @@ const OverlappingSessions: React.FC = () => {
         <div>
           <select
               value={searchField}
-              onChange={e => setSearchField(e.target.value as 'Authentication_ID' | 'Charge_Point_City')}
+              onChange={e => setSearchField(e.target.value as 'Authentication_ID')}
               className="table-search-dropdown"
           >
               <option value="Authentication_ID">Authentication ID</option>
-              <option value="Charge_Point_City">City</option>
           </select>
           <input
             type="text"
-              placeholder={
-                  searchField === 'Authentication_ID'
-                      ? 'Search based on Authentication ID...'
-                      : 'Search based on City...'
-              }
+              placeholder="Search based on Authentication ID..."
               value={searchTerm}
               onChange={e => {
                   setSearchTerm(e.target.value);
@@ -170,11 +165,11 @@ const OverlappingSessions: React.FC = () => {
               <thead>
                 <tr>
                   <th>Authentication ID</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>City</th>
                   <th className="sortable-header" onClick={() => handleSort('Volume')}>
                       Volume (kWh){getSortIndicator('Volume')}
+                  </th>
+                  <th className="sortable-header" onClick={() => handleSort('Calculated_Cost')}>
+                      Total Cost (€){getSortIndicator('Calculated_Cost')}
                   </th>
                   <th className="sortable-header" onClick={() => handleSort('OverlappingCount')}>
                       Overlaps{getSortIndicator('OverlappingCount')}
@@ -200,10 +195,8 @@ const OverlappingSessions: React.FC = () => {
                         }}
                   >
                     <td>{row.Authentication_ID}</td>
-                    <td>{formatDate(row.Start_datetime)}</td>
-                    <td>{formatDate(row.End_datetime)}</td>
-                    <td>{row.Charge_Point_City}</td>
                     <td>{row.Volume}</td>
+                    <td>{row.Calculated_Cost?.toFixed(2)}</td>
                     <td>{row.OverlappingCount ?? '-'}</td>
                   </tr>
                 ))

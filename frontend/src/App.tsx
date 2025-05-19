@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import ImportPage from './pages/ImportPage';
+//import ImportPage from './pages/ImportPage';
 import ExportPage from './pages/ExportPage';
 import './App.css';
 import ChargeDetails from './ChargeDetails/ChargeDetail';
@@ -13,8 +13,13 @@ import { DataProvider } from './context/DataContext';
 
 import ChargePointStatsTable from './components/ChargePointStatsTable';
 import DataTable from './tabel/DataTable';
+import ImportDropdown from './pages/ImportDropdown';
 
 const App: React.FC = () => {
+  function setShowHistory(arg0: boolean): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <DataProvider>
       <Router>
@@ -25,7 +30,7 @@ const App: React.FC = () => {
             </Link>
             <div className="nav-links">
               <Link to="/" className="nav-link">Home</Link>
-              <Link to="/import" className="nav-link">Import</Link>
+              <div className="nav-link-dropdown"><ImportDropdown /></div>
               <Link to="/export" className="nav-link">Export</Link>
               <Link to="/overlapping-sessions" className="nav-link">Overlappende Sessies</Link>
               <Link to="/user-stats" className="nav-link">Gebruiker Stats</Link>
@@ -37,7 +42,7 @@ const App: React.FC = () => {
 
         <main className="main-content">
           <Routes>
-            <Route path="/import" element={<ImportPage />} />
+            {/* <Route path="/import" element={<ImportPage />} /> */}
             <Route path="/export" element={<ExportPage />} />
             <Route path="/tabel/all" element={<TabelForm />} />
             <Route path="/charges/:timeRange" element={<ChargeDetails />} />

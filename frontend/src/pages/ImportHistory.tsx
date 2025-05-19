@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchImportLogs, ImportLogEntry } from './ImportHistory.api'; // Adjust the path if needed
+import './ImportHistory.css';
 
 interface ImportHistoryProps {
   onClose: () => void;
@@ -26,17 +27,17 @@ const ImportHistory: React.FC<ImportHistoryProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close" onClick={onClose}>×</button>
-        <h2>Import History</h2>
+    <div className="model-overlay">
+      <div className="model-content">
+        <button className="model-close" onClick={onClose}>×</button>
+        <h2 className="model-title">Import History</h2>
 
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
           <p style={{ color: 'red' }}>{error}</p>
         ) : (
-          <table className="modal-table">
+          <table className="model-table">
             <thead>
               <tr>
                 <th>Date Imported</th>
@@ -47,7 +48,10 @@ const ImportHistory: React.FC<ImportHistoryProps> = ({ onClose }) => {
             </thead>
             <tbody>
               {logs.map((log, index) => (
-                <tr key={index}>
+                <tr
+                  key={index}
+                  className={log.status === "Success" ? "row-success" : "row-fail"}
+                >
                   <td>{log.date}</td>
                   <td>{log.filename}</td>
                   <td>{log.status}</td>

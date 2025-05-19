@@ -17,3 +17,17 @@
 2025-05-08 00:28:16,164 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx
 2025-05-08 00:28:18,539 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx
 2025-05-08 00:28:23,817 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx
+2025-05-19 20:43:35,608 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx. Error: Missing required columns in Excel file: ['CDR_ID', 'Start_datetime', 'End_datetime', 'Duration', 'Volume', 'Charge_Point_Address', 'Charge_Point_ZIP', 'Charge_Point_City', 'Charge_Point_Country', 'Charge_Point_Type', 'Product_Type', 'Tariff_Type', 'Authentication_ID', 'Contract_ID', 'Meter_ID', 'OBIS_Code', 'Charge_Point_ID', 'Service_Provider_ID', 'Infra_Provider_ID', 'Calculated_Cost']
+2025-05-19 20:44:30,981 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx
+2025-05-19 20:50:01,634 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 21:28:36,182 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 21:48:23,362 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:05:30,638 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:09:46,072 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:09:59,864 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:13:18,257 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:13:32,622 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:14:28,683 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:16:42,010 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:17:16,071 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID
+2025-05-19 22:28:36,657 - ERROR - Failed to import records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx. Error: UNIQUE constraint failed: CDR.CDR_ID

@@ -133,7 +133,7 @@ const DataTable: React.FC = () => {
     return (
         <div className="table-container">
             <div className="table-search-wrapper">
-                <h2>Data Tabel</h2>
+                <h2>Data Table</h2>
                 <div>
                     <select
                         value={searchField}
@@ -148,10 +148,10 @@ const DataTable: React.FC = () => {
                         type="text"
                         placeholder={
                             searchField === 'id'
-                                ? 'Zoek op CDR ID...'
+                                ? 'Search by CDR ID...'
                                 : searchField === 'authentication_id'
-                                ? 'Zoek op Authentication ID...'
-                                : 'Zoek op Charge Point ID...'
+                                ? 'Search by Authentication ID...'
+                                : 'Search by Charge Point ID...'
                         }
                         value={searchTerm}
                         onChange={e => {
@@ -182,7 +182,7 @@ const DataTable: React.FC = () => {
                         {currentItems.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="no-data-row">
-                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                    No results found for: <strong>{searchTerm}</strong>
                                 </td>
                             </tr>
                         ) : (

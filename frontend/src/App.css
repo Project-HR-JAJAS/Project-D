@@ -29,6 +29,13 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.2s;
+  font-family: 'arial', sans-serif;
+}
+
+.nav-link-dropdown {
+  display: flex;
+  gap: 1rem;
+  font-family: 'arial', sans-serif;
 }
 
 .nav-link:hover {

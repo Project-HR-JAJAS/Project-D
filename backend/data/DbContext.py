@@ -135,7 +135,7 @@ class DbContext:
             self.connection.close()
             print(f"Connection to {self.db_name} closed.")
 
-    def import_excel_to_database(self, excel_file_path):
+    def import_excel_to_database(self, excel_file_path) -> Tuple[int, Optional[str]]:
         """
         Import data from an Excel file into the CDR table and log the results.
 
@@ -211,7 +211,7 @@ class DbContext:
             fraude_resultaat = detector.detecteer_fraude()
             print(f"Fraudedetectie voltooid. Gevonden cases: {len(fraude_resultaat)}")
             
-            return len(records)
+            return len(records), None
 
         except Exception as e:
             # Log failure
@@ -220,7 +220,7 @@ class DbContext:
             print(f"Error importing Excel file: {str(e)}")
             if self.connection:
                 self.connection.rollback()
-            return 0
+            return 0, str(e)
 
         finally:
             if self.connection:

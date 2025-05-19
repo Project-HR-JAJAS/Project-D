@@ -45,12 +45,12 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
         db.initialize_database()  # Ensure the table is created
 
         # Import the Excel file
-        records_imported = db.import_excel_to_database(file_path)
+        records_imported, error_msg = db.import_excel_to_database(file_path)
 
         if records_imported > 0:
             return True, f"Successfully imported {records_imported} records", records_imported
         else:
-            return False, "No records were imported. Please check the Excel file format.", None
+            return False, f"No records were imported. {error_msg}", None
 
     except Exception as e:
         return False, f"Error importing file: {str(e)}", None

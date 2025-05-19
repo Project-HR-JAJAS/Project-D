@@ -1,4 +1,4 @@
-.modal-overlay {
+.model-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -11,19 +11,19 @@
     align-items: center;
   }
   
-  .modal-content {
+  .model-content {
     background-color: white;
     padding: 30px;
     border-radius: 8px;
     max-width: 900px;
-    width: 95%;
-    max-height: 90%;
+    width: 100%;
+    max-height: 80%;
     overflow-y: auto;
     position: relative;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   }
   
-  .modal-close {
+  .model-close {
     position: absolute;
     top: 10px;
     right: 15px;
@@ -33,44 +33,54 @@
     cursor: pointer;
   }
   
-  .modal-title {
+  .model-title {
     font-size: 1.5rem;
     margin-bottom: 20px;
     text-align: center;
+    color: #333;
   }
   
-  .modal-loading,
-  .modal-empty {
+  .model-loading,
+  .model-empty {
     text-align: center;
     font-size: 1.1rem;
     padding: 20px;
     color: #666;
   }
   
-  .modal-table {
+  .model-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
   }
   
-  .modal-table th,
-  .modal-table td {
-    border: 1px solid #ddd;
+  .model-table th,
+  .model-table td {
+    border: 1px solid #ccc;
     padding: 10px;
     text-align: left;
     white-space: nowrap;
   }
   
-  .modal-table thead {
-    background-color: #f2f2f2;
+  .model-table thead {
+    background-color: #4a90e2; /* stronger blue */
+    color: white;
   }
-  
-  .modal-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
+
   
   .highlight-row {
     background-color: #d1eaff !important;
     font-weight: bold;
+  }
+
+  .model-table .row-success {
+    background-color: #d4edda; /* light green */
+    color: #155724; /* dark green text */
+  }
+
+  /* Fail row (red) */
+  .model-table .row-fail {
+    background-color: #f8d7da; /* light red */
+    color: #721c24; /* dark red text */
   }
   

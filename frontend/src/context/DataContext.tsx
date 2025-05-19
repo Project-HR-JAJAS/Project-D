@@ -147,6 +147,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 ...item,
                 Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')),
                 OverlappingCount: item.OverlappingCount !== undefined ? Number(item.OverlappingCount) : undefined,
+                Calculated_Cost: parseFloat((item.Calculated_Cost ?? '0').toString().replace(',', '.')),
             }));
 
             setOverlappingSessions(Array.isArray(cleanedData) ? cleanedData : []);

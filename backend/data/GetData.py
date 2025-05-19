@@ -20,7 +20,7 @@ class GetAll:
         return self.data
     
     def parse_import_log_line(self, line: str):
-        pattern = r"^(?P<date>\d{4}-\d{2}-\d{2}) \S+ - (?P<level>INFO|ERROR) - .*?(imported (?P<records>\d+) records|Failed).*?from (?P<filename>.+)$"
+        pattern = r"^(?P<date>\d{4}-\d{2}-\d{2}) \S+ - (?P<level>INFO|ERROR) - .*?(imported (?P<records>\d+) records|Failed).*?from (?P<filename>[^.]+\.xlsx)"
         match = re.search(pattern, line)
         if not match:
             return None

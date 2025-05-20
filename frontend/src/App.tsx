@@ -7,7 +7,7 @@ import ChargeDetails from './ChargeDetails/ChargeDetail';
 import Home from './home/Home';
 import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 import { TabelDetails } from './tabel/TabelDetails';
-import { TabelForm } from './tabel/Tabel';
+// import { TabelForm } from './tabel/Tabel';
 import UserStats from './userStats/UserStats';
 import { DataProvider } from './context/DataContext';
 
@@ -32,10 +32,10 @@ const App: React.FC = () => {
               <Link to="/" className="nav-link">Home</Link>
               <div className="nav-link-dropdown"><ImportDropdown /></div>
               <Link to="/export" className="nav-link">Export</Link>
-              <Link to="/overlapping-sessions" className="nav-link">Overlappende Sessies</Link>
-              <Link to="/user-stats" className="nav-link">Gebruiker Stats</Link>
-              <Link to="/charge-point-stats" className="nav-link">Laadpunt Statistieken</Link>
-              <Link to="/data-table" className="nav-link">Data Tabel</Link>
+              <Link to="/overlapping-sessions" className="nav-link">Overlapping Sessions</Link>
+              <Link to="/user-stats" className="nav-link">User Statistics</Link>
+              <Link to="/charge-point-stats" className="nav-link">Charge Point Statistics</Link>
+              <Link to="/data-table" className="nav-link">Data Table</Link>
             </div>
           </div>
         </nav>
@@ -44,7 +44,7 @@ const App: React.FC = () => {
           <Routes>
             {/* <Route path="/import" element={<ImportPage />} /> */}
             <Route path="/export" element={<ExportPage />} />
-            <Route path="/tabel/all" element={<TabelForm />} />
+            {/* <Route path="/tabel/all" element={<TabelForm />} /> */}
             <Route path="/charges/:timeRange" element={<ChargeDetails />} />
             <Route path="/" element={
               <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>

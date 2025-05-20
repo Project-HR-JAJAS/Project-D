@@ -12,6 +12,8 @@ MAX_VOLUME_THRESHOLD = 22  # Volume < Y
 
 MIN_TIME_GAP_MINUTEN = 30  # Time gap between sessions in minutes
 
+THRESHOLD = 3  # Threshold for repeated behavior detection
+
 
 class FraudeDetector:
     def __init__(self, db_path):
@@ -247,7 +249,7 @@ class FraudeDetector:
             self.detecteer_hoge_kosten_laag_volume(cursor)
             self.detecteer_snelle_opeenvolgende_sessies(cursor)
             self.detecteer_overlappende_sessies(cursor)
-            self.detecteer_herhaaldelijk_gedrag(cursor, threshold=3)
+            self.detecteer_herhaaldelijk_gedrag(cursor, THRESHOLD)
 
             conn.commit()
 

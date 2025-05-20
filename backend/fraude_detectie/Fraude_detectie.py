@@ -6,8 +6,10 @@ from typing import Optional
 # Configurable threshold values
 MAX_VOLUME_KWH = 22  # Everything above 22 kWh
 MAX_DUUR_MINUTEN = 60  # Shorter than 60 minutes
+
 MIN_COST_THRESHOLD = 20  # Cost > X
 MAX_VOLUME_THRESHOLD = 22  # Volume < Y
+
 MIN_TIME_GAP_MINUTEN = 30  # Time gap between sessions in minutes
 
 
@@ -24,6 +26,7 @@ class FraudeDetector:
             Reden2 TEXT,
             Reden3 TEXT,
             Reden4 TEXT,
+            Reden5 TEXT,
             FOREIGN KEY (CDR_ID) REFERENCES CDR(CDR_ID)
         )
         """)
@@ -200,6 +203,36 @@ class FraudeDetector:
         fraud_ids = [row[0] for row in cursor.fetchall()]
         self._vul_fraudetabel(cursor, "Overlappende sessies", fraud_ids, "Reden4")
 
+    # In Fraude_detectie.py - add to FraudeDetector class
+    def detecteer_herhaaldelijk_gedrag(self, cursor, threshold=3):
+        """Detecteert gebruikers met herhaaldelijk hetzelfde fraudetype."""
+        # Unpivot all reasons
+        cursor.execute("""
+        WITH AllReasons AS (
+            SELECT CDR_ID, Reden AS Reason FROM FraudeGeval WHERE Reden IS NOT NULL
+            UNION ALL
+            SELECT CDR_ID, Reden2 AS Reason FROM FraudeGeval WHERE Reden2 IS NOT NULL
+            UNION ALL
+            SELECT CDR_ID, Reden3 AS Reason FROM FraudeGeval WHERE Reden3 IS NOT NULL
+            UNION ALL
+            SELECT CDR_ID, Reden4 AS Reason FROM FraudeGeval WHERE Reden4 IS NOT NULL
+        )
+        SELECT 
+            c.Authentication_ID,
+            ar.Reason,
+            COUNT(*) AS count,
+            GROUP_CONCAT(ar.CDR_ID) AS cdr_ids
+        FROM AllReasons ar
+        JOIN CDR c ON ar.CDR_ID = c.CDR_ID
+        GROUP BY c.Authentication_ID, ar.Reason
+        HAVING count >= ?
+        """, (threshold,))
+        
+        for auth_id, reason, count, cdr_ids_str in cursor.fetchall():
+            cdr_ids = cdr_ids_str.split(',')
+            recurring_reason = f"Herhaaldelijk ({count}x): {reason}"
+            self._vul_fraudetabel(cursor, recurring_reason, cdr_ids, "Reden5")
+
     def detecteer_fraude(self) -> pd.DataFrame:
         """Voert alle detectiemethodes uit en geeft elk fraudegeval met reden terug als DataFrame."""
         try:
@@ -214,6 +247,7 @@ class FraudeDetector:
             self.detecteer_hoge_kosten_laag_volume(cursor)
             self.detecteer_snelle_opeenvolgende_sessies(cursor)
             self.detecteer_overlappende_sessies(cursor)
+            self.detecteer_herhaaldelijk_gedrag(cursor, threshold=3)
 
             conn.commit()
 
@@ -226,6 +260,7 @@ class FraudeDetector:
                     fg.Reden2 AS Reden2,
                     fg.Reden3 AS Reden3,
                     fg.Reden4 AS Reden4,
+                    fg.Reden5 AS Reden5,
                     c.Volume,
                     c.Calculated_Cost,
                     CASE 

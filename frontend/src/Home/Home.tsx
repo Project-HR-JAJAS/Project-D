@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     useEffect(() => {
         fetchChargeData().then(setChargeData);
     }, []);
-    
+
 
     useEffect(() => {
         if (chartRef.current && chargeData.length > 0) {
@@ -62,7 +62,7 @@ const Home: React.FC = () => {
                             },
                             tooltip: {
                                 callbacks: {
-                                    afterLabel: function(context) {
+                                    afterLabel: function (context) {
                                         const timeRange = labels[context.dataIndex];
                                         return `Click to view details for ${timeRange}`;
                                     }
@@ -112,13 +112,13 @@ const Home: React.FC = () => {
             <Helmet>
                 <title>Charging Sessions Dashboard</title>
             </Helmet>
-            
+
             {/* <div>
                 <SuspCharges />
             </div> */}
-    
+
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
-    
+
             <div className="chart-container">
                 <canvas id="chargeChart" ref={chartRef}></canvas>
             </div>

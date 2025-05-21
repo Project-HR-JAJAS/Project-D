@@ -14,7 +14,7 @@ export const fetchUser = async (credentials: UserData): Promise<UserData | null>
     });
 
     if (!response.ok) {
-        throw new Error('User not found');
+        throw new Error('User and password combination not found');
     }
 
     const data = await response.json();

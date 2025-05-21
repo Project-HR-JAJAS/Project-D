@@ -2,9 +2,19 @@ import sqlite3
 
 # from datetime import datetime
 import pandas as pd
-import logging
 import os
+import bcrypt
 
+class Hashing:
+    def hash_password(self, plain_password: str) -> str:
+        """Hash a plain password using bcrypt."""
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(plain_password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')  # Store as string in DB
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        """Verify a plain password against the hashed one."""
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 class DbUserContext:
     def __init__(self, db_name="user.db"):
@@ -33,34 +43,43 @@ class DbUserContext:
         """Initialize the database by creating all required tables."""
         self.connect()
 
-        # Define the schema for the CDR (Charge Detail Record) table
+        # Define the schema for the USERS table
         user_schema = """
             User_ID TEXT PRIMARY KEY,
             User_Name TEXT,
             User_Password TEXT 
         """
 
-        # Create the CDR table
         self.create_table("USERS", user_schema)
 
         cursor = self.connection.cursor()
         cursor.execute("SELECT 1 FROM USERS WHERE User_ID = ?", ('1',))
         if cursor.fetchone() is None:
+            # Hash the password before inserting
+            hasher = Hashing()
+            hashed_password = hasher.hash_password('Admin')
+
             cursor.execute(
                 "INSERT INTO USERS (User_ID, User_Name, User_Password) VALUES (?, ?, ?)",
-                ('1', 'Admin', 'Admin')
+                ('1', 'Admin', hashed_password)
             )
             self.connection.commit()
             print("Default admin user inserted.")
         else:
             print("Default admin user already exists.")
-
         self.close()
 
     def insert_user(self, user_data):
-        """Insert a new USER record into the database."""
+        """Insert a new USER record into the database with hashed password."""
         if self.connection:
             cursor = self.connection.cursor()
+
+            hasher = Hashing()
+            plain_password = user_data.get('User_Password')
+            if plain_password is not None:
+                hashed_password = hasher.hash_password(plain_password)
+                user_data['User_Password'] = hashed_password
+            
             columns = ", ".join(user_data.keys())
             placeholders = ", ".join(["?"] * len(user_data))
             sql = f"INSERT INTO USERS ({columns}) VALUES ({placeholders})"
@@ -69,20 +88,25 @@ class DbUserContext:
             print(f"Inserted new USER record with ID: {user_data['User_ID']}")
         else:
             print("No database connection. Call connect() first.")
-    
+
     def get_user(self, username, password):
-        """Retrieve a USER record by matching User_Name and User_Password."""
         if self.connection:
             cursor = self.connection.cursor()
-            cursor.execute(
-                "SELECT * FROM USERS WHERE User_Name = ? AND User_Password = ?",
-                (username, password)
-            )
-            return cursor.fetchone()
+            cursor.execute("SELECT * FROM USERS WHERE User_Name = ?", (username,))
+            user = cursor.fetchone()
+            if user is None:
+                return None
+            
+            stored_hashed_password = user[2]  # index van User_Password in SELECT * results
+            hasher = Hashing()
+            if hasher.verify_password(password, stored_hashed_password):
+                return user
+            else:
+                return None
         else:
             print("No database connection. Call connect() first.")
             return None
-    
+   
     # def GetAllDataFromDatabase(self):
     #     """Retrieve all USER records."""
     #     if self.connection:

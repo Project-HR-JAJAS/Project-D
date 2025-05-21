@@ -230,18 +230,22 @@ class FraudLocationManager:
                 cursor = conn.cursor()
                 cursor.execute("""
                     SELECT 
-                        Location_ID,
-                        Charge_Point_ID,
-                        Latitude,
-                        Longitude,
-                        Address,
-                        ZIP,
-                        City,
-                        Country,
-                        Fraud_Count,
-                        Last_Detected_Date
-                    FROM FraudLocations
-                    ORDER BY Fraud_Count DESC
+                        fl.Location_ID,
+                        fl.Charge_Point_ID,
+                        fl.Latitude,
+                        fl.Longitude,
+                        fl.Address,
+                        fl.ZIP,
+                        fl.City,
+                        fl.Country,
+                        fl.Fraud_Count,
+                        fl.Last_Detected_Date,
+                        GROUP_CONCAT(fg.reden, '; ') as reasons
+                    FROM FraudLocations fl
+                    LEFT JOIN CDR c ON fl.Charge_Point_ID = c.Charge_Point_ID
+                    LEFT JOIN FraudeGeval fg ON fg.CDR_ID = c.CDR_ID
+                    GROUP BY fl.Location_ID
+                    ORDER BY fl.Fraud_Count DESC
                 """)
                 
                 columns = [description[0] for description in cursor.description]

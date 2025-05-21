@@ -40,6 +40,7 @@ interface FraudLocation {
     Country: string;
     Fraud_Count: number;
     Last_Detected_Date: string;
+    reasons?: string;
 }
 
 const MapController: React.FC<{ center: [number, number] }> = ({ center }) => {
@@ -165,6 +166,7 @@ const FraudMap: React.FC = () => {
                                         <p><strong>Country:</strong> {location.Country}</p>
                                         <p><strong>Fraud Count:</strong> {location.Fraud_Count}</p>
                                         <p><strong>Last Detected:</strong> {new Date(location.Last_Detected_Date).toLocaleString()}</p>
+                                        <p><strong>Fraud Reasons:</strong> {location.reasons || 'N/A'}</p>
                                     </div>
                                 </Popup>
                             </Marker>

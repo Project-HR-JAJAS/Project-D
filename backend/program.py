@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from backend.data.GetData import GetAll
 from backend.data.DbContext import DbContext
@@ -17,6 +17,8 @@ from fastapi import Query
 import json
 from fastapi.responses import Response
 from pydantic import BaseModel
+from backend.fraud_locations.Fraude_Locaties import FraudLocationManager
+import threading
 
 class UserRequest(BaseModel):
     User_Name: str
@@ -61,8 +63,22 @@ def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
     except Exception as e:
         return False, f"Error importing file: {str(e)}", None
 
+def start_geocoding_process(db_path: str):
+    """Start the geocoding process in a background thread."""
+    def geocode_task():
+        try:
+            fraud_manager = FraudLocationManager(db_path)
+            fraud_manager.update_charge_point_coordinates()
+            fraud_manager.update_fraud_locations()
+        except Exception as e:
+            logger.error(f"Error in geocoding process: {str(e)}")
+
+    thread = threading.Thread(target=geocode_task)
+    thread.daemon = True
+    thread.start()
+
 @app.post("/api/import")
-async def import_excel(file: UploadFile = File(...)):
+async def import_excel(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     start_time = time.time()
     try:
         logger.info(f"Starting file import for: {file.filename}")
@@ -83,9 +99,13 @@ async def import_excel(file: UploadFile = File(...)):
         logger.info(f"File import completed in {processing_time:.2f} seconds. Imported {records_imported} records.")
         
         if success and records_imported:
+            # Start geocoding process in background
+            db = DbContext()
+            background_tasks.add_task(start_geocoding_process, db.db_name)
+            
             return {
                 "success": True,
-                "message": f"{message} in {processing_time:.2f} seconds",
+                "message": f"{message} in {processing_time:.2f} seconds. Geocoding process started in background.",
                 "count": records_imported,
                 "processingTime": processing_time
             }
@@ -592,6 +612,45 @@ async def get_user(user_data: UserRequest):
         raise HTTPException(status_code=404, detail=f"User not found")
     finally:
         db.close()
+
+@app.get("/api/fraud-locations")
+async def get_fraud_locations():
+    try:
+        db = DbContext()
+        fraud_location_manager = FraudLocationManager(db.db_name)
+        
+        # First try to update the fraud locations
+        try:
+            fraud_location_manager.update_fraud_locations()
+        except Exception as e:
+            logger.error(f"Error updating fraud locations: {str(e)}")
+            # Continue anyway to try to get existing locations
+        
+        # Then get the locations
+        locations = fraud_location_manager.get_all_fraud_locations()
+        
+        if not locations:
+            return Response(
+                content=json.dumps({"message": "No fraud locations found"}),
+                media_type="application/json",
+                status_code=200
+            )
+            
+        return Response(
+            content=json.dumps(locations),
+            media_type="application/json",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error in fraud locations endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching fraud locations: {str(e)}"
+        )
 
 if __name__ == "__main__":
     db = DbUserContext()

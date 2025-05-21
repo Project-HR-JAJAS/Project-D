@@ -13,6 +13,8 @@ import DataTable from './tabel/DataTable';
 import ImportDropdown from './pages/ImportDropdown';
 import LoginPage from './login/LoginPage';
 import CreateUser from './createUser/CreateUser';
+import FraudMapPage from './fraudMap/FraudMapPage';
+import './fraudMap/FraudMap.css';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -35,6 +37,7 @@ const AppRoutes: React.FC = () => {
               <Link to="/user-stats" className="nav-link">User Statistics</Link>
               <Link to="/charge-point-stats" className="nav-link">Charge Point Statistics</Link>
               <Link to="/data-table" className="nav-link">Data Table</Link>
+              <Link to="/fraud-map" className="nav-link">Fraud Map</Link>
               <div 
                 className="nav-link"
                 onClick={() => setShowCreateUser(true)}
@@ -64,6 +67,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/user-stats" element={<UserStats />} />
           <Route path="/charge-point-stats" element={<ChargePointStatsTable />} />
           <Route path="/data-table" element={<DataTable />} />
+          <Route path="/fraud-map" element={<FraudMapPage />} />
         </Routes>
       </main>
     </>

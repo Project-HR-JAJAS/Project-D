@@ -1,0 +1,15 @@
+.fraud-map-page {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.fraud-map-page h1 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.fraud-map-page p {
+    color: #666;
+    margin-bottom: 20px;
+} 

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.data.GetData import GetAll
 from backend.data.DbContext import DbContext
 from backend.data.DbUserContext import DbUserContext
+from backend.data_per_tijdsvlak.Tijdvlak import router as tijdvlak_router
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
@@ -17,6 +18,8 @@ from fastapi import Query
 import json
 from fastapi.responses import Response
 from pydantic import BaseModel
+
+
 
 class UserRequest(BaseModel):
     User_Name: str
@@ -37,6 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(tijdvlak_router)
 
 def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
     try:
@@ -141,47 +145,47 @@ async def export_excel(format: str = "xlsx", columns: Optional[str] = Query(None
 #     root = Tk()
 #     root.withdraw()  # hides the Tkinter window
 
-@app.get("/api/charge-counts")
-async def get_charge_counts():
-    try:
-        db = DbContext()
-        db.connect()
+# @app.get("/api/charge-counts")
+# async def get_charge_counts():
+#     try:
+#         db = DbContext()
+#         db.connect()
         
-        # Define time ranges
-        time_ranges = [
-            ('0000-0900', "time(Start_datetime) >= '00:00:00' AND time(Start_datetime) < '09:00:00'"),
-            ('0900-1300', "time(Start_datetime) >= '09:00:00' AND time(Start_datetime) < '13:00:00'"),
-            ('1300-1700', "time(Start_datetime) >= '13:00:00' AND time(Start_datetime) < '17:00:00'"),
-            ('1700-2100', "time(Start_datetime) >= '17:00:00' AND time(Start_datetime) < '21:00:00'"),
-            ('2100-0000', "time(Start_datetime) >= '21:00:00' AND time(Start_datetime) <= '23:59:59'")
-        ]
+#         # Define time ranges
+#         time_ranges = [
+#             ('0000-0900', "time(Start_datetime) >= '00:00:00' AND time(Start_datetime) < '09:00:00'"),
+#             ('0900-1300', "time(Start_datetime) >= '09:00:00' AND time(Start_datetime) < '13:00:00'"),
+#             ('1300-1700', "time(Start_datetime) >= '13:00:00' AND time(Start_datetime) < '17:00:00'"),
+#             ('1700-2100', "time(Start_datetime) >= '17:00:00' AND time(Start_datetime) < '21:00:00'"),
+#             ('2100-0000', "time(Start_datetime) >= '21:00:00' AND time(Start_datetime) <= '23:59:59'")
+#         ]
         
-        results = []
-        for time_range, condition in time_ranges:
-            query = f"SELECT COUNT(*) as count FROM CDR WHERE {condition}"
-            cursor = db.connection.cursor()
-            cursor.execute(query)
-            count = cursor.fetchone()[0]
-            results.append({
-                "TimeRange": time_range,
-                "TotalCharges": count
-            })
+#         results = []
+#         for time_range, condition in time_ranges:
+#             query = f"SELECT COUNT(*) as count FROM CDR WHERE {condition}"
+#             cursor = db.connection.cursor()
+#             cursor.execute(query)
+#             count = cursor.fetchone()[0]
+#             results.append({
+#                 "TimeRange": time_range,
+#                 "TotalCharges": count
+#             })
         
-        db.close()
-        return Response(
-            content=json.dumps(results),
-            media_type="application/json",
-            headers={
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0"
-            }
-        )
+#         db.close()
+#         return Response(
+#             content=json.dumps(results),
+#             media_type="application/json",
+#             headers={
+#                 "Cache-Control": "no-cache, no-store, must-revalidate",
+#                 "Pragma": "no-cache",
+#                 "Expires": "0"
+#             }
+#         )
         
-    except Exception as e:
-        if db.connection:
-            db.close()
-        raise HTTPException(status_code=500, detail=f"Error fetching charge counts: {str(e)}")
+#     except Exception as e:
+#         if db.connection:
+#             db.close()
+#         raise HTTPException(status_code=500, detail=f"Error fetching charge counts: {str(e)}")
 
 
 @app.get("/tabel/all")

@@ -29,6 +29,7 @@ class FraudeDetector:
             Reden3 TEXT,
             Reden4 TEXT,
             Reden5 TEXT,
+            Reden6 TEXT,
             FOREIGN KEY (CDR_ID) REFERENCES CDR(CDR_ID)
         )
         """)
@@ -235,6 +236,21 @@ class FraudeDetector:
             recurring_reason = f"Herhaaldelijk ({count}x): {reason}"
             self._vul_fraudetabel(cursor, recurring_reason, cdr_ids, "Reden5")
 
+    def detecteer_ontbrekende_essentiele_info(self, cursor):
+        """Detecteert sessies waarbij essentiële informatie ontbreekt."""
+        cursor.execute("""
+        SELECT CDR_ID
+        FROM CDR
+        WHERE 
+            (Authentication_ID IS NULL OR Authentication_ID = '')
+            OR (CDR_ID IS NULL OR CDR_ID = '')
+            OR (Charge_Point_ID IS NULL OR Charge_Point_ID = '')
+        """)
+
+        fraude_ids = [row[0] for row in cursor.fetchall()]
+        self._vul_fraudetabel(cursor, "Ontbrekende essentiële info", fraude_ids, "Reden6")
+
+
     def detecteer_fraude(self) -> pd.DataFrame:
         """Voert alle detectiemethodes uit en geeft elk fraudegeval met reden terug als DataFrame."""
         try:
@@ -250,6 +266,7 @@ class FraudeDetector:
             self.detecteer_snelle_opeenvolgende_sessies(cursor)
             self.detecteer_overlappende_sessies(cursor)
             self.detecteer_herhaaldelijk_gedrag(cursor, THRESHOLD)
+            self.detecteer_ontbrekende_essentiele_info(cursor)
 
             conn.commit()
 
@@ -263,6 +280,7 @@ class FraudeDetector:
                     fg.Reden3 AS Reden3,
                     fg.Reden4 AS Reden4,
                     fg.Reden5 AS Reden5,
+                    fg.Reden6 AS Reden6,
                     c.Volume,
                     c.Calculated_Cost,
                     CASE 

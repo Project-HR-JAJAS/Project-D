@@ -125,13 +125,13 @@ const ChargePointStatsTable: React.FC = () => {
         }
     };
 
-    if (loading.chargePoints) return <div>Laden...</div>;
+    if (loading.chargePoints) return <div>Loading...</div>;
     if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
 
     return (
         <div className="table-container">
             <div className="table-search-wrapper">
-                <h2>Charge Point Statistieken</h2>
+                <h2>Charge Point Statistics</h2>
                 <div>
                     <select
                         value={searchField}
@@ -143,7 +143,7 @@ const ChargePointStatsTable: React.FC = () => {
                     </select>
                     <input
                         type="text"
-                        placeholder={searchField === 'Charge_Point_ID' ? 'Zoek op Charge Point ID...' : 'Zoek op Land...'}
+                        placeholder={searchField === 'Charge_Point_ID' ? 'Search by Charge Point ID...' : 'Search by Country...'}
                         value={searchTerm}
                         onChange={e => {
                             setSearchTerm(e.target.value);
@@ -158,15 +158,15 @@ const ChargePointStatsTable: React.FC = () => {
                     <thead>
                         <tr>
                             <th>Charge Point ID</th>
-                            <th>Land</th>
+                            <th>Country</th>
                             <th className="sortable-header" onClick={() => handleSort('transaction_count')}>
-                                Aantal Transacties{getSortIndicator('transaction_count')}
+                                Total Transactions{getSortIndicator('transaction_count')}
                             </th>
                             <th className="sortable-header" onClick={() => handleSort('total_volume')}>
-                                Totaal Volume{getSortIndicator('total_volume')}
+                                Total Volume{getSortIndicator('total_volume')}
                             </th>
                             <th className="sortable-header" onClick={() => handleSort('total_cost')}>
-                                Totaal Kosten{getSortIndicator('total_cost')}
+                                Total Cost{getSortIndicator('total_cost')}
                             </th>
                         </tr>
                     </thead>
@@ -174,7 +174,7 @@ const ChargePointStatsTable: React.FC = () => {
                         {currentStats.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="no-data-row">
-                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                    No results found for: <strong>{searchTerm}</strong>
                                 </td>
                             </tr>
                         ) : (

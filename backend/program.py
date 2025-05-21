@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from backend.data.GetData import GetAll
 from backend.data.DbContext import DbContext
+from backend.data.DbUserContext import DbUserContext
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
@@ -15,6 +16,11 @@ from tempfile import NamedTemporaryFile
 from fastapi import Query
 import json
 from fastapi.responses import Response
+from pydantic import BaseModel
+
+class UserRequest(BaseModel):
+    User_Name: str
+    User_Password: str
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -558,20 +564,36 @@ async def get_import_logs():
 
     return list(reversed(parsed_lines))
 
-def main():
-    pass
-
-
-if __name__ == "__main__":
+@app.post("/api/create/user")
+async def create_user(user_data: dict):
     try:
-        main()
+        db = DbUserContext()
+        db.connect()
+        if (db.insert_user(user_data)):
+            return {"message": "User created successfully"}
+        else:
+            raise HTTPException(status_code=500, detail=f"Username already exists")
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        processing_time = time.time() - start_time
-        logger.error(f"Error importing file: {str(e)}. Processing time: {processing_time:.2f} seconds")
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
+    finally:
+        db.close()
+
+@app.post("/api/user")
+async def get_user(user_data: UserRequest):
+    try:
+        db = DbUserContext()
+        db.connect()
+        user = db.get_user(user_data.User_Name, user_data.User_Password)
+        if user:
+            return user
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"User not found")
+    finally:
+        db.close()
 
 if __name__ == "__main__":
+    db = DbUserContext()
+    db.initialize_user_database()
     uvicorn.run(app, host="0.0.0.0", port=8000)

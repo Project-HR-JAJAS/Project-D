@@ -135,7 +135,7 @@ const OverlappingSessions: React.FC = () => {
           </select>
           <input
             type="text"
-              placeholder="Search based on Authentication ID..."
+              placeholder="Search by Authentication ID..."
               value={searchTerm}
               onChange={e => {
                   setSearchTerm(e.target.value);
@@ -151,7 +151,7 @@ const OverlappingSessions: React.FC = () => {
       ) : error.overlappingSessions ? (
         <div className="no-data-row">Error: {error.overlappingSessions}</div>
       ) : filteredStats.length === 0 ? (
-        <div className="no-data-row">Geen resultaten gevonden</div>
+        <div className="no-data-row">No Overlapping Sessions Found</div>
       ) : (
         <>
           {/* <div className="overlap-pagination-info">

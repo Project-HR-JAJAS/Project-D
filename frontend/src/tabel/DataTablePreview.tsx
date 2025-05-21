@@ -35,13 +35,13 @@ const DataTablePreview: React.FC = () => {
         loadData();
     }, []);
 
-    if (loading) return <div>Laden...</div>;
+    if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
     return (
         <div className="table-container">
             <div className="table-search-wrapper">
-                <h2>Data Tabel Preview</h2>
+                <h2>Recent Suspicious Transactions</h2>
             </div>
             <div style={{ overflowX: 'auto' }}>
                 <table className="table-form">
@@ -59,7 +59,7 @@ const DataTablePreview: React.FC = () => {
                         {data.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="no-data-row">
-                                    Geen data gevonden
+                                    No suspicious transactions found.
                                 </td>
                             </tr>
                         ) : (

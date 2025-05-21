@@ -129,10 +129,10 @@ const UserStats: React.FC = () => {
   return (
     <div className="table-container">
       <div className="table-search-wrapper">
-        <h2 >Gebruiker Statistieken per PasID</h2>
+        <h2 >User Statistics by Authentication ID</h2>
         <input
           type="text"
-          placeholder="Zoek op Authentication ID..."
+          placeholder="Search by Authentication ID..."
           value={searchTerm}
           onChange={e => {
             setSearchTerm(e.target.value);
@@ -147,13 +147,13 @@ const UserStats: React.FC = () => {
                 <tr>
                   <th>Authentication ID</th>
                   <th className="sortable-header" onClick={() => handleSort('TransactionCount')}>
-                    Aantal Transacties{getSortIndicator('TransactionCount')}
+                    Total Transactions{getSortIndicator('TransactionCount')}
                   </th>
                   <th className="sortable-header" onClick={() => handleSort('TotalVolume')}>
-                    Totaal Volume (kWh){getSortIndicator('TotalVolume')}
+                    Total Volume (kWh){getSortIndicator('TotalVolume')}
                   </th>
                   <th className="sortable-header" onClick={() => handleSort('TotalCost')}>
-                    Totaal Kosten (€){getSortIndicator('TotalCost')}
+                    Total Cost (€){getSortIndicator('TotalCost')}
                   </th>
                 </tr>
               </thead>
@@ -161,7 +161,7 @@ const UserStats: React.FC = () => {
                 {currentItems.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="no-data-row">
-                                    Geen data gevonden voor de zoekterm: <strong>{searchTerm}</strong>
+                                    No results found for: <strong>{searchTerm}</strong>
                                 </td>
                             </tr>
                         ) : (

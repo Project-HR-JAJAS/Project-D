@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     useEffect(() => {
         fetchChargeData().then(setChargeData);
     }, []);
-    
+
 
     useEffect(() => {
         if (chartRef.current && chargeData.length > 0) {
@@ -44,7 +44,7 @@ const Home: React.FC = () => {
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Total Charges',
+                            label: 'Fraudulent Charges',
                             data: chargeCounts,
                             backgroundColor: backgroundColors,
                             borderWidth: 1,
@@ -55,16 +55,16 @@ const Home: React.FC = () => {
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Charging Sessions by Time of Day',
+                                text: 'Fraudulent Charging Sessions by Time of Day',
                                 font: {
                                     size: 16
                                 }
                             },
                             tooltip: {
                                 callbacks: {
-                                    afterLabel: function(context) {
+                                    afterLabel: function (context) {
                                         const timeRange = labels[context.dataIndex];
-                                        return `Click to view details for ${timeRange}`;
+                                        return `Click to view fraud details for ${timeRange}`;
                                     }
                                 }
                             },
@@ -77,7 +77,7 @@ const Home: React.FC = () => {
                                 beginAtZero: true,
                                 title: {
                                     display: true,
-                                    text: 'Number of Charging Sessions'
+                                    text: 'Number of Fraudulent Charging Sessions'
                                 }
                             },
                             x: {
@@ -112,13 +112,13 @@ const Home: React.FC = () => {
             <Helmet>
                 <title>Charging Sessions Dashboard</title>
             </Helmet>
-            
+
             {/* <div>
                 <SuspCharges />
             </div> */}
-    
+
             <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
-    
+
             <div className="chart-container">
                 <canvas id="chargeChart" ref={chartRef}></canvas>
             </div>

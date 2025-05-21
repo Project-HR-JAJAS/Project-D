@@ -83,4 +83,41 @@
     background-color: #f8d7da; /* light red */
     color: #721c24; /* dark red text */
   }
+
+  .model-content form > div {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.model-content label {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: #444;
+}
+.model-content input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+.model-content input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74,144,226,0.2);
+}
+
+.model-content button[type="submit"] {
+  background-color: #4a90e2;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.model-content button[type="submit"]:hover {
+  background-color: #357abd;
+}
   

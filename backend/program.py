@@ -15,7 +15,6 @@ from tempfile import NamedTemporaryFile
 from fastapi import Query
 import json
 from fastapi.responses import Response
-from backend.map_locations import MapLocations
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -558,31 +557,6 @@ async def get_import_logs():
         return [{"error": "import_log.txt not found"}]
 
     return list(reversed(parsed_lines))
-
-@app.post("/api/map-locations/init")
-async def init_map_locations():
-    """Initializes and populates the MapLocations table from CDR and FraudeGeval."""
-    try:
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "project-d.db")
-        map_locations = MapLocations(db_path)
-        result = map_locations.populate_map_locations()
-        if result:
-            return {"success": True, "message": "MapLocations table initialized and populated."}
-        else:
-            return {"success": False, "message": "Failed to populate MapLocations table."}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
-
-@app.get("/api/map-locations")
-async def get_map_locations():
-    """Returns all map locations with fraud cases for the map view."""
-    try:
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "project-d.db")
-        map_locations = MapLocations(db_path)
-        data = map_locations.get_map_locations()
-        return data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching map locations: {str(e)}")
 
 def main():
     pass

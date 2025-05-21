@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import ExportPage from './pages/ExportPage';
 import './App.css';
@@ -12,10 +12,12 @@ import ChargePointStatsTable from './components/ChargePointStatsTable';
 import DataTable from './tabel/DataTable';
 import ImportDropdown from './pages/ImportDropdown';
 import LoginPage from './login/LoginPage';
+import CreateUser from './createUser/CreateUser';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
+  const [showCreateUser, setShowCreateUser] = useState(false);
 
   return (
     <>
@@ -33,9 +35,18 @@ const AppRoutes: React.FC = () => {
               <Link to="/user-stats" className="nav-link">User Statistics</Link>
               <Link to="/charge-point-stats" className="nav-link">Charge Point Statistics</Link>
               <Link to="/data-table" className="nav-link">Data Table</Link>
+              <div 
+                className="nav-link"
+                onClick={() => setShowCreateUser(true)}
+              >
+                Create User
+              </div>
             </div>
           </div>
         </nav>
+      )}
+      {showCreateUser && (
+        <CreateUser onClose={() => setShowCreateUser(false)} />
       )}
 
       <main className="main-content">

@@ -3,8 +3,8 @@ export interface UserData {
     User_Password: string;
 }
 
-export const fetchUser = async (credentials: UserData): Promise<UserData | null> => {
-    const response = await fetch('http://localhost:8000/api/user', {
+export const createUser = async (credentials: UserData): Promise<UserData | null> => {
+    const response = await fetch('http://localhost:8000/api/create/user', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -13,7 +13,7 @@ export const fetchUser = async (credentials: UserData): Promise<UserData | null>
     });
 
     if (!response.ok) {
-        throw new Error('User and password combination not found');
+        throw new Error('Username already exists');
     }
 
     const data = await response.json();

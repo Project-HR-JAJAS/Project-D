@@ -569,10 +569,12 @@ async def create_user(user_data: dict):
     try:
         db = DbUserContext()
         db.connect()
-        db.insert_user(user_data)
-        return {"message": "User created successfully"}
+        if (db.insert_user(user_data)):
+            return {"message": "User created successfully"}
+        else:
+            raise HTTPException(status_code=500, detail=f"Username already exists")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
     finally:
         db.close()
 

@@ -70,24 +70,52 @@ class DbUserContext:
         self.close()
 
     def insert_user(self, user_data):
-        """Insert a new USER record into the database with hashed password."""
-        if self.connection:
-            cursor = self.connection.cursor()
-
-            hasher = Hashing()
-            plain_password = user_data.get('User_Password')
-            if plain_password is not None:
-                hashed_password = hasher.hash_password(plain_password)
-                user_data['User_Password'] = hashed_password
-            
-            columns = ", ".join(user_data.keys())
-            placeholders = ", ".join(["?"] * len(user_data))
-            sql = f"INSERT INTO USERS ({columns}) VALUES ({placeholders})"
-            cursor.execute(sql, list(user_data.values()))
-            self.connection.commit()
-            print(f"Inserted new USER record with ID: {user_data['User_ID']}")
-        else:
+        """Insert a new USER record with:
+        - no duplicate usernames,
+        - auto-incremented User_ID,
+        - bcrypt-hashed password.
+        """
+        if not self.connection:
             print("No database connection. Call connect() first.")
+            return False  # indicate failure
+
+        cursor = self.connection.cursor()
+
+        # 1) Check for duplicate username
+        username = user_data.get('User_Name')
+        if username:
+            cursor.execute(
+                "SELECT 1 FROM USERS WHERE User_Name = ?",
+                (username,)
+            )
+            if cursor.fetchone():
+                print(f"Username '{username}' already exists. Aborting insert.")
+                return False
+
+        # 2) Hash the password
+        hasher = Hashing()
+        plain_password = user_data.get('User_Password')
+        if plain_password is not None:
+            user_data['User_Password'] = hasher.hash_password(plain_password)
+
+        # 3) Determine the next User_ID
+        cursor.execute("SELECT MAX(CAST(User_ID AS INTEGER)) FROM USERS")
+        max_id_row = cursor.fetchone()
+        max_id = max_id_row[0] if max_id_row and max_id_row[0] is not None else 0
+        next_id = max_id + 1
+        user_data['User_ID'] = str(next_id)
+
+        # 4) Build and execute the INSERT
+        columns      = ", ".join(user_data.keys())
+        placeholders = ", ".join(["?"] * len(user_data))
+        sql          = f"INSERT INTO USERS ({columns}) VALUES ({placeholders})"
+
+        cursor.execute(sql, list(user_data.values()))
+        self.connection.commit()
+        print(f"Inserted new USER record with ID: {user_data['User_ID']}")
+        return True  # indicate success
+
+
 
     def get_user(self, username, password):
         if self.connection:

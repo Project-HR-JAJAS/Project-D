@@ -600,6 +600,16 @@ async def get_overlap_cluster(cdr_id: str):
 
 
 
+@app.get("/api/user-details/{auth_id}")
+async def get_user_details(auth_id: str):
+    try:
+        db = DbContext()
+        rows = db.get_cdrs_by_authentication_id(auth_id)
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching user details: {str(e)}")
+
+
 
 @app.post("/api/create/user")
 async def create_user(user_data: dict):

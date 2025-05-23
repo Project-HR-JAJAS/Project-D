@@ -5,13 +5,21 @@ from typing import Optional
 import math
 
 # Configurable threshold values
-MAX_VOLUME_KWH = 22
+# Maximum toegestane volume (kWh) voor een sessie
+MAX_VOLUME_KWH = 22 
+# Maximale duur (in minuten) voor een sessie met hoog volume
 MAX_DUUR_MINUTEN = 60
+# Minimale kosten (in euro) om als verdacht te worden beschouwd bij laag volume
 MIN_COST_THRESHOLD = 20
+# Maximale volume (kWh) om als laag volume te worden beschouwd
 MAX_VOLUME_THRESHOLD = 22
+# Minimale tijdsinterval (in minuten) tussen opeenvolgende sessies
 MIN_TIME_GAP_MINUTEN = 30
+# Aantal herhalingen voordat gedrag als herhaaldelijk wordt gezien
 THRESHOLD = 3
+# Minimale afstand (in km) tussen laadpunten voor onmogelijke verplaatsing
 MIN_AFSTAND_KM = 10
+# Minimale reistijd (in minuten) voor onmogelijke verplaatsing
 MIN_REISTIJD_MINUTEN = 15
 
 

@@ -364,4 +364,27 @@ class DbContext:
         self.close()
         return result
     
-    
+
+    def get_overlapping_cluster(self, start_cdr_id: str) -> list[dict]:
+        self.connect()
+
+        visited = set()
+        to_visit = [start_cdr_id]
+        cluster = {}
+
+        while to_visit:
+            current_id = to_visit.pop()
+            if current_id in visited:
+                continue
+            visited.add(current_id)
+
+            overlapping = self.get_all_overlapping_for_cdr(current_id)
+            for session in overlapping:
+                cdr_id = session['CDR_ID']
+                if cdr_id not in cluster:
+                    cluster[cdr_id] = session
+                    if cdr_id not in visited:
+                        to_visit.append(cdr_id)
+
+        self.close()
+        return list(cluster.values())

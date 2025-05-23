@@ -19,11 +19,31 @@ const OverlappingSessions: React.FC = () => {
 
   const formatDate = (value: string) => new Date(value).toLocaleString();
 
-  const filteredStats = overlappingSessions.filter((stat: OverlappingSession) => {
-        const value = stat[searchField] ?? '';
-        return value.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const groupedMap = new Map<string, OverlappingSession>();
+  const authGroups = new Map<string, OverlappingSession[]>();
+  overlappingSessions.forEach(session => {
+    const key = session.Authentication_ID;
+    if (!authGroups.has(key)) {
+      authGroups.set(key, []);
+    }
+    authGroups.get(key)!.push(session);
+  });
+
+  authGroups.forEach((clusterSessions, authId) => {
+    const uniqueCDRIds = new Set(clusterSessions.map(s => s.CDR_ID));
+    groupedMap.set(authId, {
+      ...clusterSessions[0], // neem eerste sessie als basis
+      Volume: clusterSessions.reduce((sum, s) => sum + s.Volume, 0),
+      Calculated_Cost: clusterSessions.reduce((sum, s) => sum + s.Calculated_Cost, 0),
+      OverlappingCount: uniqueCDRIds.size
     });
-  
+  });
+  const filteredStats = Array.from(groupedMap.values()).filter(stat =>
+    stat.Authentication_ID.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+    
   const sortedData = [...filteredStats];
     if (sortConfig.key && sortConfig.direction) {
         sortedData.sort((a, b) => {

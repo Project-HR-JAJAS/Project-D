@@ -25,7 +25,7 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, onClose }) =
   const [sortConfig, setSortConfig] = useState<{ key: keyof OverlappingSession | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
   
   useEffect(() => {
-    fetch(`http://localhost:8000/api/overlapping-sessions/${cdrId}`)
+    fetch(`http://localhost:8000/api/overlapping-cluster/${cdrId}`)
       .then(res => res.json())
       .then(data => {
         const cleaned = data.map((item: any) => ({

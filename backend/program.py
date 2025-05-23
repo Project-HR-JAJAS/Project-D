@@ -568,6 +568,19 @@ async def get_import_logs():
 
     return list(reversed(parsed_lines))
 
+
+@app.get("/api/overlapping-cluster/{cdr_id}")
+async def get_overlap_cluster(cdr_id: str):
+    try:
+        db = DbContext()
+        result = db.get_overlapping_cluster(cdr_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 @app.post("/api/create/user")
 async def create_user(user_data: dict):
     try:

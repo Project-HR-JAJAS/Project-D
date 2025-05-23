@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchDataTable } from '../tabel/DataTable.api';
-import { fetchChargePointStats } from '../components/ChargePointStatsTable.api';
+import { fetchChargePointStats } from '../chargepointstats/ChargePointStatsTable.api';
 
 interface DataTableItem {
     id: string;

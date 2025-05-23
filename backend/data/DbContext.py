@@ -388,3 +388,29 @@ class DbContext:
 
         self.close()
         return list(cluster.values())
+
+
+    def get_cdrs_by_authentication_id(self, auth_id: str) -> list[dict]:
+        """Returns all CDR rows for a given Authentication_ID"""
+        self.connect()
+        query = """
+            SELECT 
+                CDR_ID,
+                Start_datetime,
+                End_datetime,
+                Duration,
+                Volume,
+                Charge_Point_ID,
+                Charge_Point_City,
+                Charge_Point_Country,
+                Calculated_Cost
+            FROM CDR
+            WHERE Authentication_ID = ?
+            ORDER BY Start_datetime DESC
+        """
+        cursor = self.connection.cursor()
+        cursor.execute(query, (auth_id,))
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        self.close()
+        return [dict(zip(columns, row)) for row in rows]

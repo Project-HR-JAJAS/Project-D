@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import ExportPage from './pages/ExportPage';
 import './App.css';
 import ChargeDetails from './ChargeDetails/ChargeDetail';
@@ -8,48 +8,41 @@ import OverlappingSessions from './overlappingSessions/OverlappingSessions';
 import { TabelDetails } from './tabel/TabelDetails';
 import UserStats from './userStats/UserStats';
 import { DataProvider } from './context/DataContext';
-import ChargePointStatsTable from './components/ChargePointStatsTable';
+import ChargePointStatsTable from './chargepointstats/ChargePointStatsTable';
 import DataTable from './tabel/DataTable';
-import ImportDropdown from './pages/ImportDropdown';
 import LoginPage from './login/LoginPage';
 import CreateUser from './createUser/CreateUser';
+import FraudMapPage from './fraudMap/FraudMapPage';
+import './fraudMap/FraudMap.css';
+import Sidebar from './sidebar/Sidebar';
 
-const AppRoutes: React.FC = () => {
+const SIDEBAR_WIDTH = 260;
+const SIDEBAR_COLLAPSED_WIDTH = 60;
+
+const AppRoutes: React.FC<{ sidebarCollapsed: boolean; setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>> }> = ({ sidebarCollapsed, setSidebarCollapsed }) => {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
   const [showCreateUser, setShowCreateUser] = useState(false);
 
+  useEffect(() => {
+    const handler = () => setShowCreateUser(true);
+    window.addEventListener('openCreateUser', handler);
+    return () => window.removeEventListener('openCreateUser', handler);
+  }, []);
+
   return (
     <>
-      {!isLoginPage && (
-        <nav className="navbar">
-          <div className="nav-content">
-            <Link to="/home" className="nav-link" style={{ textDecoration: 'none' }}>
-              <h1>Project D</h1>
-            </Link>
-            <div className="nav-links">
-              <Link to="/home" className="nav-link">Home</Link>
-              <div className="nav-link-dropdown"><ImportDropdown /></div>
-              <Link to="/export" className="nav-link">Export</Link>
-              <Link to="/overlapping-sessions" className="nav-link">Overlapping Sessions</Link>
-              <Link to="/user-stats" className="nav-link">User Statistics</Link>
-              <Link to="/charge-point-stats" className="nav-link">Charge Point Statistics</Link>
-              <Link to="/data-table" className="nav-link">Data Table</Link>
-              <div 
-                className="nav-link"
-                onClick={() => setShowCreateUser(true)}
-              >
-                Create User
-              </div>
-            </div>
-          </div>
-        </nav>
-      )}
+      {!isLoginPage && <Sidebar collapsedProp={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />}
       {showCreateUser && (
         <CreateUser onClose={() => setShowCreateUser(false)} />
       )}
-
-      <main className="main-content">
+      <main
+        className="main-content"
+        style={{
+          marginLeft: !isLoginPage ? (sidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH) : 0,
+          transition: 'margin-left 0.2s cubic-bezier(0.4,0,0.2,1)'
+        }}
+      >
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/export" element={<ExportPage />} />
@@ -64,6 +57,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/user-stats" element={<UserStats />} />
           <Route path="/charge-point-stats" element={<ChargePointStatsTable />} />
           <Route path="/data-table" element={<DataTable />} />
+          <Route path="/fraud-map" element={<FraudMapPage />} />
         </Routes>
       </main>
     </>
@@ -71,10 +65,13 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
     <DataProvider>
       <Router>
-        <AppRoutes />
+        <Sidebar collapsedProp={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+        <AppRoutes sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
       </Router>
     </DataProvider>
   );

@@ -1,0 +1,205 @@
+.fraud-map-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fraud-map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fraud-map-stats {
+    flex: 1;
+}
+
+.fraud-map-stats h2 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+.fraud-map-stats p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.last-updated {
+    font-style: italic;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.fraud-map-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    min-width: 200px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item span {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.refresh-button {
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.refresh-button:hover {
+    background-color: #2980b9;
+}
+
+.refresh-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.map-container, .leaflet-container {
+    height: 600px !important;
+    min-height: 400px;
+    width: 100%;
+}
+
+.loading-overlay,
+.error-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-overlay {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.error-overlay p {
+    color: #e74c3c;
+    margin-bottom: 15px;
+}
+
+.error-overlay button {
+    padding: 8px 16px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.error-overlay button:hover {
+    background-color: #c0392b;
+}
+
+.popup-content {
+    padding: 10px;
+}
+
+.popup-content h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.popup-content p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.popup-content strong {
+    color: #2c3e50;
+}
+
+/* Custom marker styles */
+.custom-marker {
+    background: transparent;
+    border: none;
+}
+
+/* Cluster styles */
+.marker-cluster {
+    background-color: rgba(52, 152, 219, 0.6);
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    height: 40px;
+    line-height: 37px;
+    text-align: center;
+    width: 40px;
+    font-weight: bold;
+}
+
+.marker-cluster-small {
+    background-color: rgba(46, 204, 113, 0.6);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(241, 196, 15, 0.6);
+}
+
+.marker-cluster-large {
+    background-color: rgba(231, 76, 60, 0.6);
+} 

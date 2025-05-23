@@ -15,6 +15,7 @@ import CreateUser from './createUser/CreateUser';
 import FraudMapPage from './fraudMap/FraudMapPage';
 import './fraudMap/FraudMap.css';
 import Sidebar from './sidebar/Sidebar';
+import PrivateRoute from './middleware/PrivateRoute';
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED_WIDTH = 60;
@@ -45,19 +46,15 @@ const AppRoutes: React.FC<{ sidebarCollapsed: boolean; setSidebarCollapsed: Reac
       >
         <Routes>
           <Route path="/" element={<LoginPage />} />
-          <Route path="/export" element={<ExportPage />} />
-          <Route path="/charges/:timeRange" element={<ChargeDetails />} />
-          <Route path="/home" element={
-            <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-              <Home />
-            </div>
-          } />
-          <Route path="/overlapping-sessions" element={<OverlappingSessions />} />
-          <Route path="details/:cdrId" element={<TabelDetails />} />
-          <Route path="/user-stats" element={<UserStats />} />
-          <Route path="/charge-point-stats" element={<ChargePointStatsTable />} />
-          <Route path="/data-table" element={<DataTable />} />
-          <Route path="/fraud-map" element={<FraudMapPage />} />
+          <Route path="/export" element={<PrivateRoute><ExportPage /></PrivateRoute>} />
+          <Route path="/charges/:timeRange" element={<PrivateRoute><ChargeDetails /></PrivateRoute>} />
+          <Route path="/home" element={<PrivateRoute><div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px' }}><Home /></div></PrivateRoute>} />
+          <Route path="/overlapping-sessions" element={<PrivateRoute><OverlappingSessions /></PrivateRoute>} />
+          <Route path="details/:cdrId" element={<PrivateRoute><TabelDetails /></PrivateRoute>} />
+          <Route path="/user-stats" element={<PrivateRoute><UserStats /></PrivateRoute>} />
+          <Route path="/charge-point-stats" element={<PrivateRoute><ChargePointStatsTable /></PrivateRoute>} />
+          <Route path="/data-table" element={<PrivateRoute><DataTable /></PrivateRoute>} />
+          <Route path="/fraud-map" element={<PrivateRoute><FraudMapPage /></PrivateRoute>} />
         </Routes>
       </main>
     </>
@@ -70,7 +67,6 @@ const App: React.FC = () => {
   return (
     <DataProvider>
       <Router>
-        <Sidebar collapsedProp={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
         <AppRoutes sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
       </Router>
     </DataProvider>

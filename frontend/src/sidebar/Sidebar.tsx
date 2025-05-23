@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import ImportHistory from '../pages/ImportHistory';
+import { logout } from '../login/logout';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -82,6 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsedProp, setCollapsed }) => {
             <Link to="/fraud-map" className={`sidebar-link${location.pathname === '/fraud-map' ? ' active' : ''}`}>Fraud Map</Link>
             <Link to="/export" className={`sidebar-link${location.pathname === '/export' ? ' active' : ''}`}>Export</Link>
             <Link to="#" className="sidebar-link" onClick={() => window.dispatchEvent(new CustomEvent('openCreateUser'))}>Create User</Link>
+            <button className="sidebar-link" style={{ textAlign: 'left', width: '100%', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }} onClick={logout}>Logout</button>
           </nav>
         </div>
         <div className="sidebar-bottom">

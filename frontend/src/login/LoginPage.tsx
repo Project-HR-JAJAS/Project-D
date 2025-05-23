@@ -15,7 +15,8 @@ const LoginPage: React.FC = () => {
         try {
             const user = await fetchUser({ User_Name: username, User_Password: password });
             if (user) {
-                navigate(`/home`);
+                localStorage.setItem('token', 'your_token_value');
+                navigate('/home');
             } else {
                 setMessage('Invalid credentials.');
             }

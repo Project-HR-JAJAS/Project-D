@@ -20,7 +20,8 @@ const UserStats: React.FC = () => {
     direction: null,
   });
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [selectedAuthId, setSelectedAuthId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const itemsPerPage = 50;
 
   const filteredData = userStats.filter(item =>
@@ -126,9 +127,6 @@ const UserStats: React.FC = () => {
 
   if (loading.userStats) return <div> Loading...</div>;
   if (error.userStats) return <div> Error: {error.userStats}</div>;
-
-  const [selectedAuthId, setSelectedAuthId] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
 
   return (
     <div className="table-container">

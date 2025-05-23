@@ -51,7 +51,19 @@ const MapController: React.FC<{ center: [number, number] }> = ({ center }) => {
     return null;
 };
 
-const FraudMap: React.FC = () => {
+interface FraudMapProps {
+    cityFilter: string;
+    dateRange: {
+        start: string;
+        end: string;
+    };
+    timeRange: {
+        start: string;
+        end: string;
+    };
+}
+
+const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange }) => {
     const [locations, setLocations] = useState<FraudLocation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -79,22 +91,39 @@ const FraudMap: React.FC = () => {
         fetchLocations();
     }, []);
 
-    // Calculate center point of all markers
-    const center = locations.length > 0
+    // Filter locations based on city, date range, and time range
+    const filteredLocations = locations.filter(location => {
+        const matchesCity = !cityFilter || 
+            location.City.toLowerCase().includes(cityFilter.toLowerCase());
+        
+        const lastDetectedDate = new Date(location.Last_Detected_Date);
+        const matchesDateRange = (!dateRange.start || !dateRange.end) || 
+            (lastDetectedDate >= new Date(dateRange.start) && 
+             lastDetectedDate <= new Date(dateRange.end));
+        
+        const matchesTimeRange = (!timeRange.start || !timeRange.end) || 
+            (lastDetectedDate.getHours() >= parseInt(timeRange.start.split(':')[0]) && 
+             lastDetectedDate.getHours() <= parseInt(timeRange.end.split(':')[0]));
+        
+        return matchesCity && matchesDateRange && matchesTimeRange;
+    });
+
+    // Calculate center point of filtered markers
+    const center = filteredLocations.length > 0
         ? {
-            lat: locations.reduce((sum, loc) => sum + loc.Latitude, 0) / locations.length,
-            lng: locations.reduce((sum, loc) => sum + loc.Longitude, 0) / locations.length,
+            lat: filteredLocations.reduce((sum, loc) => sum + loc.Latitude, 0) / filteredLocations.length,
+            lng: filteredLocations.reduce((sum, loc) => sum + loc.Longitude, 0) / filteredLocations.length,
         }
         : { lat: 52.3676, lng: 4.9041 }; // Default to Amsterdam if no locations
 
-    const totalFraudCount = locations.reduce((sum, loc) => sum + loc.Fraud_Count, 0);
+    const totalFraudCount = filteredLocations.reduce((sum, loc) => sum + loc.Fraud_Count, 0);
 
     return (
         <div className="fraud-map-container">
             <div className="fraud-map-header">
                 <div className="fraud-map-stats">
                     <h2>Fraud Locations Map</h2>
-                    <p>Total Locations: {locations.length}</p>
+                    <p>Total Locations: {filteredLocations.length}</p>
                     <p>Total Fraud Incidents: {totalFraudCount}</p>
                     {lastUpdated && (
                         <p className="last-updated">
@@ -151,7 +180,7 @@ const FraudMap: React.FC = () => {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
                     <MarkerClusterGroup>
-                        {locations.map((location) => (
+                        {filteredLocations.map((location) => (
                             <Marker
                                 key={location.Location_ID}
                                 position={[location.Latitude, location.Longitude]}

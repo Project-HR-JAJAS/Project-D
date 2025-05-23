@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
+import UserDetailsModal from './UserDetailsModal';
 
 interface UserStat {
   Authentication_ID: string;
@@ -126,6 +127,9 @@ const UserStats: React.FC = () => {
   if (loading.userStats) return <div> Loading...</div>;
   if (error.userStats) return <div> Error: {error.userStats}</div>;
 
+  const [selectedAuthId, setSelectedAuthId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
   return (
     <div className="table-container">
       <div className="table-search-wrapper">
@@ -141,7 +145,7 @@ const UserStats: React.FC = () => {
           className="table-search"
         />
       </div>
-          <div className="userstats-table-wrapper">
+      <div className="userstats-table-wrapper">
             <table className="table-form">
               <thead>
                 <tr>
@@ -166,7 +170,14 @@ const UserStats: React.FC = () => {
                             </tr>
                         ) : (
                 currentItems.map((row, i) => (
-                  <tr key={i}> {/*className={i % 2 === 0 ? 'even' : 'odd'}>*/}
+                  <tr
+                    key={i}
+                    className="clickable-row"
+                    onClick={() => {
+                      setSelectedAuthId(row.Authentication_ID);
+                      setShowModal(true);
+                    }}
+                  >
                     <td>{row.Authentication_ID}</td>
                     <td>{row.TransactionCount}</td>
                     <td>{row.TotalVolume.toFixed(2)}</td>
@@ -175,9 +186,9 @@ const UserStats: React.FC = () => {
                 )))}
               </tbody>
             </table>
-          </div>
+      </div>
 
-          <div className="pagination-container">
+      <div className="pagination-container">
             <button 
               className="pagination-button"
               onClick={() => handlePageClick(currentPage - 1)}
@@ -226,8 +237,20 @@ const UserStats: React.FC = () => {
             >
               Next
             </button>
-        </div>
+      </div>
+      <div>
+        {showModal && selectedAuthId && (
+          <UserDetailsModal
+            authId={selectedAuthId}
+            onClose={() => {
+              setShowModal(false);
+              setSelectedAuthId(null);
+            }}
+          />
+        )}
+      </div>
     </div>
+
   );
 };
 

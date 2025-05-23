@@ -47,7 +47,7 @@ def fetch_charge_counts():
                 WHEN time(c.Start_datetime) BETWEEN '09:00:00' AND '12:59:59' THEN '0900-1300'
                 WHEN time(c.Start_datetime) BETWEEN '13:00:00' AND '16:59:59' THEN '1300-1700'
                 WHEN time(c.Start_datetime) BETWEEN '17:00:00' AND '20:59:59' THEN '1700-2100'
-                WHEN time(c.Start_datetime) >= '21:00:00' OR time(c.Start_datetime) < '00:00:00' THEN '2100-0000'
+                WHEN time(c.Start_datetime) >= '21:00:00' OR time(c.Start_datetime) BETWEEN '00:00:00' AND '00:59:59' THEN '0000-0900'
             END as TimeRange,
             COUNT(DISTINCT c.CDR_ID) as TotalCharges
         FROM CDR c
@@ -91,7 +91,7 @@ def fetch_charge_details(time_range):
             "0900-1300": "time(Start_datetime) BETWEEN '09:00:00' AND '12:59:59'",
             "1300-1700": "time(Start_datetime) BETWEEN '13:00:00' AND '16:59:59'",
             "1700-2100": "time(Start_datetime) BETWEEN '17:00:00' AND '20:59:59'",
-            "2100-0000": "(time(Start_datetime) >= '21:00:00' OR time(Start_datetime) < '00:00:00')",
+            "2100-0000": "(time(Start_datetime) >= '21:00:00' OR time(c.Start_datetime) BETWEEN '00:00:00' AND '00:59:59' THEN '0000-0900'",
         }
 
         if time_range not in time_conditions:

@@ -22,6 +22,10 @@ interface UserDetailsModalProps {
 const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) => {
   const [details, setDetails] = useState<CdrDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof CdrDetail | null; direction: 'asc' | 'desc' | null }>({
+  key: null,
+  direction: null,
+  });
 
   useEffect(() => {
     fetch(`http://localhost:8000/api/user-details/${authId}`)
@@ -39,6 +43,21 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
 
   const formatDate = (str: string) => new Date(str).toLocaleString();
 
+  const handleSort = (key: keyof CdrDetail) => {
+    setSortConfig(prev => {
+      if (prev.key !== key) return { key, direction: 'asc' };
+      if (prev.direction === 'asc') return { key, direction: 'desc' };
+      if (prev.direction === 'desc') return { key: null, direction: null };
+      return { key, direction: 'asc' };
+    });
+  };
+
+  const getSortIndicator = (key: keyof CdrDetail) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+    }
+    return '';
+  };
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -58,14 +77,30 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
                 <th>Start Time</th>
                 <th>End Time</th>
                 <th>Duration (min)</th>
-                <th>Volume (kWh)</th>
-                <th>Cost (€)</th>
+                <th onClick={() => handleSort('Volume')} className="sortable-header">
+                  Volume (kWh){getSortIndicator('Volume')}
+                </th>
+                <th onClick={() => handleSort('Calculated_Cost')} className="sortable-header">
+                  Cost (€){getSortIndicator('Calculated_Cost')}
+                </th>
                 <th>City</th>
                 <th>Country</th>
               </tr>
             </thead>
             <tbody>
-              {details.map(detail => (
+                {[...details]
+                  .sort((a, b) => {
+                    if (!sortConfig.key || !sortConfig.direction) return 0;
+                    const aVal = a[sortConfig.key] ?? 0;
+                    const bVal = b[sortConfig.key] ?? 0;
+
+                    if (typeof aVal === 'number' && typeof bVal === 'number') {
+                      return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                    }
+
+                    return 0;
+                  })
+                    .map(detail => (
                 <tr key={detail.CDR_ID}>
                   <td>{detail.CDR_ID}</td>
                   <td>{detail.Charge_Point_ID}</td>

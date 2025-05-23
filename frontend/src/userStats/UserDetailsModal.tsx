@@ -54,12 +54,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
             <thead>
               <tr>
                 <th>CDR ID</th>
-                <th>Start</th>
-                <th>End</th>
+                <th>Charge Point ID</th>
+                <th>Start Time</th>
+                <th>End Time</th>
                 <th>Duration (min)</th>
                 <th>Volume (kWh)</th>
                 <th>Cost (€)</th>
-                <th>Point ID</th>
                 <th>City</th>
                 <th>Country</th>
               </tr>
@@ -68,12 +68,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
               {details.map(detail => (
                 <tr key={detail.CDR_ID}>
                   <td>{detail.CDR_ID}</td>
+                  <td>{detail.Charge_Point_ID}</td>
                   <td>{formatDate(detail.Start_datetime)}</td>
                   <td>{formatDate(detail.End_datetime)}</td>
                   <td>{detail.Duration}</td>
                   <td>{detail.Volume.toFixed(2)}</td>
                   <td>{detail.Calculated_Cost.toFixed(2)}</td>
-                  <td>{detail.Charge_Point_ID}</td>
                   <td>{detail.Charge_Point_City}</td>
                   <td>{detail.Charge_Point_Country}</td>
                 </tr>

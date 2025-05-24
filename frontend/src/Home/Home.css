@@ -1,9 +1,9 @@
-.dashboard-outer-container {
+/* .dashboard-outer-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 32px 0 0 0;
-}
+} */
 
 .dashboard-main-title {
     font-size: 1.6rem;
@@ -27,29 +27,122 @@
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.07);
-    margin: 0;
-    width: 100%;
-    min-width: 350px;
+    margin: 0 auto;
+    width: 200%;
+    min-width: 620px;
 }
 
+/* Remove old styles */
+.dashboard-container, .dashboard-title { display: none; }
+
+/*
 .donut-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.07);
-    padding: 20px;
-    min-width: 250px;
+    padding: 12px;
+    min-width: 220px;
+    width: 300px;
+    max-width: 320px;
+}
+*/
+
+/*
+.donut-legend {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin-top: 18px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+*/
+
+/*
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  min-width: 120px;
+}
+*/
+
+/*
+.donut-legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+*/
+
+/*
+.donut-legend-label {
+  min-width: 90px;
+  color: #333;
+  font-weight: 500;
+}
+*/
+
+/*
+.donut-legend-value {
+  color: #888;
+  font-size: 1rem;
+  margin-left: 8px;
+}
+*/
+
+/*
+.donut-container {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+*/
+
+.charts-combined-container {
+  display: flex;
+  flex-direction: row;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(253, 253, 253, 0);
+  padding: 32px 32px;
+  margin-bottom: 32px;
+  align-items: stretch;
+  gap: 0;
+  justify-content: center;
 }
 
-.dashboard-table-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.07);
-    padding: 24px 18px 18px 18px;
-    margin-top: 18px;
+.charts-divider {
+  width: 1px;
+  background: #ececec;
+  margin: 0 24px;
+  border-radius: 2px;
 }
 
-/* Remove old styles */
-.dashboard-container, .dashboard-title { display: none; }
+.chart-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  width: 70%;
+  min-width: 420px;
+}
+
+.donut-container {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}

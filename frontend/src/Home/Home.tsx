@@ -108,19 +108,24 @@ const Home: React.FC = () => {
         };
     }, [chargeData, navigate]);
 
-    // Donut chart data (mocked for now, replace with real data if available)
+    // Use real data for donut chart
+    const donutLabels = chargeData.map(item => item.TimeRange);
+    const donutCounts = chargeData.map(item => item.TotalCharges);
+    const total = donutCounts.reduce((sum, val) => sum + val, 0);
+    const donutPercentages = donutCounts.map(count => total > 0 ? +(count / total * 100).toFixed(1) : 0);
+    const donutColors = [
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)'
+    ];
     const donutData = {
-        labels: ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000'],
+        labels: donutLabels,
         datasets: [
             {
-                data: [23.4, 29.2, 29.6, 17.2, 0.6],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(153, 102, 255, 0.7)',
-                    'rgba(255, 159, 64, 0.7)'
-                ],
+                data: donutCounts,
+                backgroundColor: donutColors,
                 borderWidth: 1,
             },
         ],
@@ -129,11 +134,18 @@ const Home: React.FC = () => {
         cutout: '70%',
         plugins: {
             legend: {
-                display: true,
-                position: 'right' as const,
-                labels: {
-                    color: '#333',
-                    font: { size: 14 }
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        const count = context.parsed;
+                        const percent = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
+                        return `${count} fraudulent (${percent}%)`;
+                    },
+                    title: function(context: any) {
+                        return context[0].label;
+                    }
                 }
             }
         }
@@ -142,13 +154,24 @@ const Home: React.FC = () => {
     return (
         <div className="dashboard-outer-container">
             <h2 className="dashboard-main-title">Dashboard</h2>
-            <div className="dashboard-charts-row">
+            <div className="charts-combined-container">
                 <div className="chart-container" style={{ width: '60%', minWidth: 350 }}>
                     <canvas id="chargeChart" ref={chartRef}></canvas>
                 </div>
-                <div className="donut-container" style={{ width: '40%', minWidth: 250, background: '#fff', borderRadius: 8, boxShadow: '0 0 10px rgba(0,0,0,0.07)', padding: 20, marginLeft: 24 }}>
+                {/* <div className="charts-divider"></div> */}
+                {/* <div className="donut-container">
                     <Doughnut data={donutData} options={donutOptions} />
-                </div>
+                    <div className="donut-legend">
+                        {donutLabels.map((label, i) => (
+                            <div key={label} className="donut-legend-item">
+                                <span className="donut-legend-color" style={{ background: donutColors[i] }}></span>
+                                <span className="donut-legend-label">{label}</span>
+                                <span className="donut-legend-value">{donutPercentages[i]}%</span>
+                                <span className="donut-legend-count">({donutCounts[i]})</span>
+                            </div>
+                        ))}
+                    </div>
+                </div> */}
             </div>
             <div className="dashboard-table-card">
                 <DataTablePreview />

@@ -16,6 +16,7 @@ import FraudMapPage from './fraudMap/FraudMapPage';
 import './fraudMap/FraudMap.css';
 import Sidebar from './sidebar/Sidebar';
 import PrivateRoute from './middleware/PrivateRoute';
+import Header from './Header';
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED_WIDTH = 60;
@@ -33,6 +34,7 @@ const AppRoutes: React.FC<{ sidebarCollapsed: boolean; setSidebarCollapsed: Reac
 
   return (
     <>
+      {!isLoginPage && <Header />}
       {!isLoginPage && <Sidebar collapsedProp={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />}
       {showCreateUser && (
         <CreateUser onClose={() => setShowCreateUser(false)} />

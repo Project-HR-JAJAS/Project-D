@@ -39,12 +39,12 @@ const DataTablePreview: React.FC = () => {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div className="table-container">
+        <div className="table-preview-outer">
             <div className="table-search-wrapper">
-                <h2>Recent Suspicious Transactions</h2>
+                <h2 className="table-preview-title">Recent Suspicious Transactions</h2>
             </div>
             <div style={{ overflowX: 'auto' }}>
-                <table className="table-form">
+                <table className="table-form table-preview-table">
                     <thead>
                         <tr>
                             <th>CDR ID</th>

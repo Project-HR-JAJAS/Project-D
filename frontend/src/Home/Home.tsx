@@ -6,6 +6,7 @@ import { SuspCharges } from './SuspCharges';
 import DataTablePreview from '../tabel/DataTablePreview';
 import { fetchChargeData, ChargeData } from './Home.api';
 import './Home.css';
+import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(...registerables);
 
@@ -107,25 +108,51 @@ const Home: React.FC = () => {
         };
     }, [chargeData, navigate]);
 
+    // Donut chart data (mocked for now, replace with real data if available)
+    const donutData = {
+        labels: ['0000-0900', '0900-1300', '1300-1700', '1700-2100', '2100-0000'],
+        datasets: [
+            {
+                data: [23.4, 29.2, 29.6, 17.2, 0.6],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ],
+                borderWidth: 1,
+            },
+        ],
+    };
+    const donutOptions = {
+        cutout: '70%',
+        plugins: {
+            legend: {
+                display: true,
+                position: 'right' as const,
+                labels: {
+                    color: '#333',
+                    font: { size: 14 }
+                }
+            }
+        }
+    };
+
     return (
-        <div className="dashboard-container">
-            <Helmet>
-                <title>Charging Sessions Dashboard</title>
-            </Helmet>
-
-            {/* <div>
-                <SuspCharges />
-            </div> */}
-
-            <h1 className="dashboard-title">Charging Sessions by Time of Day</h1>
-
-            <div className="chart-container">
-                <canvas id="chargeChart" ref={chartRef}></canvas>
+        <div className="dashboard-outer-container">
+            <h2 className="dashboard-main-title">Dashboard</h2>
+            <div className="dashboard-charts-row">
+                <div className="chart-container" style={{ width: '60%', minWidth: 350 }}>
+                    <canvas id="chargeChart" ref={chartRef}></canvas>
+                </div>
+                <div className="donut-container" style={{ width: '40%', minWidth: 250, background: '#fff', borderRadius: 8, boxShadow: '0 0 10px rgba(0,0,0,0.07)', padding: 20, marginLeft: 24 }}>
+                    <Doughnut data={donutData} options={donutOptions} />
+                </div>
             </div>
-            <div>
-                <p></p>
+            <div className="dashboard-table-card">
+                <DataTablePreview />
             </div>
-            <DataTablePreview />
         </div>
     );
 };

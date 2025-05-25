@@ -293,7 +293,7 @@ const ChargeDetails: React.FC = () => {
                             currentItems.map((item) => (
                                 <tr
                                     key={item.CDR_ID}
-                                    onClick={() => navigate(`/details/${item.CDR_ID}`)}
+                                    onClick={() => navigate(`/cdr-details/${item.CDR_ID}`)}
                                     className="clickable-row"
                                 >
                                     <td>{formatCellValue('CDR_ID', item.CDR_ID)}</td>

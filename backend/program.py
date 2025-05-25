@@ -20,6 +20,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from backend.fraud_locations.Fraude_Locaties import FraudLocationManager
 import threading
+from fastapi import APIRouter
 
 
 
@@ -678,6 +679,59 @@ async def get_fraud_locations():
             status_code=500,
             detail=f"Error fetching fraud locations: {str(e)}"
         )
+
+@app.get("/api/cdr-details/{cdr_id}")
+async def get_cdr_details(cdr_id: str):
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    cursor.execute("SELECT * FROM CDR WHERE CDR_ID = ?", (cdr_id,))
+    cdr_row = cursor.fetchone()
+    if not cdr_row:
+        db.close()
+        raise HTTPException(status_code=404, detail="CDR not found")
+    columns = [desc[0] for desc in cursor.description]
+    cdr = dict(zip(columns, cdr_row))
+
+    # Get all non-null reasons from FraudeGeval
+    cursor.execute("SELECT Reden, Reden2, Reden3, Reden4, Reden5, Reden6, Reden7 FROM FraudeGeval WHERE CDR_ID = ?", (cdr_id,))
+    reasons_row = cursor.fetchone()
+    reasons = [r for r in reasons_row if r] if reasons_row else []
+
+    latitude = cdr.get('Latitude')
+    longitude = cdr.get('Longitude')
+
+    db.close()
+    return {
+        "cdr": cdr,
+        "reasons": reasons,
+        "latitude": latitude,
+        "longitude": longitude
+    }
+
+@app.post("/api/geocode-cdr/{cdr_id}")
+async def geocode_cdr_location(cdr_id: str):
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    cursor.execute("SELECT Charge_Point_Address, Charge_Point_ZIP, Charge_Point_City, Charge_Point_Country FROM CDR WHERE CDR_ID = ?", (cdr_id,))
+    row = cursor.fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(status_code=404, detail="CDR not found")
+    address, zip_code, city, country = row
+
+    # Use your geocoding logic here (reuse from FraudLocationManager or similar)
+    geocoder = FraudLocationManager(db.db_name)
+    coords = geocoder.geocode_address(address, zip_code, city, country)
+    if coords:
+        cursor.execute("UPDATE CDR SET Latitude = ?, Longitude = ? WHERE CDR_ID = ?", (coords['latitude'], coords['longitude'], cdr_id))
+        db.connection.commit()
+        db.close()
+        return {"latitude": coords['latitude'], "longitude": coords['longitude']}
+    else:
+        db.close()
+        raise HTTPException(status_code=404, detail="Could not geocode address")
 
 if __name__ == "__main__":
     db = DbUserContext()

@@ -65,7 +65,19 @@ const Header: React.FC = () => {
       <div className="header-center">
         <div className="header-search">
           <FaSearch className="search-icon" />
-          <input type="text" placeholder="Search CDR_ID" className="search-input" />
+          <input 
+            type="text" 
+            placeholder="Search CDR_ID" 
+            className="search-input"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                const searchValue = e.currentTarget.value.trim();
+                if (searchValue) {
+                  window.location.href = `/cdr-details/${searchValue}`;
+                }
+              }
+            }}
+          />
         </div>
       </div>
       <div className="header-right">

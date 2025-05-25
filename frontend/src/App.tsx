@@ -17,6 +17,8 @@ import './fraudMap/FraudMap.css';
 import Sidebar from './sidebar/Sidebar';
 import PrivateRoute from './middleware/PrivateRoute';
 import Header from './Header';
+import ChargeDetail from './ChargeDetails/ChargeDetail';
+import CDRDetailPage from './CDRDetailPage/CDRDetailPage';
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED_WIDTH = 60;
@@ -61,6 +63,8 @@ const AppRoutes: React.FC<{ sidebarCollapsed: boolean; setSidebarCollapsed: Reac
           <Route path="/charge-point-stats" element={<PrivateRoute><ChargePointStatsTable /></PrivateRoute>} />
           <Route path="/data-table" element={<PrivateRoute><DataTable /></PrivateRoute>} />
           <Route path="/fraud-map" element={<PrivateRoute><FraudMapPage /></PrivateRoute>} />
+          <Route path="/charge-details/:CDR_ID" element={<ChargeDetail />} />
+          <Route path="/cdr-details/:CDR_ID" element={<CDRDetailPage />} />
         </Routes>
       </main>
     </>

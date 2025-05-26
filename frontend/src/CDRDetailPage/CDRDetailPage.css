@@ -197,4 +197,33 @@
 .find-location-btn:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
+}
+
+.cdr-detail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.decision-history-btn {
+  margin-left: 16px;
+  padding: 6px 16px;
+  background: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+.decision-history-btn:hover {
+  background: #217dbb;
+}
+.cdr-fraud-latest-decision {
+  margin-top: 10px;
+  padding: 16px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(52,152,219,0.08);
 } 

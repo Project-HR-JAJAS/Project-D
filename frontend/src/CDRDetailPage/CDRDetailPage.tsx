@@ -2,10 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './CDRDetailPage.css';
 import MapComponent from './MapComponent'; // adjust path if needed
+import DecisionHistoryModal from './decision_history/DecisionHistoryModal';
 
 
 interface CDRDetail {
   [key: string]: any;
+}
+
+interface FraudDecision {
+  id: number;
+  cdr_id: string;
+  user_id: string;
+  user_name: string;
+  approved: boolean;
+  reason: string;
+  decision_time: string;
 }
 
 const CDRDetailPage: React.FC = () => {
@@ -21,6 +32,10 @@ const CDRDetailPage: React.FC = () => {
   const [action, setAction] = useState<'approve' | 'deny' | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState('');
+  const [geoSuccess, setGeoSuccess] = useState('');
+  const [decisions, setDecisions] = useState<FraudDecision[]>([]);
+  const [decisionLoading, setDecisionLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   // Get username from localStorage
   const username = localStorage.getItem('username') || 'User';
@@ -47,28 +62,57 @@ const CDRDetailPage: React.FC = () => {
       });
   }, [CDR_ID]);
 
-  const handleFraudAction = (type: 'approve' | 'deny') => {
+  // Fetch fraud decisions for this CDR_ID
+  useEffect(() => {
+    if (!CDR_ID) return;
+    fetch(`http://localhost:8000/api/fraud-decision/${CDR_ID}`)
+      .then(res => res.json())
+      .then(setDecisions)
+      .catch(() => setDecisions([]));
+  }, [CDR_ID]);
+
+  const handleFraudAction = async (type: 'approve' | 'deny') => {
     setAction(type);
     if (!desc.trim()) {
       setFraudError('Beschrijving is verplicht.');
       return;
     }
     setFraudError('');
-    // TODO: Send approval/denial to backend
-    alert(`Fraude ${type === 'approve' ? 'goedgekeurd' : 'afgewezen'} met beschrijving: ${desc}`);
-    setDesc('');
-    setAction(null);
+    setDecisionLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:8000/api/fraud-decision?cdr_id=${CDR_ID}&approved=${type === 'approve'}&reason=${encodeURIComponent(desc)}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token || '',
+        },
+      });
+      if (!res.ok) throw new Error('Failed to save decision');
+      setDesc('');
+      setAction(null);
+      // Refetch decisions
+      fetch(`http://localhost:8000/api/fraud-decision/${CDR_ID}`)
+        .then(res => res.json())
+        .then(setDecisions)
+        .catch(() => setDecisions([]));
+    } catch (err) {
+      setFraudError('Error saving decision.');
+    } finally {
+      setDecisionLoading(false);
+    }
   };
 
   const handleFindLocation = async () => {
     setGeoLoading(true);
     setGeoError('');
+    setGeoSuccess('');
     try {
       const res = await fetch(`http://localhost:8000/api/geocode-cdr/${CDR_ID}`, { method: 'POST' });
       if (!res.ok) throw new Error('Could not geocode');
       const data = await res.json();
       setLatitude(data.latitude);
       setLongitude(data.longitude);
+      setGeoSuccess('Location found and saved successfully!');
     } catch (err) {
       setGeoError('Locatie niet gevonden');
     } finally {
@@ -96,7 +140,12 @@ const CDRDetailPage: React.FC = () => {
 
   return (
     <div className="cdr-detail-main-container">
-      <h2 className="cdr-detail-header">{CDR_ID}</h2>
+      <div className="cdr-detail-header-row">
+        <h2 className="cdr-detail-header">{CDR_ID}</h2>
+        <button className="decision-history-btn" onClick={() => setShowHistory(true)}>
+          Decision History
+        </button>
+      </div>
       <div className="cdr-detail-content">
         {/* Details Section */}
         <div className="cdr-detail-section details-section">
@@ -122,8 +171,8 @@ const CDRDetailPage: React.FC = () => {
         <div className="cdr-detail-section right-section">
           <div className="cdr-fraud-approve-row">
             <span>Approval/Deny Fraud</span>
-            <button className="cdr-fraud-btn approve" onClick={() => handleFraudAction('approve')}>✔</button>
-            <button className="cdr-fraud-btn deny" onClick={() => handleFraudAction('deny')}>✖</button>
+            <button className="cdr-fraud-btn approve" onClick={() => handleFraudAction('approve')} disabled={decisionLoading}>✔</button>
+            <button className="cdr-fraud-btn deny" onClick={() => handleFraudAction('deny')} disabled={decisionLoading}>✖</button>
           </div>
           <div className="cdr-user-info">
             <div className="cdr-avatar">{avatarLetter}</div>
@@ -135,8 +184,21 @@ const CDRDetailPage: React.FC = () => {
             value={desc}
             onChange={e => setDesc(e.target.value)}
             placeholder={`Add reason for approval/denial`}
+            disabled={decisionLoading}
           />
           {fraudError && <div className="cdr-fraud-error">{fraudError}</div>}
+          {/* Show only the latest decision */}
+          <div className="cdr-fraud-latest-decision">
+            <h4>Latest Decision</h4>
+            {decisions.length === 0 ? (
+              <div>No decisions yet.</div>
+            ) : (
+              <div>
+                <b>{decisions[0].approved ? 'Approved' : 'Denied'}</b> by {decisions[0].user_name} on {new Date(decisions[0].decision_time).toLocaleString()}<br />
+                <span>{decisions[0].reason}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {/* Map Section */}
@@ -156,9 +218,17 @@ const CDRDetailPage: React.FC = () => {
               {geoLoading ? 'Bezig met zoeken...' : 'Find Location'}
             </button>
             {geoError && <div style={{ color: 'red' }}>{geoError}</div>}
+            {geoSuccess && <div style={{ color: 'green', marginTop: '8px' }}>{geoSuccess}</div>}
           </div>
         )}
       </div>
+      {showHistory && (
+        <DecisionHistoryModal
+          decisions={decisions}
+          cdrId={CDR_ID || ''}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   );
 };

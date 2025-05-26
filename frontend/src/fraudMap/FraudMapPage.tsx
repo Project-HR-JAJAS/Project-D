@@ -12,11 +12,28 @@ const FraudMapPage: React.FC = () => {
         start: '',
         end: ''
     });
+    const [batchCount, setBatchCount] = useState(20);
+    const [batchLoading, setBatchLoading] = useState(false);
+    const [batchMessage, setBatchMessage] = useState('');
 
     const handleResetFilters = () => {
         setSelectedCity('');
         setDateRange({ start: '', end: '' });
         setTimeRange({ start: '', end: '' });
+    };
+
+    const handleBatchGeocode = async () => {
+        setBatchLoading(true);
+        setBatchMessage('');
+        try {
+            const res = await fetch(`http://localhost:8000/api/geocode-batch?count=${batchCount}`, { method: 'POST' });
+            const data = await res.json();
+            setBatchMessage(data.message || 'Batch geocoding complete!');
+        } catch (err) {
+            setBatchMessage('Error during batch geocoding.');
+        } finally {
+            setBatchLoading(false);
+        }
     };
 
     return (
@@ -86,6 +103,22 @@ const FraudMapPage: React.FC = () => {
                 >
                     Reset Filters
                 </button>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '24px 0' }}>
+                <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={batchCount}
+                    onChange={e => setBatchCount(Number(e.target.value))}
+                    style={{ width: 60, marginRight: 12 }}
+                    disabled={batchLoading}
+                />
+                <button onClick={handleBatchGeocode} disabled={batchLoading} style={{ padding: '8px 18px', borderRadius: 6, background: '#3498db', color: '#fff', border: 'none', fontWeight: 500, fontSize: '1rem', cursor: 'pointer' }}>
+                    {batchLoading ? 'Processing...' : `Geocode ${batchCount} New Locations`}
+                </button>
+                {batchMessage && <span style={{ marginLeft: 16 }}>{batchMessage}</span>}
             </div>
             
             <FraudMap 

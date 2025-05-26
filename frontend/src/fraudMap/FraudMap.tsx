@@ -78,7 +78,7 @@ const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange })
                 throw new Error('Failed to fetch fraud locations');
             }
             const data = await response.json();
-            setLocations(data);
+            setLocations(Array.isArray(data) ? data : []);
             setLastUpdated(new Date());
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');

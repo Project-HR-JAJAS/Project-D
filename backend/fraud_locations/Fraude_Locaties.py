@@ -54,15 +54,67 @@ class FraudLocationManager:
             logger.error(f"Error initializing tables: {str(e)}")
             raise
 
-    def format_dutch_address(self, address: str, zip_code: str, city: str) -> str:
-        """Format Dutch address for geocoding."""
+    def format_address(self, address: str, zip_code: str, city: str, country: str) -> str:
+        """Format address for geocoding based on country."""
         # Clean up the address
         address = address.strip()
         zip_code = zip_code.strip()
         city = city.strip()
+        country = country.strip()
         
-        # Format: "Street Number, ZIP City, Netherlands"
-        return f"{address}, {zip_code} {city}, Netherlands"
+        # Get country name from code if it's a 3-letter code
+        country_name = self.get_country_name(country)
+        
+        # Format based on country
+        if country == 'NLD':
+            # Dutch format: "Street Number, ZIP City, Netherlands"
+            return f"{address}, {zip_code} {city}, {country_name}"
+        elif country == 'GBR':
+            # UK format: "Street Number, City, ZIP, United Kingdom"
+            return f"{address}, {city}, {zip_code}, {country_name}"
+        elif country == 'DEU':
+            # German format: "Street Number, ZIP City, Germany"
+            return f"{address}, {zip_code} {city}, {country_name}"
+        elif country == 'FRA':
+            # French format: "Street Number, ZIP City, France"
+            return f"{address}, {zip_code} {city}, {country_name}"
+        else:
+            # Generic format for other countries
+            return f"{address}, {city}, {zip_code}, {country_name}"
+
+    def get_country_name(self, country_code: str) -> str:
+        """Convert country code to full name."""
+        country_map = {
+            'NLD': 'Netherlands',
+            'GBR': 'United Kingdom',
+            'DEU': 'Germany',
+            'FRA': 'France',
+            'BEL': 'Belgium',
+            'LUX': 'Luxembourg',
+            'ESP': 'Spain',
+            'PRT': 'Portugal',
+            'ITA': 'Italy',
+            'CHE': 'Switzerland',
+            'AUT': 'Austria',
+            'DNK': 'Denmark',
+            'SWE': 'Sweden',
+            'NOR': 'Norway',
+            'FIN': 'Finland',
+            'POL': 'Poland',
+            'CZE': 'Czech Republic',
+            'SVK': 'Slovakia',
+            'HUN': 'Hungary',
+            'ROU': 'Romania',
+            'BGR': 'Bulgaria',
+            'GRC': 'Greece',
+            'HRV': 'Croatia',
+            'SVN': 'Slovenia',
+            'EST': 'Estonia',
+            'LVA': 'Latvia',
+            'LTU': 'Lithuania',
+            'IRL': 'Ireland'
+        }
+        return country_map.get(country_code, country_code)
 
     def clean_address(self, address: str, zip_code: str, city: str) -> str:
         """Remove city and zip_code (with or without space) from address if present."""
@@ -91,11 +143,8 @@ class FraudLocationManager:
         try:
             # Clean up the address
             address = self.clean_address(address, zip_code, city)
-            # Format the address specifically for Dutch addresses
-            if country == 'NLD':
-                full_address = f"{address}, {zip_code} {city}, Netherlands"
-            else:
-                full_address = f"{address}, {zip_code}, {city}, {country}"
+            # Format the address based on country
+            full_address = self.format_address(address, zip_code, city, country)
             
             print(f"Attempting to geocode: {full_address}")
             
@@ -126,11 +175,11 @@ class FraudLocationManager:
             return None
 
     def update_charge_point_coordinates(self):
-        """Update coordinates for all Dutch charge points in CDR table."""
+        """Update coordinates for all charge points in CDR table."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
-            # Get unique Dutch charge points without coordinates
+            # Get unique charge points without coordinates
             cursor.execute("""
                 SELECT DISTINCT 
                     Charge_Point_ID,
@@ -143,12 +192,12 @@ class FraudLocationManager:
                 AND Charge_Point_Address IS NOT NULL
                 AND Charge_Point_ZIP IS NOT NULL
                 AND Charge_Point_City IS NOT NULL
-                AND Charge_Point_Country = 'NLD'
+                AND Charge_Point_Country IS NOT NULL
             """)
             
             charge_points = cursor.fetchall()
             total_points = len(charge_points)
-            print(f"Found {total_points} Dutch charge points to process")
+            print(f"Found {total_points} charge points to process")
             
             for i, cp in enumerate(charge_points, 1):
                 charge_point_id, address, zip_code, city, country = cp
@@ -156,6 +205,7 @@ class FraudLocationManager:
                 print(f"Address: {address}")
                 print(f"ZIP: {zip_code}")
                 print(f"City: {city}")
+                print(f"Country: {country}")
                 
                 # Get coordinates
                 coords = self.geocode_address(address, zip_code, city, country)
@@ -178,7 +228,7 @@ class FraudLocationManager:
                     print(f"Committed {i} records")
             
             conn.commit()
-            print("Finished updating Dutch charge point coordinates")
+            print("Finished updating charge point coordinates")
 
     def update_charge_point_coordinates_batch(self, count: int):
         with sqlite3.connect(self.db_path) as conn:
@@ -195,7 +245,7 @@ class FraudLocationManager:
                 AND Charge_Point_Address IS NOT NULL
                 AND Charge_Point_ZIP IS NOT NULL
                 AND Charge_Point_City IS NOT NULL
-                AND Charge_Point_Country = 'NLD'
+                AND Charge_Point_Country IS NOT NULL
                 LIMIT ?
             """, (count,))
             charge_points = cursor.fetchall()

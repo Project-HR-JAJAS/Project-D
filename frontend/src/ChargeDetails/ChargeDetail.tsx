@@ -228,6 +228,7 @@ const ChargeDetails: React.FC = () => {
                 <div>
                     <select
                         value={searchField}
+                        title="Search by"
                         onChange={e => setSearchField(e.target.value as 'CDR_ID' | 'Address' | 'City' | 'Country' | 'Charge_Point_ID')}
                         className="table-search-dropdown"
                     >
@@ -341,6 +342,7 @@ const ChargeDetails: React.FC = () => {
                                     <input
                                         type="text"
                                         className="pagination-input"
+                                        placeholder={'-'}
                                         value={inputValue}
                                         onChange={handleInputChange}
                                         onBlur={() => handleInputSubmit(side)}

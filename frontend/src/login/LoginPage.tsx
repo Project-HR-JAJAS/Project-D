@@ -34,6 +34,7 @@ const LoginPage: React.FC = () => {
                     <label>Username:</label>
                     <input
                         type="text"
+                        placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
@@ -43,6 +44,7 @@ const LoginPage: React.FC = () => {
                     <label>Password:</label>
                     <input
                         type="password"
+                        placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required

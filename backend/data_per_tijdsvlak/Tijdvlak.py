@@ -11,9 +11,9 @@ router = APIRouter()
 
 
 @router.get("/api/charge-counts")
-def charge_counts():
+def get_charge_counts():
     try:
-        data = get_charge_counts()
+        data = fetch_charge_counts()
         return data
     except Exception as e:
         print(f"Error in charge_counts: {e}")
@@ -21,20 +21,20 @@ def charge_counts():
 
 
 @router.get("/api/charge-details/{time_range}")
-def charge_details(time_range: str):
+def get_charge_details(time_range: str):
     valid_ranges = ["0000-0900", "0900-1300", "1300-1700", "1700-2100", "2100-0000"]
     if time_range not in valid_ranges:
         raise HTTPException(status_code=400, detail="Invalid time range")
 
     try:
-        data = get_charge_details(time_range)
+        data = fetch_charge_details(time_range)
         return data
     except Exception as e:
         print(f"Error in charge_details: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-def get_charge_counts():
+def fetch_charge_counts():
     db = DbContext()
     try:
         db.connect()
@@ -47,11 +47,11 @@ def get_charge_counts():
                 WHEN time(c.Start_datetime) BETWEEN '09:00:00' AND '12:59:59' THEN '0900-1300'
                 WHEN time(c.Start_datetime) BETWEEN '13:00:00' AND '16:59:59' THEN '1300-1700'
                 WHEN time(c.Start_datetime) BETWEEN '17:00:00' AND '20:59:59' THEN '1700-2100'
-                WHEN time(c.Start_datetime) >= '21:00:00' OR time(c.Start_datetime) < '00:00:00' THEN '2100-0000'
+                WHEN time(c.Start_datetime) >= '21:00:00' OR time(c.Start_datetime) BETWEEN '00:00:00' AND '00:59:59' THEN '0000-0900'
             END as TimeRange,
             COUNT(DISTINCT c.CDR_ID) as TotalCharges
         FROM CDR c
-        INNER JOIN FraudeGeval f ON c.CDR_ID = f.CDR_ID
+        INNER JOIN FraudCase f ON c.CDR_ID = f.CDR_ID
         GROUP BY TimeRange
         ORDER BY TimeRange
         """
@@ -80,7 +80,7 @@ def get_charge_counts():
         db.close()
 
 
-def get_charge_details(time_range):
+def fetch_charge_details(time_range):
     db = DbContext()
     try:
         db.connect()
@@ -91,7 +91,7 @@ def get_charge_details(time_range):
             "0900-1300": "time(Start_datetime) BETWEEN '09:00:00' AND '12:59:59'",
             "1300-1700": "time(Start_datetime) BETWEEN '13:00:00' AND '16:59:59'",
             "1700-2100": "time(Start_datetime) BETWEEN '17:00:00' AND '20:59:59'",
-            "2100-0000": "(time(Start_datetime) >= '21:00:00' OR time(Start_datetime) < '00:00:00')",
+            "2100-0000": "(time(Start_datetime) >= '21:00:00' OR time(c.Start_datetime) BETWEEN '00:00:00' AND '00:59:59' THEN '0000-0900'",
         }
 
         if time_range not in time_conditions:
@@ -100,7 +100,7 @@ def get_charge_details(time_range):
         query = f"""
         SELECT DISTINCT c.*
         FROM CDR c
-        INNER JOIN FraudeGeval f ON c.CDR_ID = f.CDR_ID
+        INNER JOIN FraudCase f ON c.CDR_ID = f.CDR_ID
         WHERE {time_conditions[time_range]}
         """
 

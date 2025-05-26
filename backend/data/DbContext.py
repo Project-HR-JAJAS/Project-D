@@ -207,8 +207,8 @@ class DbContext:
             print(f"Successfully imported {len(records)} records from {file_name}")
 
             # Call Fraude_detectie after importing
-            detector = Fraude_detectie.FraudeDetector(self.db_name)
-            fraude_resultaat = detector.detecteer_fraude()
+            detector = Fraude_detectie.FraudDetector(self.db_name)
+            fraude_resultaat = detector.detect_fraud()
             print(f"Fraudedetectie voltooid. Gevonden cases: {len(fraude_resultaat)}")
             
             return len(records), None

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
+
 
 interface ChargeDetail {
     CDR_ID: string;
@@ -221,11 +223,33 @@ const ChargeDetails: React.FC = () => {
     if (isLoading) return <div>Loading...</div>;
     if (data.length === 0) return <div>Error: No charging sessions recorded for this time range</div>;
 
+    const exportColumns = [
+    { label: 'CDR ID', key: 'CDR_ID' },
+    { label: 'Start DateTime', key: 'Start_datetime' },
+    { label: 'End DateTime', key: 'End_datetime' },
+    { label: 'Duration', key: 'Duration' },
+    { label: 'Volume (kWh)', key: 'Volume' },
+    { label: 'Address', key: 'Charge_Point_Address' },
+    { label: 'ZIP', key: 'Charge_Point_ZIP' },
+    { label: 'City', key: 'Charge_Point_City' },
+    { label: 'Country', key: 'Charge_Point_Country' },
+    { label: 'Type', key: 'Charge_Point_Type' },
+    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+    { label: 'Cost (€)', key: 'Calculated_Cost' },
+    ];
+
     return (
         <div className="table-container">
             <div className= 'table-search-wrapper'>
                 <h2>Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
                 <div>
+
+                <TableExportButton
+                    data={currentItems}
+                    columns={exportColumns}
+                    filename={`charge_details_${timeRange}`}
+                    format="xlsx"
+                />
                     <select
                         value={searchField}
                         onChange={e => setSearchField(e.target.value as 'CDR_ID' | 'Address' | 'City' | 'Country' | 'Charge_Point_ID')}

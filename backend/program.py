@@ -759,7 +759,7 @@ async def geocode_cdr_location(cdr_id: str):
 @app.post("/api/fraud-decision")
 async def add_fraud_decision(
     cdr_id: str,
-    approved: bool,
+    status: str,
     reason: str,
     authorization: str = Header(None)
 ):
@@ -768,6 +768,10 @@ async def add_fraud_decision(
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid session")
     
+    # Validate status
+    if status not in ['approve', 'deny', 'maybe']:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be 'approve', 'deny', or 'maybe'")
+    
     # Fetch user_name from user.db
     db_user = DbUserContext()
     db_user.connect()
@@ -775,7 +779,7 @@ async def add_fraud_decision(
     user_name = user["User_Name"] if user else "Unknown"
     db_user.close()
 
-    decision_manager.add_decision(cdr_id, user_id, user_name, approved, reason)
+    decision_manager.add_decision(cdr_id, user_id, user_name, status, reason)
     return {"success": True}
 
 @app.get("/api/fraud-decision/{cdr_id}")
@@ -788,7 +792,7 @@ async def get_fraud_decisions(cdr_id: str):
             "cdr_id": d[1],
             "user_id": d[2],
             "user_name": d[3],
-            "approved": d[4],
+            "status": d[4],
             "reason": d[5],
             "decision_time": d[6]
         }

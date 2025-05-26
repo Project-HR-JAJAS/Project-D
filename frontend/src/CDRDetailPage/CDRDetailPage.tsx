@@ -9,12 +9,12 @@ interface CDRDetail {
   [key: string]: any;
 }
 
-interface FraudDecision {
+interface Decision {
   id: number;
   cdr_id: string;
   user_id: string;
   user_name: string;
-  approved: boolean;
+  status: 'approve' | 'deny' | 'maybe';
   reason: string;
   decision_time: string;
 }
@@ -29,11 +29,11 @@ const CDRDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [desc, setDesc] = useState('');
   const [fraudError, setFraudError] = useState('');
-  const [action, setAction] = useState<'approve' | 'deny' | null>(null);
+  const [action, setAction] = useState<'approve' | 'deny' | 'maybe' | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState('');
   const [geoSuccess, setGeoSuccess] = useState('');
-  const [decisions, setDecisions] = useState<FraudDecision[]>([]);
+  const [decisions, setDecisions] = useState<Decision[]>([]);
   const [decisionLoading, setDecisionLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -71,7 +71,7 @@ const CDRDetailPage: React.FC = () => {
       .catch(() => setDecisions([]));
   }, [CDR_ID]);
 
-  const handleFraudAction = async (type: 'approve' | 'deny') => {
+  const handleFraudAction = async (type: 'approve' | 'deny' | 'maybe') => {
     setAction(type);
     if (!desc.trim()) {
       setFraudError('Beschrijving is verplicht.');
@@ -81,7 +81,7 @@ const CDRDetailPage: React.FC = () => {
     setDecisionLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/fraud-decision?cdr_id=${CDR_ID}&approved=${type === 'approve'}&reason=${encodeURIComponent(desc)}`, {
+      const res = await fetch(`http://localhost:8000/api/fraud-decision?cdr_id=${CDR_ID}&status=${type}&reason=${encodeURIComponent(desc)}`, {
         method: 'POST',
         headers: {
           'Authorization': token || '',
@@ -170,9 +170,10 @@ const CDRDetailPage: React.FC = () => {
         {/* Right Panel: Fraud Approval */}
         <div className="cdr-detail-section right-section">
           <div className="cdr-fraud-approve-row">
-            <span>Approval/Deny Fraud</span>
-            <button className="cdr-fraud-btn approve" onClick={() => handleFraudAction('approve')} disabled={decisionLoading}>✔</button>
-            <button className="cdr-fraud-btn deny" onClick={() => handleFraudAction('deny')} disabled={decisionLoading}>✖</button>
+            <span>Mark as:</span>
+            <button className="cdr-fraud-btn approve" onClick={() => handleFraudAction('approve')} disabled={decisionLoading}>Fraud ✔</button>
+            <button className="cdr-fraud-btn deny" onClick={() => handleFraudAction('deny')} disabled={decisionLoading}>No Fraud ✖</button>
+            <button className="cdr-fraud-btn maybe" onClick={() => handleFraudAction('maybe')} disabled={decisionLoading}>Uncertain ~</button>
           </div>
           <div className="cdr-user-info">
             <div className="cdr-avatar">{avatarLetter}</div>
@@ -194,7 +195,7 @@ const CDRDetailPage: React.FC = () => {
               <div>No decisions yet.</div>
             ) : (
               <div>
-                <b>{decisions[0].approved ? 'Approved' : 'Denied'}</b> by {decisions[0].user_name} on {new Date(decisions[0].decision_time).toLocaleString()}<br />
+                <b>{decisions[0].status === 'approve' ? 'Fraud' : decisions[0].status === 'deny' ? 'No Fraud' : 'Uncertain'}</b> by {decisions[0].user_name} on {new Date(decisions[0].decision_time).toLocaleString()}<br />
                 <span>{decisions[0].reason}</span>
               </div>
             )}

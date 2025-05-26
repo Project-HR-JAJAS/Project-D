@@ -6,7 +6,7 @@ interface Decision {
   cdr_id: string;
   user_id: string;
   user_name: string;
-  approved: boolean;
+  status: 'approve' | 'deny' | 'maybe';
   reason: string;
   decision_time: string;
 }
@@ -28,7 +28,7 @@ const DecisionHistoryModal: React.FC<DecisionHistoryModalProps> = ({ decisions, 
           ) : (
             decisions.map((d) => (
               <li key={d.id} style={{ marginBottom: 16 }}>
-                <b>{d.approved ? 'Approved' : 'Denied'}</b> by {d.user_name} on {new Date(d.decision_time).toLocaleString()}<br />
+                <b>{d.status === 'approve' ? 'Fraud' : d.status === 'deny' ? 'No Fraud' : 'Uncertain'}</b> by {d.user_name} on {new Date(d.decision_time).toLocaleString()}<br />
                 <span>{d.reason}</span>
               </li>
             ))

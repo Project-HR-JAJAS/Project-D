@@ -26,7 +26,7 @@
   box-shadow: 0 1px 6px rgba(0,0,0,0.06);
   padding: 24px;
   flex: 1;
-  min-width: 320px;
+  min-width: 340px;
 }
 
 .details-section {
@@ -72,14 +72,14 @@
   margin-bottom: 8px;
 }
 .cdr-fraud-btn {
-  width: 32px;
+  width: 100px;
   height: 32px;
   border: none;
   border-radius: 6px;
-  font-size: 1.3rem;
+  font-size: 0.9rem;
   cursor: pointer;
   color: #fff;
-  margin-left: 4px;
+  margin-left: 0px;
   transition: background 0.2s;
 }
 .cdr-fraud-btn.approve {
@@ -93,6 +93,12 @@
 }
 .cdr-fraud-btn.deny:hover {
   background: #b71c1c;
+}
+.cdr-fraud-btn.maybe {
+  background: #ff9800;
+}
+.cdr-fraud-btn.maybe:hover {
+  background: #e68a00;
 }
 .cdr-user-info {
   display: flex;

@@ -104,9 +104,9 @@ async def import_excel(background_tasks: BackgroundTasks, file: UploadFile = Fil
         logger.info(f"File import completed in {processing_time:.2f} seconds. Imported {records_imported} records.")
         
         if success and records_imported:
-        #     # Start geocoding process in background
-        #     db = DbContext()
-        #     background_tasks.add_task(start_geocoding_process, db.db_name)
+            # Start geocoding process in background
+            # db = DbContext()
+            # background_tasks.add_task(start_geocoding_process, db.db_name)
             
             return {
                 "success": True,

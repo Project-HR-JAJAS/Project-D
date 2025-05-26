@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
 import UserDetailsModal from './UserDetailsModal';
+import TableExportButton from '../exportButton/TableExportButton';
 
 interface UserStat {
   Authentication_ID: string;
@@ -128,10 +129,23 @@ const UserStats: React.FC = () => {
   if (loading.userStats) return <div> Loading...</div>;
   if (error.userStats) return <div> Error: {error.userStats}</div>;
 
+  const exportColumns = [
+    { label: 'Authentication ID', key: 'Authentication_ID' },
+    { label: 'Total Transactions', key: 'TransactionCount' },
+    { label: 'Total Volume (kWh)', key: 'TotalVolume' },
+    { label: 'Total Cost (€)', key: 'TotalCost' },
+  ];
+
   return (
     <div className="table-container">
       <div className="table-search-wrapper">
         <h2 >User Statistics by Authentication ID</h2>
+        <TableExportButton
+          data={currentItems}
+          columns={exportColumns}
+          filename="user_statistics"
+          format="xlsx"
+        />
         <input
           type="text"
           placeholder="Search by Authentication ID..."

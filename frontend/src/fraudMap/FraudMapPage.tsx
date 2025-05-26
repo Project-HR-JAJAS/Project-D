@@ -15,6 +15,7 @@ const FraudMapPage: React.FC = () => {
     const [batchCount, setBatchCount] = useState(20);
     const [batchLoading, setBatchLoading] = useState(false);
     const [batchMessage, setBatchMessage] = useState('');
+    const [refreshCounter, setRefreshCounter] = useState(0);
 
     const handleResetFilters = () => {
         setSelectedCity('');
@@ -29,6 +30,7 @@ const FraudMapPage: React.FC = () => {
             const res = await fetch(`http://localhost:8000/api/geocode-batch?count=${batchCount}`, { method: 'POST' });
             const data = await res.json();
             setBatchMessage(data.message || 'Batch geocoding complete!');
+            setRefreshCounter(prev => prev + 1);
         } catch (err) {
             setBatchMessage('Error during batch geocoding.');
         } finally {
@@ -125,6 +127,7 @@ const FraudMapPage: React.FC = () => {
                 cityFilter={selectedCity}
                 dateRange={dateRange}
                 timeRange={timeRange}
+                refreshTrigger={refreshCounter}
             />
         </div>
     );

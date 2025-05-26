@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { fetchUser, UserData, LoginResponse } from './LoginPage.api'; // adjust the path if needed
 import { useNavigate } from 'react-router-dom';
+import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -25,11 +26,11 @@ const LoginPage: React.FC = () => {
         }
     };
 
-    return (
-        <div style={{ maxWidth: '300px', margin: 'auto', paddingTop: '100px' }}>
-            <h2>Login</h2>
-            <form onSubmit={handleLogin}>
-                <div>
+   return (
+        <div className="login-container">
+            <h2 className="login-title">Login</h2>
+            <form className="login-form" onSubmit={handleLogin}>
+                <div className="login-field">
                     <label>Username:</label>
                     <input
                         type="text"
@@ -39,7 +40,7 @@ const LoginPage: React.FC = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className="login-field">
                     <label>Password:</label>
                     <input
                         type="password"
@@ -49,9 +50,9 @@ const LoginPage: React.FC = () => {
                         required
                     />
                 </div>
-                <button type="submit">Login</button>
+                <button className="login-button" type="submit">Login</button>
             </form>
-            {message && <p>{message}</p>}
+            {message && <p className="login-message">{message}</p>}
         </div>
     );
 };

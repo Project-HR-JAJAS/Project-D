@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { SuspCharges } from './SuspCharges';
 import DataTablePreview from '../tabel/DataTablePreview';
 import { fetchChargeData, ChargeData } from './Home.api';
 import './Home.css';

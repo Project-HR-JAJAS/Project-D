@@ -48,7 +48,7 @@ def fetch_charge_counts():
                 WHEN time(c.Start_datetime) BETWEEN '13:00:00' AND '16:59:59' THEN '1300-1700'
                 WHEN time(c.Start_datetime) BETWEEN '17:00:00' AND '20:59:59' THEN '1700-2100'
                 WHEN time(c.Start_datetime) >= '21:00:00' OR time(c.Start_datetime) BETWEEN '00:00:00' AND '00:59:59' THEN '0000-0900'
-            END as TimeRange,
+                END as TimeRange,
             COUNT(DISTINCT c.CDR_ID) as TotalCharges
         FROM CDR c
         INNER JOIN FraudCase f ON c.CDR_ID = f.CDR_ID

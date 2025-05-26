@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Header
 from fastapi.middleware.cors import CORSMiddleware
 from backend.data.GetData import GetAll
 from backend.data.DbContext import DbContext
@@ -20,6 +20,9 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from backend.fraud_locations.Fraude_Locaties import FraudLocationManager
 import threading
+from fastapi import APIRouter
+from backend.sessions.session_manager import SessionManager
+from backend.fraud_decision.decision_manager import FraudDecisionManager
 
 
 
@@ -43,6 +46,14 @@ app.add_middleware(
 )
 
 app.include_router(tijdvlak_router)
+
+# Initialize managers
+session_manager = SessionManager("user.db")  # or your user DB path
+decision_manager = FraudDecisionManager("backend/project-d.db")  # or your main DB path
+
+# Ensure tables exist at startup
+session_manager.create_sessions_table()
+decision_manager.create_decision_table()
 
 def import_excel_to_db(file_path: str) -> Tuple[bool, str, Optional[int]]:
     try:
@@ -465,16 +476,15 @@ async def get_data_table(
         # Data query with search
         data_query = f"""
             SELECT 
-                CDR_ID as id,
-                Authentication_ID as authentication_id,
-                Duration as duration,
-                Volume as volume,
-                Charge_Point_ID as charge_point_id,
-                Calculated_Cost as calculated_cost
+                CDR.CDR_ID as id,
+                CDR.Authentication_ID as authentication_id,
+                CDR.Duration as duration,
+                CDR.Volume as volume,
+                CDR.Charge_Point_ID as charge_point_id,
+                CDR.Calculated_Cost as calculated_cost
             FROM CDR
-            {where_clause}
-            {order_clause}
-            LIMIT ? OFFSET ?
+            INNER JOIN FraudCase ON CDR.CDR_ID = FraudCase.CDR_ID
+            ORDER BY CDR.Start_datetime DESC
         """
         params.extend([page_size, offset])
         cursor.execute(data_query, params)
@@ -541,14 +551,15 @@ async def get_all_data_table():
 
         query = """
             SELECT 
-                CDR_ID as id,
-                Authentication_ID as authentication_id,
-                Duration as duration,
-                Volume as volume,
-                Charge_Point_ID as charge_point_id,
-                Calculated_Cost as calculated_cost
+                CDR.CDR_ID as id,
+                CDR.Authentication_ID as authentication_id,
+                CDR.Duration as duration,
+                CDR.Volume as volume,
+                CDR.Charge_Point_ID as charge_point_id,
+                CDR.Calculated_Cost as calculated_cost
             FROM CDR
-            ORDER BY Start_datetime DESC
+            INNER JOIN FraudCase ON CDR.CDR_ID = FraudCase.CDR_ID
+            ORDER BY CDR.Start_datetime DESC
         """
         
         cursor.execute(query)
@@ -625,20 +636,24 @@ async def create_user(user_data: dict):
     finally:
         db.close()
 
-@app.post("/api/user")
-async def get_user(user_data: UserRequest):
-    try:
-        db = DbUserContext()
-        db.connect()
-        user = db.get_user(user_data.User_Name, user_data.User_Password)
-        if user:
-            return user
-        else:
-            raise HTTPException(status_code=404, detail="User not found")
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"User not found")
-    finally:
+@app.post("/api/login")
+async def login(user_data: UserRequest):
+    db = DbUserContext()
+    db.connect()
+    user = db.get_user(user_data.User_Name, user_data.User_Password)
+    if user:
+        user_id = user["User_ID"] if isinstance(user, dict) else user[0]  # adjust as needed
+        session_token = session_manager.create_session(user_id)
+        db_user = DbUserContext()
+        db_user.connect()
+        user = db_user.get_user_by_id(user_id)
+        user_name = user["User_Name"] if user else "Unknown"
+        db_user.close()
         db.close()
+        return {"session_token": session_token, "user_id": user_id, "user_name": user_name}
+    else:
+        db.close()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.get("/api/fraud-locations")
 async def get_fraud_locations():
@@ -678,6 +693,120 @@ async def get_fraud_locations():
             status_code=500,
             detail=f"Error fetching fraud locations: {str(e)}"
         )
+
+@app.get("/api/cdr-details/{cdr_id}")
+async def get_cdr_details(cdr_id: str):
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    cursor.execute("SELECT * FROM CDR WHERE CDR_ID = ?", (cdr_id,))
+    cdr_row = cursor.fetchone()
+    if not cdr_row:
+        db.close()
+        raise HTTPException(status_code=404, detail="CDR not found")
+    columns = [desc[0] for desc in cursor.description]
+    cdr = dict(zip(columns, cdr_row))
+
+    # Get all non-null reasons from FraudCase
+    cursor.execute("SELECT Reason1, Reason2, Reason3, Reason4, Reason5, Reason6, Reason7 FROM FraudCase WHERE CDR_ID = ?", (cdr_id,))
+    reasons_row = cursor.fetchone()
+    reasons = [r for r in reasons_row if r] if reasons_row else []
+
+    latitude = cdr.get('Latitude')
+    longitude = cdr.get('Longitude')
+
+    db.close()
+    return {
+        "cdr": cdr,
+        "reasons": reasons,
+        "latitude": latitude,
+        "longitude": longitude
+    }
+
+@app.post("/api/geocode-cdr/{cdr_id}")
+async def geocode_cdr_location(cdr_id: str):
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    cursor.execute("SELECT Charge_Point_Address, Charge_Point_ZIP, Charge_Point_City, Charge_Point_Country FROM CDR WHERE CDR_ID = ?", (cdr_id,))
+    row = cursor.fetchone()
+    if not row:
+        db.close()
+        raise HTTPException(status_code=404, detail="CDR not found")
+    address, zip_code, city, country = row
+
+    # Use your geocoding logic here (reuse from FraudLocationManager or similar)
+    geocoder = FraudLocationManager(db.db_name)
+    print(f"Geocoding CDR_ID={cdr_id}: address='{address}', zip='{zip_code}', city='{city}', country='{country}'")
+    coords = geocoder.geocode_address(address, zip_code, city, country)
+    if coords:
+        cursor.execute("UPDATE CDR SET Latitude = ?, Longitude = ? WHERE CDR_ID = ?", (coords['latitude'], coords['longitude'], cdr_id))
+        db.connection.commit()
+        
+        # Update fraud locations after saving coordinates
+        try:
+            geocoder.update_fraud_locations()
+        except Exception as e:
+            logger.error(f"Error updating fraud locations after geocoding: {str(e)}")
+            # Continue anyway since coordinates were saved successfully
+        
+        db.close()
+        return {"latitude": coords['latitude'], "longitude": coords['longitude']}
+    else:
+        db.close()
+        raise HTTPException(status_code=404, detail="Could not geocode address")
+
+@app.post("/api/fraud-decision")
+async def add_fraud_decision(
+    cdr_id: str,
+    status: str,
+    reason: str,
+    authorization: str = Header(None)
+):
+    # Get user from session token
+    user_id = session_manager.get_user_id(authorization)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    # Validate status
+    if status not in ['approve', 'deny', 'maybe']:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be 'approve', 'deny', or 'maybe'")
+    
+    # Fetch user_name from user.db
+    db_user = DbUserContext()
+    db_user.connect()
+    user = db_user.get_user_by_id(user_id)
+    user_name = user["User_Name"] if user else "Unknown"
+    db_user.close()
+
+    decision_manager.add_decision(cdr_id, user_id, user_name, status, reason)
+    return {"success": True}
+
+@app.get("/api/fraud-decision/{cdr_id}")
+async def get_fraud_decisions(cdr_id: str):
+    decisions = decision_manager.get_decisions_for_cdr(cdr_id)
+    # Optionally, format the result for frontend
+    return [
+        {
+            "id": d[0],
+            "cdr_id": d[1],
+            "user_id": d[2],
+            "user_name": d[3],
+            "status": d[4],
+            "reason": d[5],
+            "decision_time": d[6]
+        }
+        for d in decisions
+    ]
+
+@app.post("/api/geocode-batch")
+async def geocode_batch(count: int = 20):
+    try:
+        manager = FraudLocationManager("backend/project-d.db")
+        updated = manager.update_charge_point_coordinates_batch(count)
+        return {"message": f"Geocoded {updated} new locations."}
+    except Exception as e:
+        return {"message": f"Error: {str(e)}"}
 
 if __name__ == "__main__":
     db = DbUserContext()

@@ -252,6 +252,7 @@ const ChargeDetails: React.FC = () => {
                 />
                     <select
                         value={searchField}
+                        title="Search by"
                         onChange={e => setSearchField(e.target.value as 'CDR_ID' | 'Address' | 'City' | 'Country' | 'Charge_Point_ID')}
                         className="table-search-dropdown"
                     >
@@ -317,7 +318,7 @@ const ChargeDetails: React.FC = () => {
                             currentItems.map((item) => (
                                 <tr
                                     key={item.CDR_ID}
-                                    onClick={() => navigate(`/details/${item.CDR_ID}`)}
+                                    onClick={() => navigate(`/cdr-details/${item.CDR_ID}`)}
                                     className="clickable-row"
                                 >
                                     <td>{formatCellValue('CDR_ID', item.CDR_ID)}</td>
@@ -365,6 +366,7 @@ const ChargeDetails: React.FC = () => {
                                     <input
                                         type="text"
                                         className="pagination-input"
+                                        placeholder={'-'}
                                         value={inputValue}
                                         onChange={handleInputChange}
                                         onBlur={() => handleInputSubmit(side)}

@@ -61,9 +61,10 @@ interface FraudMapProps {
         start: string;
         end: string;
     };
+    refreshTrigger?: number;
 }
 
-const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange }) => {
+const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange, refreshTrigger = 0 }) => {
     const [locations, setLocations] = useState<FraudLocation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -78,7 +79,7 @@ const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange })
                 throw new Error('Failed to fetch fraud locations');
             }
             const data = await response.json();
-            setLocations(data);
+            setLocations(Array.isArray(data) ? data : []);
             setLastUpdated(new Date());
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -89,7 +90,7 @@ const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange })
 
     useEffect(() => {
         fetchLocations();
-    }, []);
+    }, [refreshTrigger]);
 
     // Filter locations based on city, date range, and time range
     const filteredLocations = locations.filter(location => {

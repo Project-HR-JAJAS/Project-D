@@ -115,8 +115,6 @@ class DbUserContext:
         print(f"Inserted new USER record with ID: {user_data['User_ID']}")
         return True  # indicate success
 
-
-
     def get_user(self, username, password):
         if self.connection:
             cursor = self.connection.cursor()
@@ -134,26 +132,15 @@ class DbUserContext:
         else:
             print("No database connection. Call connect() first.")
             return None
-   
-    # def GetAllDataFromDatabase(self):
-    #     """Retrieve all USER records."""
-    #     if self.connection:
-    #         cursor = self.connection.cursor()
-    #         cursor.execute("SELECT * FROM USERS")
-    #         return cursor.fetchall()
-    #     else:
-    #         print("No database connection. Call connect() first.")
-    #         return None
-        
-    # def GetAllDataFromDatabaseNumber(self):
-    #     """Retrieve all USER records."""
-    #     if self.connection:
-    #         cursor = self.connection.cursor()
-    #         cursor.execute("SELECT COUNT(*) FROM USERS")
-    #         return cursor.fetchone()[0]
-    #     else:
-    #         print("No database connection. Call connect() first.")
-    #         return None
+
+    def get_user_by_id(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM USERS WHERE User_ID = ?", (user_id,))
+        row = cursor.fetchone()
+        if row:
+            columns = [desc[0] for desc in cursor.description]
+            return dict(zip(columns, row))
+        return None
 
     def close(self):
         """Close the database connection."""

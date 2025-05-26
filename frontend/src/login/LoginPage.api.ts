@@ -3,8 +3,14 @@ export interface UserData {
     User_Password: string;
 }
 
-export const fetchUser = async (credentials: UserData): Promise<UserData | null> => {
-    const response = await fetch('http://localhost:8000/api/user', {
+export interface LoginResponse {
+    session_token: string;
+    user_id: string;
+    user_name: string;
+}
+
+export const fetchUser = async (credentials: UserData): Promise<LoginResponse | null> => {
+    const response = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

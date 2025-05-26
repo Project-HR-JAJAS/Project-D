@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { fetchUser, UserData } from './LoginPage.api'; // adjust the path if needed
+import { fetchUser, UserData, LoginResponse } from './LoginPage.api'; // adjust the path if needed
 import { useNavigate } from 'react-router-dom';
-
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -13,9 +12,10 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
 
         try {
-            const user = await fetchUser({ User_Name: username, User_Password: password });
+            const user: LoginResponse | null = await fetchUser({ User_Name: username, User_Password: password });
             if (user) {
-                localStorage.setItem('token', 'your_token_value');
+                localStorage.setItem('token', user.session_token);
+                localStorage.setItem('username', user.user_name);
                 navigate('/home');
             } else {
                 setMessage('Invalid credentials.');
@@ -33,6 +33,7 @@ const LoginPage: React.FC = () => {
                     <label>Username:</label>
                     <input
                         type="text"
+                        placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
@@ -42,6 +43,7 @@ const LoginPage: React.FC = () => {
                     <label>Password:</label>
                     <input
                         type="password"
+                        placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required

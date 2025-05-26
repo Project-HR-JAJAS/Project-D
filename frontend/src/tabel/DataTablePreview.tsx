@@ -49,7 +49,7 @@ const DataTablePreview: React.FC = () => {
     { label: 'Calculated Cost (€)', key: 'calculated_cost' },
     ];
     return (
-        <div className="table-container">
+        <div className="table-preview-outer">
             <div className="table-search-wrapper">
                 <h2>Recent Suspicious Transactions</h2>
                 <div>
@@ -62,7 +62,7 @@ const DataTablePreview: React.FC = () => {
                 </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
-                <table className="table-form">
+                <table className="table-form table-preview-table">
                     <thead>
                         <tr>
                             <th>CDR ID</th>
@@ -84,7 +84,7 @@ const DataTablePreview: React.FC = () => {
                             data.map((item) => (
                                 <tr 
                                     key={item.id} 
-                                    onClick={() => navigate(`/details/${item.id}`)}
+                                    onClick={() => navigate(`/cdr-details/${item.id}`)} 
                                     className="clickable-row"
                                 >
                                     <td>{item.id}</td>

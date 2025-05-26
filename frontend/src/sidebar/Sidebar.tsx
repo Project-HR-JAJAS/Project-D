@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import ImportHistory from '../pages/ImportHistory';
 import { logout } from '../login/logout';
 import './Sidebar.css';
+import { FaTachometerAlt, FaUserFriends, FaTable, FaPlug, FaChartBar, FaCog, FaSignOutAlt, FaUserPlus, FaFileExport, FaLayerGroup, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface SidebarProps {
   collapsedProp: boolean;
@@ -61,33 +62,37 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsedProp, setCollapsed }) => {
     <>
       <div className={`sidebar${collapsedProp ? ' collapsed' : ''}`}>
         <div className="sidebar-top">
-          <div className="sidebar-header">
+          {/* <div className="sidebar-header">
             <Link to="/home" className="sidebar-title">
-              <h1>Project D</h1>
+              <span style={{ color: '#6c63ff', fontWeight: 'bold', fontSize: '1.3rem' }}>Project D</span>
             </Link>
-            <button
-              className="sidebar-toggle"
-              onClick={() => setCollapsed(!collapsedProp)}
-              aria-label={collapsedProp ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsedProp ? '→' : '←'}
-            </button>
-          </div>
+          </div> */}
+          <button
+            className="sidebar-toggle-floating"
+            onClick={() => setCollapsed(!collapsedProp)}
+            aria-label={collapsedProp ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{ position: 'absolute', top: 24, right: -18, zIndex: 1200 }}
+          >
+            {collapsedProp ? <FaChevronRight /> : <FaChevronLeft />}
+          </button>
+          <div className="sidebar-section-label">MENU</div>
           <nav className="sidebar-links">
-            <Link to="/home" className={`sidebar-link${location.pathname === '/home' ? ' active' : ''}`}>Home</Link>
-            {/* <div className="sidebar-link-dropdown"><ImportDropdown /></div> */}
-            <Link to="/overlapping-sessions" className={`sidebar-link${location.pathname === '/overlapping-sessions' ? ' active' : ''}`}>Overlapping Sessions</Link>
-            <Link to="/user-stats" className={`sidebar-link${location.pathname === '/user-stats' ? ' active' : ''}`}>User Statistics</Link>
-            <Link to="/charge-point-stats" className={`sidebar-link${location.pathname === '/charge-point-stats' ? ' active' : ''}`}>Charge Point Statistics</Link>
-            <Link to="/data-table" className={`sidebar-link${location.pathname === '/data-table' ? ' active' : ''}`}>Data Table</Link>
-            <Link to="/fraud-map" className={`sidebar-link${location.pathname === '/fraud-map' ? ' active' : ''}`}>Fraud Map</Link>
-            <Link to="/export" className={`sidebar-link${location.pathname === '/export' ? ' active' : ''}`}>Export</Link>
-            <Link to="#" className="sidebar-link" onClick={() => window.dispatchEvent(new CustomEvent('openCreateUser'))}>Create User</Link>
-            <button className="sidebar-link" style={{ textAlign: 'left', width: '100%', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }} onClick={logout}>Logout</button>
+            <Link to="/home" className={`sidebar-link${location.pathname === '/home' ? ' active' : ''}`}><FaTachometerAlt className="sidebar-icon" /> Dashboard</Link>
+            <Link to="/overlapping-sessions" className={`sidebar-link${location.pathname === '/overlapping-sessions' ? ' active' : ''}`}><FaLayerGroup className="sidebar-icon" /> Overlapping Sessions</Link>
+            <Link to="/user-stats" className={`sidebar-link${location.pathname === '/user-stats' ? ' active' : ''}`}><FaUserFriends className="sidebar-icon" /> User Statistics</Link>
+            <Link to="/charge-point-stats" className={`sidebar-link${location.pathname === '/charge-point-stats' ? ' active' : ''}`}><FaPlug className="sidebar-icon" /> Chargepoint Statistics</Link>
+            <Link to="/data-table" className={`sidebar-link${location.pathname === '/data-table' ? ' active' : ''}`}><FaTable className="sidebar-icon" /> Data Table</Link>
+            <Link to="/fraud-map" className={`sidebar-link${location.pathname === '/fraud-map' ? ' active' : ''}`}><FaChartBar className="sidebar-icon" /> Fraud Map</Link>
+          </nav>
+          <div className="sidebar-section-label">OTHERS</div>
+          <nav className="sidebar-links">
+            <Link to="#" className="sidebar-link"><FaCog className="sidebar-icon" /> Settings</Link>
+            <Link to="/export" className={`sidebar-link${location.pathname === '/export' ? ' active' : ''}`}><FaFileExport className="sidebar-icon" /> Export</Link>
+            <Link to="#" className="sidebar-link" onClick={() => window.dispatchEvent(new CustomEvent('openCreateUser'))}><FaUserPlus className="sidebar-icon" /> Create User</Link>
           </nav>
         </div>
         <div className="sidebar-bottom">
-          <button className="sidebar-link" onClick={() => setShowImportHistory(true)}>
+          {/* <button className="sidebar-link" onClick={() => setShowImportHistory(true)}>
             Import History
           </button>
           <br />
@@ -99,7 +104,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsedProp, setCollapsed }) => {
             accept=".xlsx,.xls"
             style={{ display: 'none' }}
             onChange={handleFileChange}
-          />
+          /> */}
+          <div className="sidebar-logout-separator" />
+          <button className="sidebar-link sidebar-logout" style={{ textAlign: 'left', height: '50px', width: '100%', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }} onClick={logout}><FaSignOutAlt className="sidebar-icon" /> Logout</button>
         </div>
       </div>
       {showImportHistory && (

@@ -171,3 +171,50 @@
     color: #999;
     background-color: #fcfcfc;
 }
+
+.table-preview-outer {
+  width: 100%;
+  padding: 0;
+}
+
+.table-preview-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 18px;
+  font-family: 'Georgia', serif;
+  letter-spacing: 0.5px;
+}
+
+.table-preview-table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: none;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.table-preview-table th {
+  background: #f7f8fa;
+  font-weight: 600;
+  color: #222;
+  font-size: 1.05rem;
+  border-bottom: 2px solid #ececec;
+  padding: 10px 8px;
+}
+
+.table-preview-table td {
+  background: #fff;
+  color: #222;
+  padding: 10px 8px;
+  border-bottom: 1px solid #ececec;
+}
+
+.table-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.table-preview-table .clickable-row:hover {
+  background: #f5f6fa;
+  cursor: pointer;
+}

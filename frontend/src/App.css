@@ -43,6 +43,7 @@
 }
 
 .main-content {
+  padding-top: 64px;
   padding: 32px 24px 24px 24px;
   min-height: 100vh;
   background: #f5f6fa;
@@ -91,4 +92,8 @@
 
 .import-link:hover {
   background-color: #1565c0;
+} 
+
+.custom-header {
+  z-index: 2000;
 } 

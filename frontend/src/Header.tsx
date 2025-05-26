@@ -89,6 +89,7 @@ const Header: React.FC = () => {
         </button>
         <input
           type="file"
+          title="Import Files"
           ref={fileInputRef}
           multiple
           accept=".xlsx,.xls"

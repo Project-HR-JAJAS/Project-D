@@ -200,7 +200,7 @@ const OverlappingSessions: React.FC = () => {
                 <tr>
                   <th>Authentication ID</th>
                   <th className="sortable-header" onClick={() => handleSort('Volume')}>
-                      Volume (kWh){getSortIndicator('Volume')}
+                      Total Volume (kWh){getSortIndicator('Volume')}
                   </th>
                   <th className="sortable-header" onClick={() => handleSort('Calculated_Cost')}>
                       Total Cost (€){getSortIndicator('Calculated_Cost')}

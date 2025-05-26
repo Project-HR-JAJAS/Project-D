@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchDataTable } from './DataTable.api';
 import { useNavigate } from 'react-router-dom';
 import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
 interface DataTableItem {
     id: string;
@@ -38,10 +39,27 @@ const DataTablePreview: React.FC = () => {
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
+
+    const exportColumns = [
+    { label: 'CDR ID', key: 'id' },
+    { label: 'Authentication ID', key: 'authentication_id' },
+    { label: 'Duration', key: 'duration' },
+    { label: 'Volume (kWh)', key: 'volume' },
+    { label: 'Charge Point ID', key: 'charge_point_id' },
+    { label: 'Calculated Cost (€)', key: 'calculated_cost' },
+    ];
     return (
         <div className="table-preview-outer">
             <div className="table-search-wrapper">
-                <h2 className="table-preview-title">Recent Suspicious Transactions</h2>
+                <h2>Recent Suspicious Transactions</h2>
+                <div>
+                    <TableExportButton
+                    data={data}
+                    columns={exportColumns}
+                    filename="suspicious_transactions"
+                    format="xlsx"
+                    />
+                </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
                 <table className="table-form table-preview-table">

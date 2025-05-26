@@ -3,6 +3,7 @@ import { PAGE_SIZE } from './DataTable.api';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
 interface DataTableItem {
     id: string;
@@ -130,10 +131,25 @@ const DataTable: React.FC = () => {
     if (loading.dataTable) return <div>Loading...</div>;
     if (error.dataTable) return <div>Error: {error.dataTable}</div>;
 
+    const exportColumns = [
+    { label: 'CDR ID', key: 'id' },
+    { label: 'Authentication ID', key: 'authentication_id' },
+    { label: 'Duration', key: 'duration' },
+    { label: 'Volume (kWh)', key: 'volume' },
+    { label: 'Charge Point ID', key: 'charge_point_id' },
+    { label: 'Calculated Cost (€)', key: 'calculated_cost' },
+    ];
+
     return (
         <div className="table-container">
             <div className="table-search-wrapper">
                 <h2>Data Table</h2>
+                <TableExportButton
+                data={currentItems}
+                columns={exportColumns}
+                filename="cdr_data"
+                format="xlsx"
+                />
                 <div>
                     <select
                         value={searchField}

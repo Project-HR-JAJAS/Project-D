@@ -1,6 +1,6 @@
-// src/components/UserDetailsModal.tsx
 import React, { useEffect, useState } from 'react';
 import './UserDetailsModal.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
 interface CdrDetail {
   CDR_ID: string;
@@ -58,6 +58,19 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
     }
     return '';
   };
+
+  const exportColumns = [
+    { label: 'CDR ID', key: 'CDR_ID' },
+    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+    { label: 'Start Time', key: 'Start_datetime' },
+    { label: 'End Time', key: 'End_datetime' },
+    { label: 'Duration (min)', key: 'Duration' },
+    { label: 'Volume (kWh)', key: 'Volume' },
+    { label: 'Cost (€)', key: 'Calculated_Cost' },
+    { label: 'City', key: 'Charge_Point_City' },
+    { label: 'Country', key: 'Charge_Point_Country' },
+  ];
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -69,6 +82,13 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
         ) : details.length === 0 ? (
           <p className="modal-empty">No records found.</p>
         ) : (
+          <div>
+            <TableExportButton
+              data={details}
+              columns={exportColumns}
+              filename={`cdr_details_${authId}`}
+              format="xlsx"
+            />
           <table className="modal-table">
             <thead>
               <tr>
@@ -115,6 +135,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
               ))}
             </tbody>
           </table>
+        </div>
         )}
       </div>
     </div>

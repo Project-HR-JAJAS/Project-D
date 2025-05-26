@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './OverlappingModal.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
 interface OverlappingSession {
   CDR_ID: string;
@@ -80,7 +81,18 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, onClose }) =
           : String(bVal).localeCompare(String(aVal));
       });
     }
-  
+
+  const exportColumns = [
+    { label: 'CDR ID', key: 'CDR_ID' },
+    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+    { label: 'Start Time', key: 'Start_datetime' },
+    { label: 'End Time', key: 'End_datetime' },
+    { label: 'City', key: 'Charge_Point_City' },
+    { label: 'Country', key: 'Charge_Point_Country' },
+    { label: 'Volume (kWh)', key: 'Volume' },
+    { label: 'Cost (€)', key: 'Calculated_Cost' },
+  ];
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -94,6 +106,13 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, onClose }) =
         ) : sessions.length === 0 ? (
           <p className="modal-empty">No overlapping sessions found.</p>
         ) : (
+        <div>
+          <TableExportButton
+            data={sortedSessions}
+            columns={exportColumns}
+            filename={`overlapping_sessions_${cdrId}`}
+            format="xlsx"
+          />
           <table className="modal-table">
             <thead>
               <tr>
@@ -126,6 +145,7 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, onClose }) =
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

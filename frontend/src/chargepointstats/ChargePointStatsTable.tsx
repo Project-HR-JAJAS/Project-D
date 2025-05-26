@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PAGE_SIZE } from './ChargePointStatsTable.api';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
 
 interface ChargePointStat {
@@ -128,10 +129,24 @@ const ChargePointStatsTable: React.FC = () => {
     if (loading.chargePoints) return <div>Loading...</div>;
     if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
 
+
+    const exportColumns = [
+    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+    { label: 'Country', key: 'Charge_Point_Country' },
+    { label: 'Total Transactions', key: 'transaction_count' },
+    { label: 'Total Volume', key: 'total_volume' },
+    { label: 'Total Cost', key: 'total_cost' },
+    ];    
     return (
         <div className="table-container">
             <div className="table-search-wrapper">
                 <h2>Charge Point Statistics</h2>
+                <TableExportButton
+                data={currentStats}
+                columns={exportColumns}
+                filename="charge_point_stats"
+                format="xlsx"
+                />
                 <div>
                     <select
                         value={searchField}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import OverlappingModal from './OverlappingModal';
 import { OverlappingSession, useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
 const OverlappingSessions: React.FC = () => {
   const { overlappingSessions, loading, error } = useData();
@@ -141,10 +142,23 @@ const OverlappingSessions: React.FC = () => {
         return '';
     };
 
+
+  const exportColumns = [
+    { label: 'Authentication ID', key: 'Authentication_ID' },
+    { label: 'Volume (kWh)', key: 'Volume' },
+    { label: 'Total Cost (€)', key: 'Calculated_Cost' },
+    { label: 'Overlapping Sessions', key: 'OverlappingCount' },
+  ];
   return (
     <div className="table-container">
       <div className="table-search-wrapper">
         <h2>Overlapping Sessions per Charge Card</h2>
+        <TableExportButton
+          data={currentItems}
+          columns={exportColumns}
+          filename="overlapping_sessions"
+          format="xlsx"
+        />
         <div>
           <select
               value={searchField}

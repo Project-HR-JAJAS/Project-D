@@ -205,7 +205,7 @@ const DataTable: React.FC = () => {
                             currentItems.map((item) => (
                                 <tr 
                                     key={item.id} 
-                                    onClick={() => navigate(`/details/${item.id}`)}
+                                    onClick={() => navigate(`/cdr-details/${item.id}`)}
                                     className="clickable-row"
                                 >
                                     <td>{item.id}</td>

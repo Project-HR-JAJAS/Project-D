@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchImportLogs, ImportLogEntry } from './ImportHistory.api'; // Adjust the path if needed
 import './ImportHistory.css';
+import { useNavigate } from 'react-router-dom';
 
 interface ImportHistoryProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ const ImportHistory: React.FC<ImportHistoryProps> = ({ onClose }) => {
   const [logs, setLogs] = useState<ImportLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -25,6 +27,10 @@ const ImportHistory: React.FC<ImportHistoryProps> = ({ onClose }) => {
 
     loadLogs();
   }, []);
+
+  const handleViewFraudCases = (filename: string) => {
+    navigate(`/fraud-cases/${encodeURIComponent(filename)}`);
+  };
 
   return (
     <div className="model-overlay">
@@ -44,6 +50,7 @@ const ImportHistory: React.FC<ImportHistoryProps> = ({ onClose }) => {
                 <th>File Name</th>
                 <th>Status</th>
                 <th>Amount of Entries</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -56,6 +63,19 @@ const ImportHistory: React.FC<ImportHistoryProps> = ({ onClose }) => {
                   <td>{log.filename}</td>
                   <td>{log.status}</td>
                   <td>{log.records}</td>
+                  <td>
+                    {log.status === 'Success' && (
+                      <button
+                        style={{ marginLeft: 8 }}
+                        onClick={() => {
+                          onClose();
+                          navigate(`/fraud-cases/${encodeURIComponent(log.filename)}`);
+                        }}
+                      >
+                        View Fraud Cases
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

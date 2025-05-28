@@ -20,3 +20,21 @@ export async function fetchChargeData(): Promise<ChargeData[]> {
         return [];
     }
 }
+
+
+export interface FraudReasonData {
+    total_cases: number;
+    reason_counts: Record<string, number>;
+    reason_percentages: Record<string, number>;
+}
+
+export async function fetchFraudReasons(reason: string): Promise<FraudReasonData[]> {
+    try {
+        const res = await fetch(`http://localhost:8000/api/fraud-reasons%?reason=${reason}`);
+        const data = await res.json();
+        return [data];
+    } catch (error) {
+        console.error('Error fetching fraud reasons:', error);
+        return [];
+    }
+}

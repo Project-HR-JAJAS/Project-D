@@ -67,6 +67,7 @@ const AppRoutes: React.FC<{ sidebarCollapsed: boolean; setSidebarCollapsed: Reac
           <Route path="/charge-details/:CDR_ID" element={<ChargeDetail />} />
           <Route path="/cdr-details/:CDR_ID" element={<CDRDetailPage />} />
           <Route path="/fraud-cases/:filename" element={<PrivateRoute><FraudCasesForImport /></PrivateRoute>} />
+          <Route path="/charge-details/reason/:reasonKey" element={<ChargeDetails />} />
         </Routes>
       </main>
     </>

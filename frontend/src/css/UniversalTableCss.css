@@ -218,3 +218,18 @@
   background: #f5f6fa;
   cursor: pointer;
 }
+
+.fraud-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 24px;
+}
+
+.table-search-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 0;
+}

@@ -79,7 +79,8 @@ class DbContext:
             Charge_Point_ID TEXT,
             Service_Provider_ID TEXT,
             Infra_Provider_ID TEXT ,
-            Calculated_Cost REAL 
+            Calculated_Cost REAL ,
+            import_filename TEXT
         """
 
         # Create the CDR table
@@ -176,6 +177,10 @@ class DbContext:
                 "Calculated_Cost",
             ]
 
+            # Add import_filename column to DataFrame
+            df["import_filename"] = file_name
+            required_columns_with_filename = required_columns + ["import_filename"]
+
             # Check if all required columns are present
             missing_columns = [col for col in required_columns if col not in df.columns]
             if missing_columns:
@@ -188,28 +193,29 @@ class DbContext:
 
             # Prepare the insert statement
             cursor = self.connection.cursor()
-            columns = ", ".join(required_columns)
-            placeholders = ", ".join(["?"] * len(required_columns))
+            columns = ", ".join(required_columns_with_filename)
+            placeholders = ", ".join(["?"] * len(required_columns_with_filename))
             insert_sql = f"INSERT INTO CDR ({columns}) VALUES ({placeholders})"
 
             # Convert DataFrame to list of tuples for insertion
-            records = [tuple(row) for row in df[required_columns].values]
+            records = [tuple(row) for row in df[required_columns_with_filename].values]
 
             # Insert all records
             cursor.executemany(insert_sql, records)
             self.connection.commit()
 
-            # Log success
-            self.import_logger.info(f"Successfully imported {len(records)} records from {file_name}")
-            logging.info(
-                f"Successfully imported {len(records)} records from {file_name}"
-            )
-            print(f"Successfully imported {len(records)} records from {file_name}")
-
             # Call Fraude_detectie after importing
             detector = Fraude_detectie.FraudDetector(self.db_name)
             fraude_resultaat = detector.detect_fraud()
-            print(f"Fraudedetectie voltooid. Gevonden cases: {len(fraude_resultaat)}")
+            fraud_cases = len(fraude_resultaat)
+            print(f"Fraudedetectie voltooid. Gevonden cases: {fraud_cases}")
+            
+            # Log success with fraud cases
+            self.import_logger.info(f"Successfully imported {len(records)} records from {file_name} - Found {fraud_cases} fraud cases")
+            logging.info(
+                f"Successfully imported {len(records)} records from {file_name} - Found {fraud_cases} fraud cases"
+            )
+            print(f"Successfully imported {len(records)} records from {file_name} - Found {fraud_cases} fraud cases")
             
             return len(records), None
 

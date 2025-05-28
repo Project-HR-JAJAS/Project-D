@@ -113,11 +113,7 @@ async def import_excel(background_tasks: BackgroundTasks, file: UploadFile = Fil
         processing_time = time.time() - start_time
         logger.info(f"File import completed in {processing_time:.2f} seconds. Imported {records_imported} records.")
         
-        if success and records_imported:
-            # Start geocoding process in background
-            # db = DbContext()
-            # background_tasks.add_task(start_geocoding_process, db.db_name)
-            
+        if success and records_imported:            
             return {
                 "success": True,
                 "message": f"{message} in {processing_time:.2f} seconds. Geocoding process started in background.",
@@ -170,11 +166,6 @@ async def export_excel(format: str = "xlsx", columns: Optional[str] = Query(None
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
-    
-# def export_db_to_file():
-#     db = DbContext()
-#     root = Tk()
-#     root.withdraw()  # hides the Tkinter window
 
 # @app.get("/api/charge-counts")
 # async def get_charge_counts():
@@ -807,6 +798,34 @@ async def geocode_batch(count: int = 20):
         return {"message": f"Geocoded {updated} new locations."}
     except Exception as e:
         return {"message": f"Error: {str(e)}"}
+
+@app.get("/api/fraud-cases-for-import")
+async def get_fraud_cases_for_import(filename: str = Query(...)):
+    """
+    Given a filename, return fraud cases for all CDRs imported from that file (using import_filename column), including city, address, and country.
+    """
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    cursor.execute("""
+        SELECT CDR_ID FROM CDR WHERE import_filename = ?
+    """, (filename,))
+    cdr_ids = [row[0] for row in cursor.fetchall()]
+    if not cdr_ids:
+        db.close()
+        return []
+    format_strings = ','.join(['?'] * len(cdr_ids))
+    cursor.execute(f"""
+        SELECT f.*, c.Charge_Point_City, c.Charge_Point_Address, c.Charge_Point_Country
+        FROM FraudCase f
+        JOIN CDR c ON f.CDR_ID = c.CDR_ID
+        WHERE f.CDR_ID IN ({format_strings})
+    """, cdr_ids)
+    fraud_cases = cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]
+    result = [dict(zip(columns, row)) for row in fraud_cases]
+    db.close()
+    return result
 
 if __name__ == "__main__":
     db = DbUserContext()

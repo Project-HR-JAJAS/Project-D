@@ -1,0 +1,19 @@
+.fraudTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.fraudTh, .fraudTd {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+.fraudTh {
+  background: #f7f7f7;
+  font-weight: bold;
+}
+
+.cdrIdCol { width: 180px; }
+.reasonCol { width: 250px; }
+.cityCol { width: 120px; }
+.addressCol { width: 220px; }
+.countryCol { width: 100px; } 

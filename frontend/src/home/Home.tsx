@@ -3,40 +3,49 @@ import { Chart as ChartJS, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import DataTablePreview from '../tabel/DataTablePreview';
-import { fetchChargeData, ChargeData } from './Home.api';
+import { fetchChargeData, ChargeData, fetchFraudReasons, FraudReasonData } from './Home.api';
 import './Home.css';
 import { Doughnut } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(...registerables);
+ChartJS.register(ChartDataLabels);
 
 const Home: React.FC = () => {
     const chartRef = useRef<HTMLCanvasElement | null>(null);
     const chartInstanceRef = useRef<ChartJS | null>(null);
     const [chargeData, setChargeData] = useState<ChargeData[]>([]);
+    const [fraudReasons, setFraudReasons] = useState<FraudReasonData[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchChargeData().then(setChargeData);
     }, []);
 
+    useEffect(() => {
+        fetchFraudReasons('Reason1').then(setFraudReasons);
+    }, []);
 
     useEffect(() => {
-        if (chartRef.current && chargeData.length > 0) {
+        if (chartRef.current && fraudReasons.length > 0) {
             const ctx = chartRef.current.getContext('2d');
             if (ctx) {
                 if (chartInstanceRef.current) {
                     chartInstanceRef.current.destroy();
                 }
 
-                const labels = chargeData.map(item => item.TimeRange);
-                const chargeCounts = chargeData.map(item => item.TotalCharges);
+                const labels = Object.keys(fraudReasons[0].reason_percentages || {});
+                const percentages = Object.values(fraudReasons[0].reason_percentages || {});
+                const counts = Object.values(fraudReasons[0].reason_counts || {});
 
                 const backgroundColors = [
+                    'rgba(255, 99, 132, 0.7)',
                     'rgba(54, 162, 235, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
                     'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
                     'rgba(153, 102, 255, 0.7)',
-                    'rgba(255, 159, 64, 0.7)'
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)'
                 ];
 
                 chartInstanceRef.current = new ChartJS(ctx, {
@@ -44,10 +53,11 @@ const Home: React.FC = () => {
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Fraudulent Charges',
-                            data: chargeCounts,
+                            label: 'Fraud Case Percentage',
+                            data: percentages,
                             backgroundColor: backgroundColors,
                             borderWidth: 1,
+                            minBarLength: 5,
                         }]
                     },
                     options: {
@@ -55,21 +65,26 @@ const Home: React.FC = () => {
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Fraudulent Charging Sessions by Time of Day',
-                                font: {
-                                    size: 16
-                                }
+                                text: 'Distribution of Fraud Cases by Reason (%)',
+                                font: { size: 16 }
                             },
                             tooltip: {
                                 callbacks: {
-                                    afterLabel: function (context) {
-                                        const timeRange = labels[context.dataIndex];
-                                        return `Click to view fraud details for ${timeRange}`;
+                                    label: function(context: any) {
+                                        const count = counts[context.dataIndex];
+                                        const percent = context.parsed;
+                                        return `${count} cases`;
                                     }
                                 }
                             },
-                            legend: {
-                                display: false
+                            legend: { display: false },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                formatter: function(value, context) {
+                                    return `${counts[context.dataIndex]} (${value}%)`;
+                                },
+                                font: { weight: 'bold' }
                             }
                         },
                         scales: {
@@ -77,23 +92,23 @@ const Home: React.FC = () => {
                                 beginAtZero: true,
                                 title: {
                                     display: true,
-                                    text: 'Number of Fraudulent Charging Sessions'
+                                    text: 'Percentage of Total Fraud Cases'
                                 }
                             },
                             x: {
                                 title: {
                                     display: true,
-                                    text: 'Time Range'
+                                    text: 'Fraud Case Type'
                                 }
                             }
                         },
                         onClick: (event, elements) => {
                             if (elements && elements.length > 0) {
                                 const index = elements[0].index;
-                                const clickedRange = labels[index];
-                                navigate(`/charges/${clickedRange}`);
+                                const reasonKey = labels[index];
+                                navigate(`/charge-details/reason/${reasonKey}`);
                             }
-                        }
+                        },
                     }
                 });
             }
@@ -105,50 +120,50 @@ const Home: React.FC = () => {
                 chartInstanceRef.current = null;
             }
         };
-    }, [chargeData, navigate]);
+    }, [fraudReasons, navigate]);
 
     // Use real data for donut chart
-    const donutLabels = chargeData.map(item => item.TimeRange);
-    const donutCounts = chargeData.map(item => item.TotalCharges);
-    const total = donutCounts.reduce((sum, val) => sum + val, 0);
-    const donutPercentages = donutCounts.map(count => total > 0 ? +(count / total * 100).toFixed(1) : 0);
-    const donutColors = [
-        'rgba(54, 162, 235, 0.7)',
-        'rgba(75, 192, 192, 0.7)',
-        'rgba(255, 206, 86, 0.7)',
-        'rgba(153, 102, 255, 0.7)',
-        'rgba(255, 159, 64, 0.7)'
-    ];
-    const donutData = {
-        labels: donutLabels,
-        datasets: [
-            {
-                data: donutCounts,
-                backgroundColor: donutColors,
-                borderWidth: 1,
-            },
-        ],
-    };
-    const donutOptions = {
-        cutout: '70%',
-        plugins: {
-            legend: {
-                display: false,
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context: any) {
-                        const count = context.parsed;
-                        const percent = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
-                        return `${count} fraudulent (${percent}%)`;
-                    },
-                    title: function(context: any) {
-                        return context[0].label;
-                    }
-                }
-            }
-        }
-    };
+    // const donutLabels = chargeData.map(item => item.TimeRange);
+    // const donutCounts = chargeData.map(item => item.TotalCharges);
+    // const total = donutCounts.reduce((sum, val) => sum + val, 0);
+    // const donutPercentages = donutCounts.map(count => total > 0 ? +(count / total * 100).toFixed(1) : 0);
+    // const donutColors = [
+    //     'rgba(54, 162, 235, 0.7)',
+    //     'rgba(75, 192, 192, 0.7)',
+    //     'rgba(255, 206, 86, 0.7)',
+    //     'rgba(153, 102, 255, 0.7)',
+    //     'rgba(255, 159, 64, 0.7)'
+    // ];
+    // const donutData = {
+    //     labels: donutLabels,
+    //     datasets: [
+    //         {
+    //             data: donutCounts,
+    //             backgroundColor: donutColors,
+    //             borderWidth: 1,
+    //         },
+    //     ],
+    // };
+    // const donutOptions = {
+    //     cutout: '70%',
+    //     plugins: {
+    //         legend: {
+    //             display: false,
+    //         },
+    //         tooltip: {
+    //             callbacks: {
+    //                 label: function(context: any) {
+    //                     const count = context.parsed;
+    //                     const percent = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
+    //                     return `${count} fraudulent (${percent}%)`;
+    //                 },
+    //                 title: function(context: any) {
+    //                     return context[0].label;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // };
 
     return (
         <div className="dashboard-outer-container">

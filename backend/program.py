@@ -222,6 +222,58 @@ async def get_one_record(cdrID: str):
     data = getOneInstance.fetch_one_data(cdrID)
     return data
 
+
+@app.get("/api/fraud-reasons%")
+async def get_fraud_reasons(reason: str):
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    cursor.execute("SELECT * FROM FraudCase")
+    columns = [desc[0] for desc in cursor.description]
+    fraud_cases = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    # Calculate total fraud cases
+    total_cases = len(fraud_cases)
+    
+    # Initialize counters for each reason
+    reason_counts = {
+        'Reason1': 0,
+        'Reason2': 0,
+        'Reason3': 0,
+        'Reason4': 0,
+        'Reason5': 0,
+        'Reason6': 0,
+        'Reason7': 0
+    }
+    
+    # Count occurrences of each reason (non-null)
+    for case in fraud_cases:
+        for reason in reason_counts.keys():
+            if case[reason] is not None and case[reason] != '':
+                reason_counts[reason] += 1
+    
+    # Calculate percentages
+    reason_percentages = {}
+    for reason, count in reason_counts.items():
+        percentage = (count / total_cases * 100) if total_cases > 0 else 0
+        reason_percentages[reason] = round(percentage, 2)
+    
+    # Prepare response data
+    response_data = {
+        'total_cases': total_cases,
+        'reason_counts': reason_counts,
+        'reason_percentages': reason_percentages
+    }
+    
+    return Response(
+        content=json.dumps(response_data),
+        media_type="application/json",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
+
 @app.get("/api/charge-details/{timeRange}")
 async def get_charge_details(timeRange: str):
     try:
@@ -826,6 +878,23 @@ async def get_fraud_cases_for_import(filename: str = Query(...)):
     result = [dict(zip(columns, row)) for row in fraud_cases]
     db.close()
     return result
+
+@app.get("/api/charge-details/reason/{reason_key}")
+async def get_charge_details_by_reason(reason_key: str):
+    db = DbContext()
+    db.connect()
+    cursor = db.connection.cursor()
+    query = f"""
+        SELECT f.*, c.Start_datetime, c.End_datetime, c.Duration, c.Volume, c.Charge_Point_Address, c.Charge_Point_ZIP, c.Charge_Point_City, c.Charge_Point_Country, c.Charge_Point_ID, c.Calculated_Cost
+        FROM FraudCase f
+        JOIN CDR c ON f.CDR_ID = c.CDR_ID
+        WHERE {reason_key} IS NOT NULL AND {reason_key} != ''
+    """
+    cursor.execute(query)
+    columns = [desc[0] for desc in cursor.description]
+    results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    db.close()
+    return results
 
 if __name__ == "__main__":
     db = DbUserContext()

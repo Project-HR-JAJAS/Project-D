@@ -3,3 +3,13 @@
 2025-05-28 11:38:43,790 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx - Found 10727 fraud cases
 2025-05-28 11:38:54,708 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx - Found 14384 fraud cases
 2025-05-28 11:39:04,983 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx - Found 15689 fraud cases
+2025-05-28 14:33:23,548 - INFO - Successfully imported 36896 records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx - Found 2350 fraud cases
+2025-05-28 14:33:28,829 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx - Found 6421 fraud cases
+2025-05-28 14:33:36,598 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx - Found 10727 fraud cases
+2025-05-28 14:33:47,479 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx - Found 14384 fraud cases
+2025-05-28 14:33:58,111 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx - Found 15689 fraud cases
+2025-05-28 14:59:27,754 - INFO - Successfully imported 36896 records from temp_report_20250212_141749 - 20250211 - 0000to0900.xlsx - Found 2350 fraud cases
+2025-05-28 14:59:33,098 - INFO - Successfully imported 31831 records from temp_report_20250212_141749 - 20250211 - 0900to1300.xlsx - Found 6421 fraud cases
+2025-05-28 14:59:41,451 - INFO - Successfully imported 31183 records from temp_report_20250212_141749 - 20250211 -1300to1700.xlsx - Found 10727 fraud cases
+2025-05-28 14:59:53,005 - INFO - Successfully imported 36861 records from temp_report_20250212_141749 - 20250211 -1700to2100.xlsx - Found 14384 fraud cases
+2025-05-28 15:00:03,963 - INFO - Successfully imported 12924 records from temp_report_20250212_141749 - 20250211 -2100to0000.xlsx - Found 15689 fraud cases

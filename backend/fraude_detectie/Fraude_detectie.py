@@ -386,6 +386,22 @@ class FraudDetector:
             if "conn" in locals():
                 conn.close()
 
+    def run_fraud_detection(db_path: str):
+        """Run fraud detection and reset FraudCase table"""
+        try:
+            # Clear existing fraud cases
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS FraudCase")
+            conn.commit()
+            conn.close()
+            
+            # Run detection with new thresholds
+            detector = FraudDetector(db_path)
+            detector.detect_fraud()
+            print("Fraud detection completed with updated thresholds")
+        except Exception as e:
+            print(f"Error during fraud detection: {str(e)}")
 
 if __name__ == "__main__":
     # Try to find the database file in the current directory or parent directories

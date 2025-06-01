@@ -23,6 +23,7 @@ import threading
 from fastapi import APIRouter
 from sessions.session_manager import SessionManager
 from backend.fraud_decision.decision_manager import FraudDecisionManager
+from backend.fraude_detectie.Settings import router as settings_router
 
 
 
@@ -45,6 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(settings_router)
 app.include_router(tijdvlak_router)
 
 # Initialize managers

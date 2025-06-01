@@ -36,7 +36,7 @@ const Settings = () => {
         console.error('Failed to load settings:', error);
       }
     };
-    
+
     fetchThresholds();
   }, []);
 
@@ -52,16 +52,22 @@ const Settings = () => {
     e.preventDefault();
     setIsSaving(true);
     setSaveStatus(null);
-    
+
     try {
       const response = await fetch('http://localhost:8000/api/settings/fraud-thresholds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(thresholds)
       });
-      
+
       if (response.ok) {
-        setSaveStatus('Settings saved successfully!');
+        setSaveStatus('Settings saved successfully! Fraud detection running...');
+
+        // Optional: Wait a moment then refresh fraud data
+        setTimeout(() => {
+          // Add your fraud data refresh logic here
+          console.log('Fraud detection should be complete now');
+        }, 5000);
       } else {
         setSaveStatus('Failed to save settings');
       }
@@ -69,14 +75,14 @@ const Settings = () => {
       setSaveStatus('Network error');
     } finally {
       setIsSaving(false);
-      setTimeout(() => setSaveStatus(null), 3000);
+      setTimeout(() => setSaveStatus(null), 5000);
     }
   };
 
   return (
     <div className="settings-container">
       <h1>Fraud Detection Settings</h1>
-      
+
       <form onSubmit={handleSubmit} className="threshold-form">
         <div className="form-group">
           <label>Max Volume (kWh)</label>
@@ -89,7 +95,7 @@ const Settings = () => {
             min="0"
           />
         </div>
-        
+
         <div className="form-group">
           <label>Max Duration (minutes)</label>
           <input
@@ -100,7 +106,7 @@ const Settings = () => {
             min="0"
           />
         </div>
-        
+
         <div className="form-group">
           <label>Min Cost Threshold (€)</label>
           <input
@@ -112,7 +118,7 @@ const Settings = () => {
             min="0"
           />
         </div>
-        
+
         <div className="form-group">
           <label>Min Time Gap (minutes)</label>
           <input
@@ -123,7 +129,7 @@ const Settings = () => {
             min="0"
           />
         </div>
-        
+
         <div className="form-group">
           <label>Behavior Threshold (count)</label>
           <input
@@ -134,7 +140,7 @@ const Settings = () => {
             min="1"
           />
         </div>
-        
+
         <div className="form-group">
           <label>Min Distance (km)</label>
           <input
@@ -146,7 +152,7 @@ const Settings = () => {
             min="0"
           />
         </div>
-        
+
         <div className="form-group">
           <label>Min Travel Time (minutes)</label>
           <input
@@ -157,15 +163,15 @@ const Settings = () => {
             min="0"
           />
         </div>
-        
-        <button 
-          type="submit" 
+
+        <button
+          type="submit"
           disabled={isSaving}
           className="save-button"
         >
           {isSaving ? 'Saving...' : 'Save Settings'}
         </button>
-        
+
         {saveStatus && <div className="status-message">{saveStatus}</div>}
       </form>
     </div>

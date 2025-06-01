@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import sqlite3
-import os
+from fastapi import BackgroundTasks
+from backend.fraude_detectie import Fraude_detectie
 
 router = APIRouter()
+
 
 class FraudThresholds(BaseModel):
     maxVolumeKwh: float
@@ -14,19 +16,20 @@ class FraudThresholds(BaseModel):
     minDistanceKm: float
     minTravelTimeMinutes: float
 
+
 # Get current thresholds
-@router.get("/fraud-thresholds")
+@router.get("/api/settings/fraud-thresholds")
 def get_fraud_thresholds():
     try:
         conn = sqlite3.connect("project-d.db")
         cursor = conn.cursor()
-        
+
         cursor.execute("SELECT name, value FROM ThresholdSettings")
         rows = cursor.fetchall()
-        
+
         # Convert to dictionary
         thresholds = {row[0]: row[1] for row in rows}
-        
+
         return {
             "maxVolumeKwh": float(thresholds.get("MAX_VOLUME_KWH", 22)),
             "maxDurationMinutes": float(thresholds.get("MAX_DURATION_MINUTES", 60)),
@@ -34,20 +37,25 @@ def get_fraud_thresholds():
             "minTimeGapMinutes": float(thresholds.get("MIN_TIME_GAP_MINUTES", 30)),
             "behaviorThreshold": int(thresholds.get("THRESHOLD", 3)),
             "minDistanceKm": float(thresholds.get("MIN_DISTANCE_KM", 10)),
-            "minTravelTimeMinutes": float(thresholds.get("MIN_TRAVEL_TIME_MINUTES", 15))
+            "minTravelTimeMinutes": float(
+                thresholds.get("MIN_TRAVEL_TIME_MINUTES", 15)
+            ),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
 
+
 # Update thresholds
-@router.post("/fraud-thresholds")
-def update_fraud_thresholds(thresholds: FraudThresholds):
+@router.post("/api/settings/fraud-thresholds")
+def update_fraud_thresholds(
+    thresholds: FraudThresholds, background_tasks: BackgroundTasks
+):
     try:
         conn = sqlite3.connect("project-d.db")
         cursor = conn.cursor()
-        
+
         # Create table if not exists
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS ThresholdSettings (
@@ -55,7 +63,7 @@ def update_fraud_thresholds(thresholds: FraudThresholds):
             value REAL NOT NULL
         )
         """)
-        
+
         # Prepare data for upsert
         data = [
             ("MAX_VOLUME_KWH", thresholds.maxVolumeKwh),
@@ -64,18 +72,25 @@ def update_fraud_thresholds(thresholds: FraudThresholds):
             ("MIN_TIME_GAP_MINUTES", thresholds.minTimeGapMinutes),
             ("THRESHOLD", thresholds.behaviorThreshold),
             ("MIN_DISTANCE_KM", thresholds.minDistanceKm),
-            ("MIN_TRAVEL_TIME_MINUTES", thresholds.minTravelTimeMinutes)
+            ("MIN_TRAVEL_TIME_MINUTES", thresholds.minTravelTimeMinutes),
         ]
-        
+
         # Upsert all values
-        cursor.executemany("""
+        cursor.executemany(
+            """
         INSERT INTO ThresholdSettings (name, value)
         VALUES (?, ?)
         ON CONFLICT(name) DO UPDATE SET value = excluded.value
-        """, data)
-        
+        """,
+            data,
+        )
+
         conn.commit()
-        return {"message": "Thresholds updated successfully"}
+
+        # Add background task to run fraud detection
+        background_tasks.add_task(Fraude_detectie.run_fraud_detection, "project-d.db")
+
+        return {"message": "Thresholds updated successfully. Fraud detection started."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

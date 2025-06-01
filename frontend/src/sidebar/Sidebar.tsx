@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsedProp, setCollapsed }) => {
           </nav>
           <div className="sidebar-section-label">OTHERS</div>
           <nav className="sidebar-links">
-            <Link to="#" className="sidebar-link"><FaCog className="sidebar-icon" /> Settings</Link>
+            <Link to="/settings" className={`sidebar-link${location.pathname === '/settings' ? ' active' : ''}`}><FaCog className="sidebar-icon" /> Settings</Link>
             <Link to="/export" className={`sidebar-link${location.pathname === '/export' ? ' active' : ''}`}><FaFileExport className="sidebar-icon" /> Export</Link>
             <Link to="#" className="sidebar-link" onClick={() => window.dispatchEvent(new CustomEvent('openCreateUser'))}><FaUserPlus className="sidebar-icon" /> Create User</Link>
           </nav>

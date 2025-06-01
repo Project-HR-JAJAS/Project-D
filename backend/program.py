@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from backend.fraud_locations.Fraude_Locaties import FraudLocationManager
 import threading
 from fastapi import APIRouter
-from backend.sessions.session_manager import SessionManager
+from sessions.session_manager import SessionManager
 from backend.fraud_decision.decision_manager import FraudDecisionManager
 
 

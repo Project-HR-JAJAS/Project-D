@@ -1,11 +1,15 @@
 import sqlite3
-import time
+import os
 
 class FraudDecisionManager:
     def __init__(self, db_path):
         self.db_path = db_path
 
     def create_decision_table(self):
+        # Ensure the directory for the database exists
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir)
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('''

@@ -62,8 +62,6 @@ const Settings = () => {
 
       if (response.ok) {
         setSaveStatus('Settings saved successfully! Fraud detection running...');
-
-        // Optional: Wait a moment then refresh fraud data
         setTimeout(() => {
           // Add your fraud data refresh logic here
           console.log('Fraud detection should be complete now');

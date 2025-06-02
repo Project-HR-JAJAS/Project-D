@@ -22,7 +22,7 @@ class FraudThresholds(BaseModel):
 @router.get("/api/settings/fraud-thresholds")
 def get_fraud_thresholds():
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect("../backend/project-d.db")
         cursor = conn.cursor()
 
         cursor.execute("SELECT name, value FROM ThresholdSettings")
@@ -38,7 +38,8 @@ def get_fraud_thresholds():
             "minTimeGapMinutes": float(thresholds.get("MIN_TIME_GAP_MINUTES", 30)),
             "behaviorThreshold": int(thresholds.get("THRESHOLD", 3)),
             "minDistanceKm": float(thresholds.get("MIN_DISTANCE_KM", 10)),
-            "minTravelTimeMinutes": float(thresholds.get("MIN_TRAVEL_TIME_MINUTES", 15)
+            "minTravelTimeMinutes": float(
+                thresholds.get("MIN_TRAVEL_TIME_MINUTES", 15)
             ),
         }
     except Exception as e:
@@ -53,7 +54,7 @@ def update_fraud_thresholds(
     thresholds: FraudThresholds, background_tasks: BackgroundTasks
 ):
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect("../backend/project-d.db")
         cursor = conn.cursor()
 
         # Create table if not exists
@@ -84,7 +85,7 @@ def update_fraud_thresholds(
         """,
             data,
         )
-        
+
         print("Thresholds updated successfully.")
 
         conn.commit()
@@ -97,18 +98,3 @@ def update_fraud_thresholds(
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
-
-if __name__ == "__main__":
-    db_file = None
-    search_dir = os.path.dirname(os.path.abspath(__file__))
-    while True:
-        candidate = os.path.join(search_dir, "project-d.db")
-        if os.path.isfile(candidate):
-            db_file = candidate
-            break
-        parent = os.path.dirname(search_dir)
-        if parent == search_dir:
-            break
-        search_dir = parent
-    if db_file is None:
-        raise FileNotFoundError("Could not find 'project-d.db' in current or parent directories.")

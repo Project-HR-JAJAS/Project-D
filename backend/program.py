@@ -4,6 +4,7 @@ from backend.data.GetData import GetAll
 from backend.data.DbContext import DbContext
 from backend.data.DbUserContext import DbUserContext
 from backend.data_per_tijdsvlak.Tijdvlak import router as tijdvlak_router
+from backend.fraud_per_user.fraud_per_user import router as fraud_per_user_router
 import os
 from typing import Tuple, Optional
 from tkinter import Tk
@@ -46,6 +47,7 @@ app.add_middleware(
 )
 
 app.include_router(tijdvlak_router)
+app.include_router(fraud_per_user_router)
 
 # Initialize managers
 session_manager = SessionManager("user.db")  # or your user DB path

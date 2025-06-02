@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
 import UserDetailsModal from './UserDetailsModal';
@@ -23,9 +23,13 @@ const UserStats: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAuthId, setSelectedAuthId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [fraudOnly, setFraudOnly] = useState(false);
+  const [fraudAuthStats, setFraudAuthStats] = useState<UserStat[] | null>(null);
   const itemsPerPage = 50;
+  
+  const dataToDisplay = fraudOnly ? (fraudAuthStats ?? []) : userStats;
 
-  const filteredData = userStats.filter(item =>
+  const filteredData = dataToDisplay.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -45,6 +49,15 @@ const UserStats: React.FC = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+    if (fraudOnly && fraudAuthStats === null) {
+      fetch('http://localhost:8000/api/all-authentication-ids-with-fraud')
+        .then(res => res.json())
+        .then(data => setFraudAuthStats(data))
+        .catch(err => console.error('Error fetching fraud stats:', err));
+    }
+  }, [fraudOnly]);
 
   const handleSort = (key: keyof UserStat) => {
     setSortConfig(prev => {
@@ -156,6 +169,16 @@ const UserStats: React.FC = () => {
           }}
           className="table-search"
         />
+      </div>
+      <div style={{ marginBottom: '1rem' }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={fraudOnly}
+            onChange={() => setFraudOnly(prev => !prev)}
+          />{' '}
+          Show only users involved in fraud
+        </label>
       </div>
       <div className="userstats-table-wrapper">
             <table className="table-form">

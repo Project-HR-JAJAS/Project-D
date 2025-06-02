@@ -4,28 +4,55 @@ import pandas as pd
 from typing import Optional
 import math
 
-# Configurable threshold values
-# These values can be adjusted based on the specific requirements of the fraud detection logic
-MAX_VOLUME_KWH = 22 
-# Maximum volume in kWh for a session to be considered suspicious
-MAX_DURATION_MINUTES = 60
-# Maximum duration in minutes for a session to be considered suspicious
-MIN_COST_THRESHOLD = 20
-# Minimum cost threshold for a session to be considered suspicious
-MAX_VOLUME_THRESHOLD = 22
-# Maximum volume in kWh for a session to be considered suspicious
-MIN_TIME_GAP_MINUTES = 30
-# Minimum time gap in minutes between two sessions for them to be considered separate
-THRESHOLD = 3
-# Minimum number of occurrences for a behavior to be considered suspicious
-MIN_DISTANCE_KM = 10
-# Minimum distance in km for a session to be considered suspicious
-MIN_TRAVEL_TIME_MINUTES = 15
-
-
 class FraudDetector:
     def __init__(self, db_path):
         self.db_path = db_path
+        self.thresholds = self.load_thresholds()
+
+    def load_thresholds(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Ensure the ThresholdSettings table exists
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ThresholdSettings (
+            name TEXT PRIMARY KEY,
+            value REAL
+        )
+        """)
+
+        cursor.execute("""
+        SELECT name, value FROM ThresholdSettings
+        """)
+        rows = cursor.fetchall()
+        
+        # Fallback to default values if not set
+        defaults = {
+            "MAX_VOLUME_KWH": 22,
+            "MAX_DURATION_MINUTES": 60,
+            "MIN_COST_THRESHOLD": 20,
+            "MIN_TIME_GAP_MINUTES": 30,
+            "THRESHOLD": 3,
+            "MIN_DISTANCE_KM": 10,
+            "MIN_TRAVEL_TIME_MINUTES": 15
+        }
+
+        # Insert defaults if not present in the table
+        for key, value in defaults.items():
+            cursor.execute(
+                "INSERT OR IGNORE INTO ThresholdSettings (name, value) VALUES (?, ?)",
+                (key, value)
+            )
+        conn.commit()
+
+        cursor.execute("SELECT name, value FROM ThresholdSettings")
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Create threshold dictionary
+        thresholds = {row[0]: row[1] for row in rows}
+
+        return thresholds
 
     def _create_fraud_table(self, cursor):
         """Creates the FraudCase table if it doesn't exist."""
@@ -94,6 +121,9 @@ class FraudDetector:
             cursor.executemany(insert_sql, [(cdr_id, reason) for cdr_id in new_ids])
 
     def detect_high_volume_short_duration(self, cursor):
+        max_vol = self.thresholds["MAX_VOLUME_KWH"]
+        max_dur = self.thresholds["MAX_DURATION_MINUTES"]
+        
         cursor.execute("""
         SELECT CDR_ID
         FROM CDR
@@ -115,7 +145,7 @@ class FraudDetector:
                     continue
                 h, m, s = map(int, duration.split(":"))
                 duration_minutes = h * 60 + m + s / 60
-                if volume > MAX_VOLUME_KWH and duration_minutes < MAX_DURATION_MINUTES:
+                if volume > max_vol and duration_minutes < max_dur:
                     fraud_ids.append(cdr_id)
             except (ValueError, AttributeError):
                 continue
@@ -123,6 +153,9 @@ class FraudDetector:
         self._update_fraud_table(cursor, "High volume in short duration", fraud_ids, "Reason1")
 
     def detect_high_cost_low_volume(self, cursor):
+        min_cost = self.thresholds["MIN_COST_THRESHOLD"]
+        max_vol = self.thresholds["MAX_VOLUME_KWH"]
+        
         cursor.execute("""
         SELECT CDR_ID, Volume, Calculated_Cost
         FROM CDR
@@ -137,7 +170,7 @@ class FraudDetector:
                 volume = self._safe_float(volume_str)
                 if volume is None or cost is None:
                     continue
-                if cost > MIN_COST_THRESHOLD and volume < MAX_VOLUME_THRESHOLD:
+                if cost > min_cost and volume < max_vol:
                     ratio = cost / volume
                     fraud_data.append((cdr_id, ratio))
             except (ValueError, TypeError, ZeroDivisionError):
@@ -148,6 +181,8 @@ class FraudDetector:
             self._update_fraud_table(cursor, reason, [cdr_id], "Reason2")
 
     def detect_rapid_consecutive_sessions(self, cursor):
+        min_gap = self.thresholds["MIN_TIME_GAP_MINUTES"]
+        
         cursor.execute(
             f"""
         SELECT CDR_ID
@@ -165,12 +200,12 @@ class FraudDetector:
             PrevEnd IS NOT NULL
             AND ((julianday(Start_datetime) - julianday(PrevEnd)) * 1440 < ?)
         """,
-            (MIN_TIME_GAP_MINUTES,),
+            (min_gap,),
         )
         fraud_ids = [row[0] for row in cursor.fetchall()]
         self._update_fraud_table(
             cursor,
-            f"Rapid consecutive sessions (<{MIN_TIME_GAP_MINUTES} min)",
+            f"Rapid consecutive sessions (<{min_gap} min)",
             fraud_ids,
             "Reason3",
         )
@@ -193,6 +228,8 @@ class FraudDetector:
         self._update_fraud_table(cursor, "Overlapping sessions", fraud_ids, "Reason4")
 
     def detect_repeated_behavior(self, cursor):
+        threshold = self.thresholds["THRESHOLD"]
+        
         cursor.execute(
             """
         WITH AllReasons AS (
@@ -211,7 +248,7 @@ class FraudDetector:
         GROUP BY c.Authentication_ID, ar.Reason
         HAVING count >= ?
         """,
-            (THRESHOLD,),
+            (threshold,),
         )
         for auth_id, reason, count, cdr_ids_str in cursor.fetchall():
             cdr_ids = cdr_ids_str.split(",")
@@ -253,6 +290,9 @@ class FraudDetector:
             self._update_fraud_table(cursor, reason, [cdr_id], "Reason6")
 
     def detect_impossible_travel(self, cursor):
+        min_distance = self.thresholds["MIN_DISTANCE_KM"]
+        min_travel_time = self.thresholds["MIN_TRAVEL_TIME_MINUTES"]
+        
         cursor.execute("""
         SELECT CDR_ID, Authentication_ID, Start_datetime, End_datetime, Charge_Point_ID
         FROM CDR
@@ -260,17 +300,13 @@ class FraudDetector:
         ORDER BY Authentication_ID, Start_datetime
         """)
         sessions = cursor.fetchall()
-        cursor.execute(
-            "SELECT Charge_Point_ID, Latitude, Longitude FROM FraudLocations WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL"
-        )
-        location_dict = {
-            row[0]: (float(row[1]), float(row[2])) for row in cursor.fetchall()
-        }
-        fraud_ids = []
+        # You need to define location_dict and prev_session before using them
+        location_dict = {}
         prev_session = {}
+        fraud_ids = []
         for cdr_id, auth_id, start_dt, end_dt, charge_point_id in sessions:
             if auth_id in prev_session:
-                prev_cdr_id, prev_end_dt, prev_point = prev_session[auth_id]
+                _, prev_end_dt, prev_point = prev_session[auth_id]
                 if charge_point_id in location_dict and prev_point in location_dict:
                     lat1, lon1 = location_dict[prev_point]
                     lat2, lon2 = location_dict[charge_point_id]
@@ -279,8 +315,8 @@ class FraudDetector:
                         pd.to_datetime(start_dt) - pd.to_datetime(prev_end_dt)
                     ).total_seconds() / 60
                     if (
-                        distance >= MIN_DISTANCE_KM
-                        and time_diff < MIN_TRAVEL_TIME_MINUTES
+                        distance >= min_distance
+                        and time_diff < min_travel_time
                     ):
                         reason = f"Unrealistic movement: {distance:.1f} km in {time_diff:.1f} min"
                         fraud_ids.append((cdr_id, reason))
@@ -350,10 +386,38 @@ class FraudDetector:
             if "conn" in locals():
                 conn.close()
 
+    def run_fraud_detection(db_path: str):
+        """Run fraud detection and reset FraudCase table"""
+        try:
+            # Clear existing fraud cases
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS FraudCase")
+            conn.commit()
+            conn.close()
+            
+            # Run detection with new thresholds
+            detector = FraudDetector(db_path)   
+            detector.detect_fraud()
+            print("Fraud detection completed with updated thresholds")
+        except Exception as e:
+            print(f"Error during fraud detection: {str(e)}")
 
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    db_file = os.path.join(base_dir, "project-d.db")
+    # Try to find the database file in the current directory or parent directories
+    db_file = None
+    search_dir = os.path.dirname(os.path.abspath(__file__))
+    while True:
+        candidate = os.path.join(search_dir, "project-d.db")
+        if os.path.isfile(candidate):
+            db_file = candidate
+            break
+        parent = os.path.dirname(search_dir)
+        if parent == search_dir:
+            break
+        search_dir = parent
+    if db_file is None:
+        raise FileNotFoundError("Could not find 'project-d.db' in current or parent directories.")
     detector = FraudDetector(db_file)
     fraud_df = detector.detect_fraud()
     print(fraud_df)

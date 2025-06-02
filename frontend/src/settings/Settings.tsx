@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Settings.css';
+import { getFraudThresholds, saveFraudThresholds } from './Settings.api';
 
 interface FraudThresholds {
   maxVolumeKwh: number;
@@ -19,7 +20,7 @@ const Settings = () => {
     minTimeGapMinutes: 30,
     behaviorThreshold: 3,
     minDistanceKm: 10,
-    minTravelTimeMinutes: 15
+    minTravelTimeMinutes: 15,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
@@ -27,11 +28,8 @@ const Settings = () => {
   useEffect(() => {
     const fetchThresholds = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/settings/fraud-thresholds');
-        const data = await response.json();
-        if (response.ok) {
-          setThresholds(data);
-        }
+        const data = await getFraudThresholds();
+        setThresholds(data);
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -42,9 +40,9 @@ const Settings = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setThresholds(prev => ({
+    setThresholds((prev) => ({
       ...prev,
-      [name]: Number(value)
+      [name]: Number(value),
     }));
   };
 
@@ -54,18 +52,10 @@ const Settings = () => {
     setSaveStatus(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/settings/fraud-thresholds', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(thresholds)
-      });
-
-      if (response.ok) {
+      const success = await saveFraudThresholds(thresholds);
+      if (success) {
         setSaveStatus('Settings saved successfully! Fraud detection running...');
-        setTimeout(() => {
-          // Add your fraud data refresh logic here
-          console.log('Fraud detection should be complete now');
-        }, 5000);
+        setTimeout(() => console.log('Fraud detection should be complete now'), 5000);
       } else {
         setSaveStatus('Failed to save settings');
       }
@@ -82,91 +72,21 @@ const Settings = () => {
       <h1>Fraud Detection Settings</h1>
 
       <form onSubmit={handleSubmit} className="threshold-form">
-        <div className="form-group">
-          <label>Max Volume (kWh)</label>
-          <input
-            type="number"
-            name="maxVolumeKwh"
-            value={thresholds.maxVolumeKwh}
-            onChange={handleChange}
-            step="0.1"
-            min="0"
-          />
-        </div>
+        {Object.entries(thresholds).map(([key, value]) => (
+          <div className="form-group" key={key}>
+            <label>{formatLabel(key)}</label>
+            <input
+              type="number"
+              name={key}
+              value={value}
+              onChange={handleChange}
+              step={key.includes('Volume') || key.includes('Distance') || key.includes('Cost') ? '0.1' : '1'}
+              min="0"
+            />
+          </div>
+        ))}
 
-        <div className="form-group">
-          <label>Max Duration (minutes)</label>
-          <input
-            type="number"
-            name="maxDurationMinutes"
-            value={thresholds.maxDurationMinutes}
-            onChange={handleChange}
-            min="0"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Min Cost Threshold (€)</label>
-          <input
-            type="number"
-            name="minCostThreshold"
-            value={thresholds.minCostThreshold}
-            onChange={handleChange}
-            step="0.1"
-            min="0"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Min Time Gap (minutes)</label>
-          <input
-            type="number"
-            name="minTimeGapMinutes"
-            value={thresholds.minTimeGapMinutes}
-            onChange={handleChange}
-            min="0"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Behavior Threshold (count)</label>
-          <input
-            type="number"
-            name="behaviorThreshold"
-            value={thresholds.behaviorThreshold}
-            onChange={handleChange}
-            min="1"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Min Distance (km)</label>
-          <input
-            type="number"
-            name="minDistanceKm"
-            value={thresholds.minDistanceKm}
-            onChange={handleChange}
-            step="0.1"
-            min="0"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Min Travel Time (minutes)</label>
-          <input
-            type="number"
-            name="minTravelTimeMinutes"
-            value={thresholds.minTravelTimeMinutes}
-            onChange={handleChange}
-            min="0"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="save-button"
-        >
+        <button type="submit" disabled={isSaving} className="save-button">
           {isSaving ? 'Saving...' : 'Save Settings'}
         </button>
 
@@ -174,6 +94,16 @@ const Settings = () => {
       </form>
     </div>
   );
+};
+
+const formatLabel = (key: string) => {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (str) => str.toUpperCase())
+    .replace('Kwh', '(kWh)')
+    .replace('Km', '(km)')
+    .replace('€', '(€)')
+    .replace('Minutes', '(minutes)');
 };
 
 export default Settings;

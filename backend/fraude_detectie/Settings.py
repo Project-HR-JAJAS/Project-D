@@ -1,3 +1,4 @@
+import socket
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import sqlite3
@@ -17,12 +18,23 @@ class FraudThresholds(BaseModel):
     minDistanceKm: float
     minTravelTimeMinutes: float
 
+def safe_close_connection(conn):
+    try:
+        if conn:
+            conn.close()
+    except (sqlite3.Error, socket.error):
+        pass  # Ignore connection closing errors
 
 # Get current thresholds
 @router.get("/api/settings/fraud-thresholds")
 def get_fraud_thresholds():
+    conn = None
     try:
-        conn = sqlite3.connect("../backend/project-d.db")
+        # Get the absolute path to the database file in the backend directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        db_path = os.path.join(base_dir, "backend", "project-d.db")
+
+        conn = sqlite3.connect(db_path)        
         cursor = conn.cursor()
 
         cursor.execute("SELECT name, value FROM ThresholdSettings")
@@ -45,16 +57,18 @@ def get_fraud_thresholds():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        conn.close()
-
+        safe_close_connection(conn)
 
 # Update thresholds
 @router.post("/api/settings/fraud-thresholds")
-def update_fraud_thresholds(
-    thresholds: FraudThresholds, background_tasks: BackgroundTasks
-):
-    try:
-        conn = sqlite3.connect("../backend/project-d.db")
+def update_fraud_thresholds(thresholds: FraudThresholds, background_tasks: BackgroundTasks):
+    conn = None
+    try:     
+        # Get the absolute path to the database file in the backend directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        db_path = os.path.join(base_dir, "backend", "project-d.db")
+
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
         # Create table if not exists
@@ -91,10 +105,10 @@ def update_fraud_thresholds(
         conn.commit()
 
         # Add background task to run fraud detection
-        background_tasks.add_task(Fraude_detectie.run_fraud_detection, "project-d.db")
+        background_tasks.add_task(Fraude_detectie.FraudDetector.run_fraud_detection, db_path)
 
         return {"message": "Thresholds updated successfully. Fraud detection started."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        conn.close()
+        safe_close_connection(conn)

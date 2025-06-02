@@ -37,8 +37,7 @@ def get_fraud_thresholds():
             "minTimeGapMinutes": float(thresholds.get("MIN_TIME_GAP_MINUTES", 30)),
             "behaviorThreshold": int(thresholds.get("THRESHOLD", 3)),
             "minDistanceKm": float(thresholds.get("MIN_DISTANCE_KM", 10)),
-            "minTravelTimeMinutes": float(
-                thresholds.get("MIN_TRAVEL_TIME_MINUTES", 15)
+            "minTravelTimeMinutes": float(thresholds.get("MIN_TRAVEL_TIME_MINUTES", 15)
             ),
         }
     except Exception as e:

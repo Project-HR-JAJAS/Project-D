@@ -132,6 +132,7 @@ const OverlappingSessions: React.FC = () => {
         <div>
           <select
             value={searchField}
+            title="Search by Authentication ID"
             onChange={e => setSearchField(e.target.value as 'Authentication_ID')}
             className="table-search-dropdown"
           >
@@ -208,6 +209,7 @@ const OverlappingSessions: React.FC = () => {
               typeof page === 'number' ? (
                 <button
                   key={page}
+                  title={`${page}`}
                   onClick={() => goToPage(page)}
                   className={`pagination-button ${page === currentPage ? 'active' : ''}`}
                 >
@@ -218,6 +220,7 @@ const OverlappingSessions: React.FC = () => {
                   {showInput[page === 'ellipsis1' ? 'left' : 'right'] ? (
                     <input
                       type="text"
+                      placeholder={`${page}`}
                       className="pagination-input"
                       value={inputValue}
                       onChange={handleInputChange}

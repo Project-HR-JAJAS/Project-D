@@ -68,6 +68,7 @@ def export_db_to_file():
     root = Tk()
     root.withdraw()  # hides the Tkinter window
 
+
 if __name__ == "__main__":
     db = DbUserContext()
     db.initialize_user_database()

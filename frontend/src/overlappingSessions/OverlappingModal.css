@@ -74,12 +74,3 @@
     font-weight: bold;
   }
   
-
-.modal-table tr:hover {
-    background-color: #f0f0f0;
-    cursor: pointer;
-}
-
-.highlight-bold-row {
-    font-weight: bold;
-}

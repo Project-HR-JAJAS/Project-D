@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './OverlappingModal.css';  // Hergebruik de bestaande CSS
+import './OverlappingDetailsModal.css';
 
 interface OverlappingSession {
   CDR_ID: string;
@@ -41,10 +41,10 @@ const OverlappingDetailsModal: React.FC<OverlappingDetailsModalProps> = ({ cdrId
   const formatDate = (value: string) => new Date(value).toLocaleString();
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="details-modal-overlay">
+      <div className="details-modal-content">
         <button className="modal-close" onClick={onClose}>×</button>
-        <h2 className="modal-title">Details for CDR: {cdrId}</h2>
+        <h2 className="details-modal-title">Details for CDR: {cdrId}</h2>
         {loading ? (
           <p className="modal-loading">Loading...</p>
         ) : details.length === 0 ? (

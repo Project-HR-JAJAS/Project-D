@@ -20,6 +20,7 @@ import Header from './Header';
 import ChargeDetail from './ChargeDetails/ChargeDetail';
 import CDRDetailPage from './CDRDetailPage/CDRDetailPage';
 import FraudCasesForImport from './pages/FraudCasesForImport';
+import Settings from './settings/Settings';
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED_WIDTH = 60;
@@ -67,6 +68,8 @@ const AppRoutes: React.FC<{ sidebarCollapsed: boolean; setSidebarCollapsed: Reac
           <Route path="/charge-details/:CDR_ID" element={<ChargeDetail />} />
           <Route path="/cdr-details/:CDR_ID" element={<CDRDetailPage />} />
           <Route path="/fraud-cases/:filename" element={<PrivateRoute><FraudCasesForImport /></PrivateRoute>} />
+          <Route path="/charge-details/reason/:reasonKey" element={<ChargeDetails />} />
+          <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         </Routes>
       </main>
     </>

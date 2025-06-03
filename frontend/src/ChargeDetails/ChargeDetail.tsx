@@ -20,7 +20,7 @@ interface ChargeDetail {
 }
 
 const ChargeDetails: React.FC = () => {
-    const { timeRange } = useParams<{ timeRange: string }>();
+    const { timeRange, reasonKey } = useParams<{ timeRange: string; reasonKey: string }>();
     const [data, setData] = useState<ChargeDetail[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -30,7 +30,7 @@ const ChargeDetails: React.FC = () => {
     const [searchField, setSearchField] = useState<'CDR_ID' | 'Address' | 'City' | 'Country' | 'Charge_Point_ID'>('CDR_ID');
     const [sortConfig, setSortConfig] = useState<{ key: keyof ChargeDetail | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
     const navigate = useNavigate();
-    const itemsPerPage = 10;
+    const itemsPerPage = 15;
 
     const filteredStats = data.filter((stat: ChargeDetail) => {
         const fieldMap: Record<typeof searchField, keyof ChargeDetail> = {
@@ -72,9 +72,9 @@ const ChargeDetails: React.FC = () => {
     // ];
 
     useEffect(() => {
-        if (timeRange) {
+        if (reasonKey) {
             setIsLoading(true);
-            fetch(`http://localhost:8000/api/charge-details/${timeRange}`, {
+            fetch(`http://localhost:8000/api/charge-details/reason/${reasonKey}`, {
                 headers: {
                     'Cache-Control': 'no-cache',
                     'Pragma': 'no-cache'
@@ -100,7 +100,7 @@ const ChargeDetails: React.FC = () => {
                     setIsLoading(false);
                 });
         }
-    }, [timeRange]);
+    }, [reasonKey]);
 
     const totalPages = Math.ceil(sortedData.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -233,7 +233,7 @@ const ChargeDetails: React.FC = () => {
     { label: 'ZIP', key: 'Charge_Point_ZIP' },
     { label: 'City', key: 'Charge_Point_City' },
     { label: 'Country', key: 'Charge_Point_Country' },
-    { label: 'Type', key: 'Charge_Point_Type' },
+    // { label: 'Type', key: 'Charge_Point_Type' },
     { label: 'Charge Point ID', key: 'Charge_Point_ID' },
     { label: 'Cost (€)', key: 'Calculated_Cost' },
     ];
@@ -241,7 +241,7 @@ const ChargeDetails: React.FC = () => {
     return (
         <div className="table-container">
             <div className= 'table-search-wrapper'>
-                <h2>Charging Sessions for {getTimeRangeLabel(timeRange || '')}</h2>
+                <h2>Fraud Cases for {reasonKey}</h2>
                 <div>
 
                 <TableExportButton
@@ -300,7 +300,7 @@ const ChargeDetails: React.FC = () => {
                             <th>ZIP</th>
                             <th>City</th>
                             <th>Country</th>
-                            <th>Type</th>
+                            {/* <th>Type</th> */}
                             <th>Charge Point ID </th>
                             <th className="sortable-header" onClick={() => handleSort('Calculated_Cost')}>
                                 Cost {getSortIndicator('Calculated_Cost')}
@@ -330,7 +330,7 @@ const ChargeDetails: React.FC = () => {
                                     <td>{formatCellValue('Charge_Point_ZIP', item.Charge_Point_ZIP)}</td>
                                     <td>{formatCellValue('Charge_Point_City', item.Charge_Point_City)}</td>
                                     <td>{formatCellValue('Charge_Point_Country', item.Charge_Point_Country)}</td>
-                                    <td>{formatCellValue('Charge_Point_Type', item.Charge_Point_Type)}</td>
+                                    {/* <td>{formatCellValue('Charge_Point_Type', item.Charge_Point_Type)}</td> */}
                                     <td>{formatCellValue('Charge_Point_ID', item.Charge_Point_ID)}</td>
                                     <td className="text-right">{formatCellValue('Calculated_Cost', item.Calculated_Cost)}</td>
                                 </tr>

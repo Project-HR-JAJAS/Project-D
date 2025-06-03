@@ -221,7 +221,7 @@ const ChargeDetails: React.FC = () => {
     };
 
     if (isLoading) return <div>Loading...</div>;
-    if (data.length === 0) return <div>Error: No charging sessions recorded for this time range</div>;
+    if (data.length === 0) return <h3>No charging sessions recorded for this time range</h3>;
 
     const exportColumns = [
     { label: 'CDR ID', key: 'CDR_ID' },

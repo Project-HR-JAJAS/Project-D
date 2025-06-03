@@ -338,15 +338,51 @@ async def get_overlapping_sessions():
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint voor details per sessie
-@app.get("/api/overlapping-sessions/{cdr_id}")
-async def get_overlaps_for_cdr(cdr_id: str):
+# Endpoit die Authentication_ID, ClusterCount (aantal unieke CDR_IDs in het cluster), TotalVolume, TotalCost haalt
+@app.get('/api/overlapping-stats')
+async def get_overlapping_stats():
+    db = DbContext()
+    result = db.get_overlapping_stats()
+    return result
+
+# Dit haalt alle overlappende sessies voor een gegeven Authentication_ID op.
+@app.get("/api/overlapping-sessions/{auth_id}")
+async def get_overlapping_sessions_by_auth_id(auth_id: str):
+    try:
+        db = DbContext()
+        rows = db.get_overlapping_sessions_by_auth_id(auth_id)
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching overlapping sessions: {str(e)}")
+
+
+# Endpoint die het hele cluster per Authentication_ID telt 
+@app.get('/api/overlapping-cluster-count')
+async def get_overlapping_cluster_count():
+    db = DbContext()
+    result = db.get_overlapping_cluster_count()
+    return result
+
+
+# Endpoit dat de details ophaalt van overlappende CDR’s voor een specifieke CDR_ID.
+@app.get("/api/overlapping-details/{cdr_id}")
+async def get_overlapping_details_for_cdr(cdr_id: str):
     try:
         db = DbContext()
         sessions = db.get_all_overlapping_for_cdr(cdr_id)
         return sessions
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error fetching overlapping details: {str(e)}")
+
+# # Endpoint voor details per sessie
+# @app.get("/api/overlapping-sessions/{cdr_id}")
+# async def get_overlaps_for_cdr(cdr_id: str):
+#     try:
+#         db = DbContext()
+#         sessions = db.get_all_overlapping_for_cdr(cdr_id)
+#         return sessions
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 # Endpoint die alle statistieken per Authentication_ID retourneert voor gebruik in frontend-tabellen
@@ -593,6 +629,7 @@ async def get_import_logs():
 
 @app.get("/api/overlapping-cluster/{cdr_id}")
 async def get_overlap_cluster(cdr_id: str):
+    # print(f"[API] Fetching cluster for CDR_ID: {cdr_id}")
     try:
         db = DbContext()
         result = db.get_overlapping_cluster(cdr_id)

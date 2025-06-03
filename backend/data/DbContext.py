@@ -272,6 +272,36 @@ class DbContext:
         finally:
             self.close()
 
+
+    def get_overlapping_sessions_by_auth_id(self, auth_id: str) -> list[dict]:
+        self.connect()
+        query = """
+        WITH Overlaps AS (
+            SELECT a.CDR_ID AS main_id, b.CDR_ID AS overlap_id, a.*, a.Calculated_Cost
+            FROM CDR a
+            JOIN CDR b
+            ON a.Authentication_ID = b.Authentication_ID
+            AND a.CDR_ID != b.CDR_ID
+            AND (
+                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
+                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
+                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
+            )
+        )
+        SELECT o.main_id AS CDR_ID, o.Authentication_ID, o.Start_datetime, o.End_datetime,
+            o.Charge_Point_City, o.Volume, o.Calculated_Cost,
+            o.Charge_Point_ID, o.Charge_Point_Country,
+            COUNT(o.overlap_id) AS OverlappingCount
+        FROM Overlaps o
+        WHERE o.Authentication_ID = ?
+        GROUP BY o.main_id
+        ORDER BY o.Start_datetime
+        """
+        df = pd.read_sql_query(query, self.connection, params=(auth_id,))
+        self.close()
+        return df.to_dict(orient='records')
+
+
     def get_overlapping_sessions(self):
         self.connect()
 
@@ -300,50 +330,81 @@ class DbContext:
         self.close()
         return df.to_dict(orient="records")
     
+    def get_overlapping_stats(self):
+        self.connect()
+        query = """
+        WITH Overlaps AS (
+            SELECT a.Authentication_ID, a.CDR_ID, a.Volume, a.Calculated_Cost
+            FROM CDR a
+            JOIN CDR b
+            ON a.Authentication_ID = b.Authentication_ID
+            AND a.CDR_ID != b.CDR_ID
+            AND (
+                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
+                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
+                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
+            )
+        )
+        SELECT
+            Authentication_ID,
+            COUNT(DISTINCT CDR_ID) AS ClusterCount,
+            SUM(Volume) AS TotalVolume,
+            SUM(Calculated_Cost) AS TotalCost
+        FROM Overlaps
+        GROUP BY Authentication_ID
+        """
+        df = pd.read_sql_query(query, self.connection)
+        self.close()
+        return df.to_dict(orient='records')
+
+
+    def get_overlapping_cluster_count(self):
+        self.connect()
+        query = """
+        SELECT Authentication_ID, COUNT(DISTINCT CDR_ID) AS ClusterCount
+        FROM CDR
+        GROUP BY Authentication_ID
+        """
+        df = pd.read_sql_query(query, self.connection)
+        self.close()
+        return df.to_dict(orient='records')
+
 
     def get_all_overlapping_for_cdr(self, cdr_id):
         self.connect()
 
-        query = f"""
+        # Query voor overlappende sessies
+        query = f""" 
         SELECT b.CDR_ID, b.Start_datetime, b.End_datetime, b.Charge_Point_City, b.Volume, b.Authentication_ID,
             b.Charge_Point_ID, b.Charge_Point_Country, b.Calculated_Cost
         FROM CDR a
         JOIN CDR b
-            ON a.Authentication_ID = b.Authentication_ID
-            AND a.CDR_ID = ?
-            AND a.CDR_ID != b.CDR_ID
-            AND (
-                datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
-                OR datetime(b.End_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
-                OR datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-            )
+        ON a.Authentication_ID = b.Authentication_ID
+        AND a.CDR_ID = ?
+        AND a.CDR_ID != b.CDR_ID
+        AND (
+            datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
+            OR datetime(b.End_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
+            OR datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
+        )
+        """
+        df_overlaps = pd.read_sql_query(query, self.connection, params=(cdr_id,))
 
-        UNION
-
-        SELECT a.CDR_ID, a.Start_datetime, a.End_datetime, a.Charge_Point_City, a.Volume, a.Authentication_ID,
-            a.Charge_Point_ID, a.Charge_Point_Country, a.Calculated_Cost
-        FROM CDR a
-        JOIN CDR b
-            ON b.Authentication_ID = a.Authentication_ID
-            AND b.CDR_ID = ?
-            AND b.CDR_ID != a.CDR_ID
-            AND (
-                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime) AND datetime(b.End_datetime)
-                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime) AND datetime(a.End_datetime)
-            )
-
-        UNION
-
+        # Query voor het originele CDR zelf (A)
+        query_original = """
         SELECT CDR_ID, Start_datetime, End_datetime, Charge_Point_City, Volume, Authentication_ID,
             Charge_Point_ID, Charge_Point_Country, Calculated_Cost
         FROM CDR
         WHERE CDR_ID = ?
         """
+        df_original = pd.read_sql_query(query_original, self.connection, params=(cdr_id,))
 
-        df = pd.read_sql_query(query, self.connection, params=(cdr_id, cdr_id, cdr_id))
+        # Combineer beide sets (A zelf + overlap)
+        df_combined = pd.concat([df_original, df_overlaps], ignore_index=True)
+
         self.close()
-        return df.drop_duplicates(subset="CDR_ID").to_dict(orient="records")
+        return df_combined.drop_duplicates(subset="CDR_ID").to_dict(orient="records")
+
     
     # Haalt alle statistieken per Authentication_ID op: aantal transacties, totaal volume en totale kosten
     def get_user_stats(self):

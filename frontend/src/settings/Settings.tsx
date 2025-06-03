@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Settings.css';
 import { getFraudThresholds, saveFraudThresholds } from './Settings.api';
 
@@ -24,6 +24,13 @@ const Settings = () => {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  // Create refs for each threshold section
+  const highVolumeRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+  const costVolumeRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+  const consecutiveSessionsRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+  const repeatedBehaviorRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+  const impossibleTravelRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
   useEffect(() => {
     const fetchThresholds = async () => {
@@ -66,6 +73,20 @@ const Settings = () => {
     }
   };
 
+  // Function to scroll to a specific threshold group
+  const scrollToThreshold = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Add highlight effect
+      setTimeout(() => {
+        if (ref.current) {
+          ref.current.style.backgroundColor = '';
+        }
+      }, 1500);
+    }
+  };
+
   // Threshold descriptions
   const thresholdDescriptions: Record<keyof FraudThresholds, string> = {
     maxVolumeKwh: "Maximum allowed energy consumption (kWh) per charging session. Sessions exceeding this volume will be flagged.",
@@ -91,29 +112,73 @@ const Settings = () => {
   // Rules for the overview section
   const detectionRules = [
     {
+      id: 'high-volume',
       title: 'High Volume',
       description: 'Detects sessions with abnormally high energy consumption that could indicate meter tampering or bypass.',
-      thresholds: ['Max Volume (kWh)', 'Max Duration (minutes)']
+      thresholds: ['Max Volume (kWh)', 'Max Duration (minutes)'],
+      scrollRef: highVolumeRef
     },
     {
+      id: 'cost-volume',
       title: 'Cost-Volume Mismatch',
       description: 'Flags sessions with unusually high cost but low energy consumption, which may indicate pricing manipulation.',
-      thresholds: ['Min Cost Threshold (€)']
+      thresholds: ['Min Cost Threshold (€)'],
+      scrollRef: costVolumeRef
     },
     {
+      id: 'consecutive-sessions',
       title: 'Consecutive Sessions',
       description: 'Identifies multiple charging sessions at the same station with implausibly short gaps.',
-      thresholds: ['Min Time Gap (minutes)']
+      thresholds: ['Min Time Gap (minutes)'],
+      scrollRef: consecutiveSessionsRef
     },
     {
+      id: 'repeated-behavior',
       title: 'Repeated Behavior',
       description: 'Detects patterns of similar fraud flags across multiple sessions from the same user.',
-      thresholds: ['Behavior Threshold']
+      thresholds: ['Behavior Threshold'],
+      scrollRef: repeatedBehaviorRef
     },
     {
+      id: 'impossible-travel',
       title: 'Impossible Travel',
       description: 'Flags consecutive sessions at different stations that are too far apart for the time gap.',
-      thresholds: ['Min Distance (km)', 'Min Travel Time (minutes)']
+      thresholds: ['Min Distance (km)', 'Min Travel Time (minutes)'],
+      scrollRef: impossibleTravelRef
+    }
+  ];
+
+  // Group thresholds by rule for sectioning
+  const thresholdGroups = [
+    {
+      id: 'high-volume',
+      title: 'High Volume Detection',
+      thresholdKeys: ['maxVolumeKwh', 'maxDurationMinutes'],
+      ref: highVolumeRef
+    },
+    {
+      id: 'cost-volume',
+      title: 'Cost-Volume Mismatch',
+      thresholdKeys: ['minCostThreshold'],
+      ref: costVolumeRef
+    },
+    {
+      id: 'consecutive-sessions',
+      title: 'Consecutive Sessions',
+      thresholdKeys: ['minTimeGapMinutes'],
+      ref: consecutiveSessionsRef
+    },
+    {
+      id: 'repeated-behavior',
+      title: 'Repeated Behavior',
+      thresholdKeys: ['behaviorThreshold'],
+      ref: repeatedBehaviorRef
+    },
+    {
+      id: 'impossible-travel',
+      title: 'Impossible Travel',
+      thresholdKeys: ['minDistanceKm', 'minTravelTimeMinutes'],
+      ref: impossibleTravelRef
     }
   ];
 
@@ -127,8 +192,12 @@ const Settings = () => {
       <div className="rules-overview">
         <h2>Detection Rules</h2>
         <div className="rules-list">
-          {detectionRules.map((rule, index) => (
-            <div className="rule-card" key={index}>
+          {detectionRules.map((rule) => (
+            <div
+              className="rule-card"
+              key={rule.id}
+              onClick={() => scrollToThreshold(rule.scrollRef)}
+            >
               <div className="rule-header">
                 <h3>{rule.title}</h3>
               </div>
@@ -151,30 +220,42 @@ const Settings = () => {
       <div className="thresholds-section">
         <h2>Adjust Thresholds</h2>
         <form onSubmit={handleSubmit}>
-          {Object.entries(thresholds).map(([key, value]) => (
-            <div className="threshold-group" key={key}>
+          {thresholdGroups.map((group) => (
+            <div
+              className="threshold-group"
+              key={group.id}
+              ref={group.ref}
+            >
               <div className="threshold-header">
-                <h3>{formatLabel(key)}</h3>
+                <h3>{group.title}</h3>
                 <div className="threshold-rules">
                   <span className="affects-label">Affects:</span>
-                  {ruleAffects[key as keyof FraudThresholds].map((rule, idx) => (
-                    <span className="rule-name" key={idx}>{rule}</span>
-                  ))}
+                  {detectionRules
+                    .filter(rule => rule.id === group.id)
+                    .map(rule => (
+                      <span className="rule-name" key={rule.id}>{rule.title}</span>
+                    ))}
                 </div>
               </div>
-              <div className="threshold-description">
-                {thresholdDescriptions[key as keyof FraudThresholds]}
-              </div>
-              <div className="threshold-control">
-                <input
-                  type="number"
-                  name={key}
-                  value={value}
-                  onChange={handleChange}
-                  step={key.includes('Volume') || key.includes('Distance') || key.includes('Cost') ? '0.1' : '1'}
-                  min="0"
-                />
-              </div>
+
+              {group.thresholdKeys.map((key) => (
+                <React.Fragment key={key}>
+                  <div className="threshold-description">
+                    {thresholdDescriptions[key as keyof FraudThresholds]}
+                  </div>
+                  <div className="threshold-control">
+                    <label>{formatLabel(key)}</label>
+                    <input
+                      type="number"
+                      name={key}
+                      value={thresholds[key as keyof FraudThresholds]}
+                      onChange={handleChange}
+                      step={key.includes('Volume') || key.includes('Distance') || key.includes('Cost') ? '0.1' : '1'}
+                      min="0"
+                    />
+                  </div>
+                </React.Fragment>
+              ))}
             </div>
           ))}
 

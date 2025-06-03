@@ -3,3 +3,6 @@ GET http://localhost:8000/api/overlapping-cluster/NLLMS240986798
 
 GET http://localhost:8000/api/user-details/¥47C81124A1394	
 ###
+
+Get http://localhost:8000/api/overlapping-details/64377526
+####

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-from data.DbContext import DbContext
+from backend.data.DbContext import DbContext
 
 router = APIRouter()
 

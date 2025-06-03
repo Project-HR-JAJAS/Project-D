@@ -35,6 +35,8 @@ export interface OverlappingSession {
     Volume: number;
     OverlappingCount?: number;
     Calculated_Cost: number;
+    Charge_Point_ID: string;
+    Charge_Point_Country: string;
 }
 
 interface DataContextType {
@@ -137,21 +139,56 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Load Overlapping Sessions
         setLoading(prev => ({ ...prev, overlappingSessions: true }));
         try {
-            const response = await fetch('http://localhost:8000/api/overlapping-sessions');
-            if (!response.ok) {
-                throw new Error('Failed to fetch overlapping sessions');
-            }
-            const data = await response.json();
+                // const response = await fetch('http://localhost:8000/api/overlapping-sessions');
+                // if (!response.ok) {
+                //     throw new Error('Failed to fetch overlapping sessions');
+                // }
+                // const data = await response.json();
 
-            const cleanedData: OverlappingSession[] = data.map((item: OverlappingSession) => ({
-                ...item,
-                Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')),
-                OverlappingCount: item.OverlappingCount !== undefined ? Number(item.OverlappingCount) : undefined,
-                Calculated_Cost: parseFloat((item.Calculated_Cost ?? '0').toString().replace(',', '.')),
-            }));
+                // const cleanedData: OverlappingSession[] = data.map((item: OverlappingSession) => ({
+                //     ...item,
+                //     Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')),
+                //     OverlappingCount: item.OverlappingCount !== undefined ? Number(item.OverlappingCount) : undefined,
+                //     Calculated_Cost: parseFloat((item.Calculated_Cost ?? '0').toString().replace(',', '.')),
+                // }));
 
-            setOverlappingSessions(Array.isArray(cleanedData) ? cleanedData : []);
-            setError(prev => ({ ...prev, overlappingSessions: undefined }));
+                // const response = await fetch('http://localhost:8000/api/overlapping-cluster-count');
+                // if (!response.ok) {
+                //     throw new Error('Failed to fetch overlapping cluster count');
+                // }
+                // const data = await response.json();
+
+                // const cleanedData: OverlappingSession[] = data.map((item: any) => ({
+                //     Authentication_ID: item.Authentication_ID ?? '',
+                //     CDR_ID: '',
+                //     Start_datetime: '',
+                //     End_datetime: '',
+                //     Charge_Point_City: '',
+                //     Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')) || 0,
+                //     Calculated_Cost: parseFloat((item.Calculated_Cost ?? '0').toString().replace(',', '.')) || 0,
+                //     OverlappingCount: item.ClusterCount ?? 0,
+                // }));
+
+                const response = await fetch('http://localhost:8000/api/overlapping-stats');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch overlapping cluster count');
+                }
+                const data = await response.json();
+
+                const cleanedData: OverlappingSession[] = data.map((item: any) => ({
+                    Authentication_ID: item.Authentication_ID ?? '',
+                    CDR_ID: '',
+                    Start_datetime: '',
+                    End_datetime: '',
+                    Charge_Point_City: '',
+                    Volume: parseFloat((item.TotalVolume ?? '0').toString().replace(',', '.')) || 0,
+                    Calculated_Cost: parseFloat((item.TotalCost ?? '0').toString().replace(',', '.')) || 0,
+                    OverlappingCount: item.ClusterCount ?? 0,
+                }));
+
+                setOverlappingSessions(Array.isArray(cleanedData) ? cleanedData : []);
+                setError(prev => ({ ...prev, overlappingSessions: undefined }));
+
         } catch (err) {
             setError(prev => ({
                 ...prev,

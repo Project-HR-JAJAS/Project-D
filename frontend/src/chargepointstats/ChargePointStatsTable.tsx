@@ -150,6 +150,7 @@ const ChargePointStatsTable: React.FC = () => {
                 <div>
                     <select
                         value={searchField}
+                        title="Search by Charge Point ID or Country"
                         onChange={e => setSearchField(e.target.value as 'Charge_Point_ID' | 'Charge_Point_Country')}
                         className="table-search-dropdown"
                     >
@@ -233,6 +234,7 @@ const ChargePointStatsTable: React.FC = () => {
                                     {showInput[side] ? (
                                         <input
                                             type="text"
+                                            placeholder={`${page}`}
                                             className="pagination-input"
                                             value={inputValue}
                                             onChange={handleInputChange}

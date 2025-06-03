@@ -167,47 +167,7 @@ async def export_excel(format: str = "xlsx", columns: Optional[str] = Query(None
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {str(e)}")
 
-# @app.get("/api/charge-counts")
-# async def get_charge_counts():
-#     try:
-#         db = DbContext()
-#         db.connect()
-        
-#         # Define time ranges
-#         time_ranges = [
-#             ('0000-0900', "time(Start_datetime) >= '00:00:00' AND time(Start_datetime) < '09:00:00'"),
-#             ('0900-1300', "time(Start_datetime) >= '09:00:00' AND time(Start_datetime) < '13:00:00'"),
-#             ('1300-1700', "time(Start_datetime) >= '13:00:00' AND time(Start_datetime) < '17:00:00'"),
-#             ('1700-2100', "time(Start_datetime) >= '17:00:00' AND time(Start_datetime) < '21:00:00'"),
-#             ('2100-0000', "time(Start_datetime) >= '21:00:00' AND time(Start_datetime) <= '23:59:59'")
-#         ]
-        
-#         results = []
-#         for time_range, condition in time_ranges:
-#             query = f"SELECT COUNT(*) as count FROM CDR WHERE {condition}"
-#             cursor = db.connection.cursor()
-#             cursor.execute(query)
-#             count = cursor.fetchone()[0]
-#             results.append({
-#                 "TimeRange": time_range,
-#                 "TotalCharges": count
-#             })
-        
-#         db.close()
-#         return Response(
-#             content=json.dumps(results),
-#             media_type="application/json",
-#             headers={
-#                 "Cache-Control": "no-cache, no-store, must-revalidate",
-#                 "Pragma": "no-cache",
-#                 "Expires": "0"
-#             }
-#         )
-        
-#     except Exception as e:
-#         if db.connection:
-#             db.close()
-#         raise HTTPException(status_code=500, detail=f"Error fetching charge counts: {str(e)}")
+
 
 
 @app.get("/tabel/all")
@@ -286,25 +246,6 @@ def export_db_to_file():
     root = Tk()
     root.withdraw()  # hides the Tkinter window
 
-#     output_path = asksaveasfilename(
-#         title="Save as",
-#         defaultextension=".xlsx",
-#         filetypes=[
-#             ("Excel file", "*.xlsx *.xls"), ("CSV file", "*.csv")
-#         ]
-#     )
-
-#     root.destroy()
-
-#     if not output_path:
-#         print("Export cancelled.")
-#         return
-
-#     success = db.export_cdr_to_file(output_path)
-#     if success:
-#         print("Export completed.")
-#     else:
-#         print("Export failed.")
 
 @app.get("/api/overlapping-sessions")
 async def get_overlapping_sessions():
@@ -315,28 +256,6 @@ async def get_overlapping_sessions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# # Filters op datum, locatie, gebruiker
-# @app.get("/api/overlapping-sessions")
-# async def get_overlapping_sessions(
-#     start_date: Optional[str] = Query(None),
-#     end_date: Optional[str] = Query(None),
-#     city: Optional[str] = Query(None),
-#     auth_id: Optional[str] = Query(None),
-# ):
-#     try:
-#         db = DbContext()
-#         sessions = db.get_overlapping_sessions()
-#         if start_date:
-#             sessions = [s for s in sessions if s['Start_datetime'] >= start_date]
-#         if end_date:
-#             sessions = [s for s in sessions if s['End_datetime'] <= end_date]
-#         if city:
-#             sessions = [s for s in sessions if s['Charge_Point_City'] == city]
-#         if auth_id:
-#             sessions = [s for s in sessions if s['Authentication_ID'] == auth_id]
-#         return sessions
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoit die Authentication_ID, ClusterCount (aantal unieke CDR_IDs in het cluster), TotalVolume, TotalCost haalt
 @app.get('/api/overlapping-stats')
@@ -374,15 +293,6 @@ async def get_overlapping_details_for_cdr(cdr_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching overlapping details: {str(e)}")
 
-# # Endpoint voor details per sessie
-# @app.get("/api/overlapping-sessions/{cdr_id}")
-# async def get_overlaps_for_cdr(cdr_id: str):
-#     try:
-#         db = DbContext()
-#         sessions = db.get_all_overlapping_for_cdr(cdr_id)
-#         return sessions
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
 
 
 # Endpoint die alle statistieken per Authentication_ID retourneert voor gebruik in frontend-tabellen

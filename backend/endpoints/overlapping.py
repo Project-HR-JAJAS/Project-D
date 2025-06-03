@@ -4,14 +4,14 @@ from backend.data.DbContext import DbContext
 router = APIRouter()
 
 
-@router.get("/api/overlapping-sessions")
-async def get_overlapping_sessions():
-    try:
-        db = DbContext()
-        sessions = db.get_overlapping_sessions()
-        return sessions
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.get("/api/overlapping-sessions")
+# async def get_overlapping_sessions():
+#     try:
+#         db = DbContext()
+#         sessions = db.get_overlapping_sessions()
+#         return sessions
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 # Endpoit die Authentication_ID, ClusterCount (aantal unieke CDR_IDs in het cluster), TotalVolume, TotalCost haalt
@@ -32,12 +32,12 @@ async def get_overlapping_sessions_by_auth_id(auth_id: str):
         raise HTTPException(status_code=500, detail=f"Error fetching overlapping sessions: {str(e)}")
 
 
-# Endpoint die het hele cluster per Authentication_ID telt 
-@router.get('/api/overlapping-cluster-count')
-async def get_overlapping_cluster_count():
-    db = DbContext()
-    result = db.get_overlapping_cluster_count()
-    return result
+# # Endpoint die het hele cluster per Authentication_ID telt 
+# @router.get('/api/overlapping-cluster-count')
+# async def get_overlapping_cluster_count():
+#     db = DbContext()
+#     result = db.get_overlapping_cluster_count()
+#     return result
 
 
 # Endpoit dat de details ophaalt van overlappende CDR’s voor een specifieke CDR_ID.

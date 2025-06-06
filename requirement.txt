@@ -7,3 +7,5 @@ openpyxl>=3.0.7
 geopy>=2.2.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+pytest
+httpx

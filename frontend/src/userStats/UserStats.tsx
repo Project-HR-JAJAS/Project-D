@@ -23,11 +23,12 @@ const UserStats: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAuthId, setSelectedAuthId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [fraudOnly, setFraudOnly] = useState(false);
-  const [fraudAuthStats, setFraudAuthStats] = useState<UserStat[] | null>(null);
+  const [fraudFilter, setFraudFilter] = useState<'all' | 'fraud' | string>('all');
+  const [filteredStats, setFilteredStats] = useState<UserStat[]>([]);
+
   const itemsPerPage = 50;
   
-  const dataToDisplay = fraudOnly ? (fraudAuthStats ?? []) : userStats;
+  const dataToDisplay = filteredStats ?? [];
 
   const filteredData = dataToDisplay.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,13 +52,22 @@ const UserStats: React.FC = () => {
   const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
-    if (fraudOnly && fraudAuthStats === null) {
+    if (fraudFilter === 'all') {
+      setFilteredStats(userStats);
+    } else if (fraudFilter === 'fraud') {
       fetch('http://localhost:8000/api/all-authentication-ids-with-fraud')
         .then(res => res.json())
-        .then(data => setFraudAuthStats(data))
+        .then(data => setFilteredStats(data))
         .catch(err => console.error('Error fetching fraud stats:', err));
+    } else if (fraudFilter.startsWith('type:')) {
+      const reason = fraudFilter.split(':')[1];
+      fetch(`http://localhost:8000/api/all-authentication-ids-with-specific-fraud/${encodeURIComponent(reason)}`)
+        .then(res => res.json())
+        .then(data => setFilteredStats(data))
+        .catch(err => console.error('Error fetching stats by reason:', err));
     }
-  }, [fraudOnly]);
+  }, [fraudFilter, userStats]);
+
 
   const handleSort = (key: keyof UserStat) => {
     setSortConfig(prev => {
@@ -172,12 +182,25 @@ const UserStats: React.FC = () => {
       </div>
       <div style={{ marginBottom: '1rem' }}>
         <label>
-          <input
-            type="checkbox"
-            checked={fraudOnly}
-            onChange={() => setFraudOnly(prev => !prev)}
-          />{' '}
-          Show only users involved in fraud
+          Filter by: &nbsp;
+          <select
+            value={fraudFilter}
+            onChange={(e) => {
+              setFraudFilter(e.target.value as any);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="all">All Users</option>
+            <option value="fraud">Fraudulent Users (Any Reason)</option>
+            <option value="type:Reason1">Fraud: High volume in a short duration</option>
+            <option value="type:Reason2">Fraud: Unusual cost per kWh</option>
+            <option value="type:Reason3">Fraud: Rapid consecutive sessions</option>
+            <option value="type:Reason4">Fraud: Overlapping sessions</option>
+            <option value="type:Reason5">Fraud: Repeating behaviour?</option>
+            <option value="type:Reason6">Fraud: Data integrity violation</option>
+            <option value="type:Reason7">Fraud: Unrealistic movement</option>
+            
+          </select>
         </label>
       </div>
       <div className="userstats-table-wrapper">

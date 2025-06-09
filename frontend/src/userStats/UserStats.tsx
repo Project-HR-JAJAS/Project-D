@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
 import UserDetailsModal from './UserDetailsModal';
 import TableExportButton from '../exportButton/TableExportButton';
+import { fetchAllFraudStats, fetchStatsByFraudType } from './UserStats.api';
 
 interface UserStat {
   Authentication_ID: string;
@@ -52,22 +53,19 @@ const UserStats: React.FC = () => {
   const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
-    if (fraudFilter === 'all') {
-      setFilteredStats(userStats);
-    } else if (fraudFilter === 'fraud') {
-      fetch('http://localhost:8000/api/all-authentication-ids-with-fraud')
-        .then(res => res.json())
-        .then(data => setFilteredStats(data))
-        .catch(err => console.error('Error fetching fraud stats:', err));
-    } else if (fraudFilter.startsWith('type:')) {
-      const reason = fraudFilter.split(':')[1];
-      fetch(`http://localhost:8000/api/all-authentication-ids-with-specific-fraud/${encodeURIComponent(reason)}`)
-        .then(res => res.json())
-        .then(data => setFilteredStats(data))
-        .catch(err => console.error('Error fetching stats by reason:', err));
-    }
-  }, [fraudFilter, userStats]);
-
+  if (fraudFilter === 'all') {
+    setFilteredStats(userStats);
+  } else if (fraudFilter === 'fraud') {
+    fetchAllFraudStats()
+      .then(data => setFilteredStats(data))
+      .catch(err => console.error('Error fetching fraud stats:', err));
+  } else if (fraudFilter.startsWith('type:')) {
+    const reason = fraudFilter.split(':')[1];
+    fetchStatsByFraudType(reason)
+      .then(data => setFilteredStats(data))
+      .catch(err => console.error('Error fetching stats by reason:', err));
+  }
+}, [fraudFilter, userStats]);
 
   const handleSort = (key: keyof UserStat) => {
     setSortConfig(prev => {
@@ -180,7 +178,7 @@ const UserStats: React.FC = () => {
           className="table-search"
         />
       </div>
-      <div style={{ marginBottom: '1rem' }}>
+      <div>
         <label>
           Filter by: &nbsp;
           <select
@@ -189,6 +187,7 @@ const UserStats: React.FC = () => {
               setFraudFilter(e.target.value as any);
               setCurrentPage(1);
             }}
+            className="table-filter-dropdown"
           >
             <option value="all">All Users</option>
             <option value="fraud">Fraudulent Users (Any Reason)</option>

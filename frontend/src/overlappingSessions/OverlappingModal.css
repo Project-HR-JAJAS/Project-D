@@ -9,13 +9,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding-top: 30px;
+    padding-bottom: 60px;
   }
   
   .modal-content {
     background-color: white;
     padding: 30px;
     border-radius: 8px;
-    max-width: 1200px !important;
+    max-width: 1300px !important;
     width: 100%;
     max-height: 90%;
     overflow-y: auto;

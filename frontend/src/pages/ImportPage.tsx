@@ -1,108 +1,137 @@
-import React, { useState } from 'react';
-import './ImportPage.css';
+// import React, { useState } from 'react';
+// import './ImportPage.css';
+// import { useData } from '../context/DataContext';
+// import ImportHistory from './ImportHistory';
 
-const ImportPage: React.FC = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const [uploadTime, setUploadTime] = useState<number | null>(null);
+// const ImportPage: React.FC = () => {
+//   const [files, setFiles] = useState<File[]>([]);
+//   const [loading, setLoading] = useState(false);
+//   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+//   const [uploadTime, setUploadTime] = useState<number | null>(null);
+//   const [showHistory, setShowHistory] = useState(false);
+//   const { refreshData } = useData();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
-      setMessage(null);
-      setUploadTime(null);
-    }
-  };
+//   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+//     if (event.target.files) {
+//       setFiles(Array.from(event.target.files));
+//       setMessage(null);
+//       setUploadTime(null);
+//     }
+//   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setMessage({ type: 'error', text: 'Please select a file first' });
-      return;
-    }
+//   const handleUpload = async () => {
+//     if (!files.length) {
+//       setMessage({ type: 'error', text: 'Please select at least one file' });
+//       return;
+//     }
 
-    setLoading(true);
-    setMessage(null);
-    setUploadTime(null);
+//     setLoading(true);
+//     setMessage(null);
+//     setUploadTime(null);
 
-    const startTime = performance.now();
-    const formData = new FormData();
-    formData.append('file', file);
+//     let allSuccess = true;
+//     let messages: string[] = [];
+//     let totalProcessingTime = 0;
 
-    try {
-      const response = await fetch('http://localhost:8000/api/import', {
-        method: 'POST',
-        body: formData,
-      });
+//     for (const file of files) {
+//       const startTime = performance.now();
+//       const formData = new FormData();
+//       formData.append('file', file);
 
-      const data = await response.json();
-      const endTime = performance.now();
-      const clientProcessingTime = (endTime - startTime) / 1000;
+//       try {
+//         const response = await fetch('http://localhost:8000/api/import', {
+//           method: 'POST',
+//           body: formData,
+//         });
 
-      if (data.success) {
-        setMessage({ 
-          type: 'success', 
-          text: `${data.message} (Client processing time: ${clientProcessingTime.toFixed(2)}s)` 
-        });
-        setUploadTime(data.processingTime);
-      } else {
-        setMessage({ 
-          type: 'error', 
-          text: `${data.message} (Client processing time: ${clientProcessingTime.toFixed(2)}s)` 
-        });
-      }
-    } catch (error) {
-      const endTime = performance.now();
-      const clientProcessingTime = (endTime - startTime) / 1000;
-      setMessage({ 
-        type: 'error', 
-        text: `Error uploading file. Please try again. (Client processing time: ${clientProcessingTime.toFixed(2)}s)` 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+//         const data = await response.json();
+//         const endTime = performance.now();
+//         const clientProcessingTime = (endTime - startTime) / 1000;
 
-  return (
-    <div className="import-container">
-      <h1>Import Excel File</h1>
+//         if (data.success) {
+//           totalProcessingTime += data.processingTime || 0;
+//           messages.push(`✔️ ${file.name}: ${data.message} (Client: ${clientProcessingTime.toFixed(2)}s)`);
+//         } else {
+//           allSuccess = false;
+//           messages.push(`❌ ${file.name}: ${data.message} (Client: ${clientProcessingTime.toFixed(2)}s)`);
+//         }
+//       } catch (error) {
+//         allSuccess = false;
+//         messages.push(`❌ ${file.name}: Error uploading file.`);
+//       }
+//     }
 
-      <div className="file-upload-container">
-        <input
-          accept=".xlsx,.xls"
-          id="file-input"
-          type="file"
-          onChange={handleFileChange}
-        />
-        <label htmlFor="file-input" className="file-input-label">
-          Select File
-        </label>
-        {file && (
-          <p className="selected-file">Selected file: {file.name}</p>
-        )}
-      </div>
+//     await refreshData();
 
-      <button
-        className="upload-button"
-        onClick={handleUpload}
-        disabled={!file || loading}
-      >
-        {loading ? <div className="loading-spinner"></div> : 'Upload'}
-      </button>
+//     setUploadTime(totalProcessingTime);
+//     setMessage({
+//       type: allSuccess ? 'success' : 'error',
+//       text: messages.join('\n'),
+//     });
 
-      {message && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
-      )}
+//     setLoading(false);
+//   };
 
-      {uploadTime && (
-        <p className="processing-time">
-          Server processing time: {uploadTime.toFixed(2)} seconds
-        </p>
-      )}
-    </div>
-  );
-};
+//   return (
+//     <div>
+//       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+//         <button className="history-button" onClick={() => setShowHistory(true)}>
+//           Import History
+//         </button>
+        
+//       </div>
 
-export default ImportPage; 
+//       <div className='import-container'>
+//         <h1>Import Excel File</h1>
+
+//         <div className="file-upload-container">
+//           <input
+//             accept=".xlsx,.xls"
+//             id="file-input"
+//             type="file"
+//             multiple
+//             onChange={handleFileChange}
+//           />
+//           <label htmlFor="file-input" className="file-input-label">
+//             Select File(s)
+//           </label>
+//           {files.length > 0 && (
+//             <ul className="selected-file">
+//               {files.map(file => <li key={file.name}>{file.name}</li>)}
+//             </ul>
+//           )}
+//         </div>
+
+//         <button
+//           className="upload-button"
+//           onClick={handleUpload}
+//           disabled={!files.length || loading}
+//         >
+//           {loading ? <div className="loading-spinner"></div> : 'Upload'}
+//         </button>
+
+//         {message && (
+//           <div className={`message ${message.type}`} style={{ whiteSpace: 'pre-line' }}>
+//             {message.text}
+//           </div>
+//         )}
+
+//         {uploadTime !== null && (
+//           <p className="processing-time">
+//             Total server processing time: {uploadTime.toFixed(2)} seconds
+//           </p>
+//         )}
+//       </div>
+//       {showHistory && (
+//             <ImportHistory
+//               onClose={() => {
+//                 setShowHistory(false);
+//               }}
+//             />
+//           )}
+//     </div>
+//   );
+// };
+
+// export default ImportPage; 
+export {}

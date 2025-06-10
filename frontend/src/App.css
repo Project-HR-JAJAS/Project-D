@@ -29,6 +29,13 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.2s;
+  font-family: 'arial', sans-serif;
+}
+
+.nav-link-dropdown {
+  display: flex;
+  gap: 1rem;
+  font-family: 'arial', sans-serif;
 }
 
 .nav-link:hover {
@@ -36,9 +43,17 @@
 }
 
 .main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  padding-top: 64px;
+  padding: 32px 24px 24px 24px;
+  min-height: 100vh;
+  background: #f5f6fa;
+  transition: margin-left 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+@media (max-width: 700px) {
+  .main-content {
+    padding: 16px 4px 4px 4px;
+  }
 }
 
 .home-container {
@@ -77,4 +92,8 @@
 
 .import-link:hover {
   background-color: #1565c0;
+} 
+
+.custom-header {
+  z-index: 2000;
 } 

@@ -1,4 +1,4 @@
-.data-table-container {
+/* .data-table-container {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
@@ -7,29 +7,28 @@
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    font-size: 14px;
     background-color: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    table-layout: fixed;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .data-table th,
 .data-table td {
     padding: 12px;
+    border: 1px solid #ddd;
     text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.data-table th {
-    background-color: #f5f5f5;
-    font-weight: 600;
-    color: #333;
+.data-table thead {
+    background-color: #f2f2f2;
 }
 
-.data-table tr:hover {
+.data-table tr.even {
+    background-color: white;
+}
+
+.data-table tr.odd {
     background-color: #f9f9f9;
 }
 
@@ -38,77 +37,120 @@
 }
 
 .pagination-container {
+    margin-top: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 20px;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .pagination-button {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    background-color: white;
-    cursor: pointer;
+    padding: 6px 12px;
+    border: 1px solid #1976d2;
     border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.pagination-button:hover:not(:disabled) {
-    background-color: #f0f0f0;
+    margin: 0 2px;
+    cursor: pointer;
+    background: white;
+    color: #1976d2;
 }
 
 .pagination-button.active {
-    background-color: #007bff;
+    background: #1976d2;
     color: white;
-    border-color: #007bff;
+    cursor: default;
+    pointer-events: none;
 }
 
 .pagination-button:disabled {
-    cursor: not-allowed;
     opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .pagination-ellipsis {
+    padding: 6px 12px;
+    color: #888;
     cursor: pointer;
-    padding: 8px;
-    color: #666;
 }
 
 .pagination-input {
-    width: 50px;
-    padding: 8px;
+    width: 100px;
     text-align: center;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
+.userstats-search-wrapper {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.userstats-search-wrapper h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.userstats-search {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+}
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header:hover {
+    text-decoration: underline;
+    text-decoration-color: blue;
+    color: blue;
+}
+
+
 .data-table th:nth-child(1),
 .data-table td:nth-child(1) {
-    width: 180px;
+    width: 100px; 
 }
 
 .data-table th:nth-child(2),
 .data-table td:nth-child(2) {
-    width: 160px;
+    width: 220px; 
 }
 
 .data-table th:nth-child(3),
 .data-table td:nth-child(3) {
-    width: 100px;
+    width: 160px; 
 }
 
 .data-table th:nth-child(4),
 .data-table td:nth-child(4) {
-    width: 90px;
+    width: 120px; 
 }
 
 .data-table th:nth-child(5),
 .data-table td:nth-child(5) {
-    width: 180px;
+    width: 180px; 
 }
 
 .data-table th:nth-child(6),
 .data-table td:nth-child(6) {
-    width: 120px;
-} 
+    width: 120px; 
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #f0f0f0;
+}
+
+.no-data-row {
+    text-align: center;
+    color: #999;
+    background-color: #fcfcfc;
+} */

@@ -1,0 +1,34 @@
+.details-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Donkerder overlay dan normaal */
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.details-modal-content {
+  background-color: white;
+  padding: 25px;
+  border-radius: 10px;
+  max-width: 1200px !important;
+  width: 90%;
+  max-height: 85%;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  border: 3px solid #1976d2; /* Blauwe rand voor onderscheid */
+}
+
+.details-modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+}

@@ -4,134 +4,211 @@
     margin: 0 auto;
 }
 
-.back-button {
-    margin-bottom: 20px;
-    padding: 8px 16px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
 .time-range-title {
     margin-bottom: 20px;
-}
-
-.loading-message {
-    text-align: center;
-    padding: 40px;
-}
-
-.no-data-message {
-    padding: 20px;
-    text-align: center;
-    color: #666;
-}
-
-.pagination-info {
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.pagination-controls {
-    display: flex;
-    gap: 10px;
-}
-
-.pagination-button {
-    padding: 5px 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.pagination-button.disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-.page-indicator {
-    padding: 5px 10px;
+    color: #333;
 }
 
 .table-container {
     overflow-x: auto;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
 
 .charge-details-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
-    table-layout: fixed;
-}
-
-.column-Charge_Point_Address {
-    width: 250px;
-}
-
-.column-CDR_ID {
-    width: 150px;
+    margin-bottom: 20px;
 }
 
 .table-header {
-    background-color: #f2f2f2;
-}
-
-.table-header-cell {
+    background-color: #f5f5f5;
     padding: 12px;
-    border: 1px solid #ddd;
     text-align: left;
+    border: 1px solid #ddd;
     font-weight: bold;
 }
 
-.table-row {
+.table-cell {
+    padding: 12px;
     border: 1px solid #ddd;
 }
 
-.table-row.even {
-    background-color: white;
-}
-
-.table-row.odd {
+.table-row:hover {
     background-color: #f9f9f9;
 }
 
-.table-cell {
-    padding: 10px;
-    border: 1px solid #ddd;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.page-numbers {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-}
-
-.page-number-button {
-    padding: 5px 10px;
-    background-color: #f2f2f2;
-    color: #333;
-    border: 1px solid #ddd;
+.back-button {
+    padding: 8px 16px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
-.page-number-button.active {
-    background-color: #007bff;
-    color: white;
+.back-button:hover {
+    background-color: #1565c0;
 }
 
-.page-number-ellipsis {
-    padding: 5px;
+.loading-message,
+.no-data-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
 }
+
+.cdr-detail-main-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 24px;
+  background: #f7f7f7;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.cdr-detail-header {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+
+.cdr-detail-content {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.cdr-detail-section {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  padding: 24px;
+  flex: 1;
+  min-width: 320px;
+}
+
+.details-section {
+  flex: 2;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.cdr-detail-fields {
+  margin-bottom: 18px;
+}
+.cdr-detail-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.cdr-detail-label {
+  font-weight: 500;
+  color: #333;
+  min-width: 120px;
+}
+.cdr-detail-value {
+  color: #444;
+}
+.cdr-detail-reasons {
+  margin-top: 18px;
+}
+.cdr-detail-reasons ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.cdr-fraud-approve-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.cdr-fraud-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: #fff;
+  margin-left: 4px;
+  transition: background 0.2s;
+}
+.cdr-fraud-btn.approve {
+  background: #4caf50;
+}
+.cdr-fraud-btn.approve:hover {
+  background: #388e3c;
+}
+.cdr-fraud-btn.deny {
+  background: #f44336;
+}
+.cdr-fraud-btn.deny:hover {
+  background: #b71c1c;
+}
+.cdr-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cdr-avatar {
+  width: 40px;
+  height: 40px;
+  background: #3f51b5;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.cdr-username {
+  font-weight: 500;
+  color: #222;
+}
+.cdr-fraud-desc-label {
+  margin-top: 10px;
+  font-weight: 500;
+}
+.cdr-fraud-desc {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 1rem;
+  margin-top: 4px;
+  resize: vertical;
+}
+.cdr-fraud-error {
+  color: #f44336;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+.cdr-detail-section.map-section {
+  margin-top: 24px;
+  text-align: center;
+  min-height: 220px;
+  background: #eaeaea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cdr-map-placeholder {
+  font-size: 1.3rem;
+  color: #444;
+}
+.charge-details-loading, .charge-details-error {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #888;
+  margin-top: 40px;
+} 

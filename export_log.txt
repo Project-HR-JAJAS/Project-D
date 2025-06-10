@@ -1,0 +1,4 @@
+2025-05-07 13:51:05,203 - INFO - Successfully exported 12924 records to C:\Users\dauvi\AppData\Local\Temp\tmpzhddd6hh.xlsx
+2025-05-25 00:20:10,443 - INFO - Successfully exported 136771 records to C:\Users\saifa\AppData\Local\Temp\tmpihrxyp_i.xlsx
+2025-06-03 12:28:29,400 - INFO - Successfully exported 149695 records to C:\Users\Aymane\AppData\Local\Temp\tmptc6h6_fs.xlsx
+2025-06-03 12:29:36,465 - INFO - Successfully exported 149695 records to C:\Users\Aymane\AppData\Local\Temp\tmppaynan7x.xlsx

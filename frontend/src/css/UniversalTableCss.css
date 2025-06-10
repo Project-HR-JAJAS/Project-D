@@ -1,0 +1,243 @@
+.table-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.table-form {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.table-form th,
+.table-form td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.table-form thead {
+    background-color: #f2f2f2;
+}
+
+.table-form tr.even {
+    background-color: white;
+}
+
+.table-form tr.odd {
+    background-color: #f9f9f9;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.pagination-container {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-button {
+    padding: 6px 12px;
+    border: 1px solid #1976d2;
+    border-radius: 4px;
+    margin: 0 2px;
+    cursor: pointer;
+    background: white;
+    color: #1976d2;
+}
+
+.pagination-button.active {
+    background: #1976d2;
+    color: white;
+    cursor: default;
+    pointer-events: none;
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-ellipsis {
+    padding: 6px 12px;
+    color: #888;
+    cursor: pointer;
+}
+
+.pagination-input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #1976d2;
+    border-radius: 4px;
+}
+
+.pagination-input {
+  width: 50px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.table-search-wrapper {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: right;
+}
+
+.table-search-wrapper h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.table-search-dropdown {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    align-items: right;
+}
+
+.table-search {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+}
+
+.table-filter-dropdown {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    align-items: right;
+}
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header:hover {
+    text-decoration: underline;
+    text-decoration-color: blue;
+    color: blue;
+}
+
+/* Consistent column widths */
+.table-form th:nth-child(1),
+.table-form td:nth-child(1) {
+    width: 220px; /* Charge Point ID */
+}
+
+.table-form th:nth-child(2),
+.table-form td:nth-child(2) {
+    width: 160px; /* Country */
+}
+
+.table-form th:nth-child(3),
+.table-form td:nth-child(3) {
+    width: 120px; /* Transaction Count */
+}
+
+.table-form th:nth-child(4),
+.table-form td:nth-child(4) {
+    width: 120px; /* Total Volume */
+}
+
+.table-form th:nth-child(5),
+.table-form td:nth-child(5) {
+    width: 120px; /* Total Cost */
+}
+
+.table-form th:nth-child(6),
+.table-form td:nth-child(6) {
+    width: 120px; /* Calculated Cost */
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #f0f0f0;
+    
+}
+
+.no-data-row {
+    text-align: center;
+    color: #999;
+    background-color: #fcfcfc;
+}
+
+.table-preview-outer {
+  width: 100%;
+  padding: 0;
+}
+
+.table-preview-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 18px;
+  font-family: 'Georgia', serif;
+  letter-spacing: 0.5px;
+}
+
+.table-preview-table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: none;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.table-preview-table th {
+  background: #f7f8fa;
+  font-weight: 600;
+  color: #222;
+  font-size: 1.05rem;
+  border-bottom: 2px solid #ececec;
+  padding: 10px 8px;
+}
+
+.table-preview-table td {
+  background: #fff;
+  color: #222;
+  padding: 10px 8px;
+  border-bottom: 1px solid #ececec;
+}
+
+.table-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.table-preview-table .clickable-row:hover {
+  background: #f5f6fa;
+  cursor: pointer;
+}
+
+.fraud-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 24px;
+}
+
+.table-search-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 0;
+}

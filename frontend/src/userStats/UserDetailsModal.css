@@ -1,0 +1,5 @@
+@import '../overlappingSessions/OverlappingModal.css';
+
+.clickable-row {
+  cursor: pointer;
+}

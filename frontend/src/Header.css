@@ -1,0 +1,157 @@
+.custom-header {
+  width: 100%;
+  height: 64px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6c63ff;
+  letter-spacing: 1px;
+  margin-right: 32px;
+  margin-left: 32px;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.header-search {
+  display: flex;
+  align-items: center;
+  background: #f5f6fa;
+  border-radius: 6px;
+  padding: 0 12px;
+  height: 38px;
+  min-width: 440px;
+}
+
+.search-icon {
+  color: #b0b3b8;
+  font-size: 1.1rem;
+  margin-right: 8px;
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  width: 180px;
+  color: #333;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: 32px;
+}
+
+.header-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f6fa;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 1rem;
+  color: #1976d2;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.header-action-btn:hover {
+  background: #e6e9fa;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+
+.user-info:hover {
+  background: #f5f6fa;
+}
+
+.user-avatar {
+  font-size: 2rem;
+  color: #ffb366;
+}
+
+.username {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+  color: #b0b3b8;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  min-width: 140px;
+  z-index: 1200;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1rem;
+  padding: 10px 20px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #f5f6fa;
+}
+
+.dropdown-item-icon {
+  font-size: 1.1rem;
+  color: #ffb366;
+} 

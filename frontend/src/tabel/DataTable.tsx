@@ -1,38 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { fetchDataTable, PAGE_SIZE } from './DataTable.api';
-import './DataTable.css';
+import React, { useState } from 'react';
+import { PAGE_SIZE } from './DataTable.api';
+import { useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
+import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
 
-type DataTableItem = Parameters<typeof fetchDataTable>[0] extends number ? Awaited<ReturnType<typeof fetchDataTable>>['results'][number] : never;
+interface DataTableItem {
+    id: string;
+    authentication_id: string;
+    duration: string;
+    volume: number;
+    charge_point_id: string;
+    calculated_cost: number;
+}
 
 const DataTable: React.FC = () => {
-    const [data, setData] = useState<DataTableItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { dataTableItems, loading, error } = useData();
     const [currentPage, setCurrentPage] = useState(1);
-    const [total, setTotal] = useState(0);
     const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
     const [inputValue, setInputValue] = useState('');
-    const [sortConfig, setSortConfig] = useState<{key: 'volume' | 'calculated_cost' | null, direction: 'asc' | 'desc' | null}>({key: null, direction: null});
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchField, setSearchField] = useState<'id' | 'authentication_id' | 'charge_point_id'>('id');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof DataTableItem | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
+    const navigate = useNavigate();
 
-    const fetchData = async (page: number, sortKey: 'volume' | 'calculated_cost' | null, sortDir: 'asc' | 'desc' | null) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { results, total } = await fetchDataTable(page, sortKey, sortDir);
-            setData(results);
-            setTotal(total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
+    // Client-side filtering
+    const filteredStats = dataTableItems.filter((stat: DataTableItem) => {
+        const value = stat[searchField] ?? '';
+        return value.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    // Client-side sorting
+    const sortedData = [...filteredStats];
+    if (sortConfig.key && sortConfig.direction) {
+        sortedData.sort((a, b) => {
+        const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
+        const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
         }
-    };
+        return 0;
+        });
+    }
 
-    useEffect(() => {
-        fetchData(currentPage, sortConfig.key, sortConfig.direction);
-    }, [currentPage, sortConfig]);
-
-    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const currentItems = sortedData.slice(startIndex, endIndex);
 
     const handlePageClick = (page: number) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {
@@ -44,20 +58,38 @@ const DataTable: React.FC = () => {
 
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
-        if (totalPages <= 9) {
+        if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
         } else {
-            pages.push(1, 2, 3);
-            if (currentPage > 5) pages.push('left-ellipsis');
+            // Always show first 3
+            const firstPages = [1, 2, 3];
+            // Always show last 3
+            const lastPages = [totalPages - 2, totalPages - 1, totalPages];
+            // Sliding window
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
+            const middlePages = [];
             for (let i = start; i <= end; i++) {
-                if (i > 3 && i < totalPages - 2) pages.push(i);
+                middlePages.push(i);
             }
-            if (currentPage < totalPages - 4) pages.push('right-ellipsis');
-            pages.push(totalPages - 2, totalPages - 1, totalPages);
+            let allPages: (number | string)[] = [];
+            // Add first 3
+            allPages.push(...firstPages);
+            // Add ellipsis if gap between first 3 and middle
+            if (start > 4) allPages.push('ellipsis1');
+            // Add middle pages
+            for (const p of middlePages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            // Add ellipsis if gap between middle and last 3
+            if (end < totalPages - 3) allPages.push('ellipsis2');
+            // Add last 3
+            for (const p of lastPages) {
+                if (!allPages.includes(p)) allPages.push(p);
+            }
+            return allPages;
         }
-        return pages;
     };
 
     const handleEllipsisClick = (side: 'left' | 'right') => {
@@ -79,56 +111,112 @@ const DataTable: React.FC = () => {
         }
     };
 
-    const handleSort = (key: 'volume' | 'calculated_cost') => {
-        setSortConfig((prev) => {
-            if (prev.key !== key) {
-                return { key, direction: 'asc' };
-            }
-            if (prev.direction === 'asc') {
-                return { key, direction: 'desc' };
-            }
-            if (prev.direction === 'desc') {
-                return { key: null, direction: null };
-            }
+    const handleSort = (key: keyof DataTableItem) => {
+        setSortConfig(prev => {
+            if (prev.key !== key) return { key, direction: 'asc' };
+            if (prev.direction === 'asc') return { key, direction: 'desc' };
+            if (prev.direction === 'desc') return { key: null, direction: null };
             return { key, direction: 'asc' };
         });
         setCurrentPage(1);
     };
 
-    if (loading) return <div>Laden...</div>;
-    if (error) return <div>Error: {error}</div>;
-    if (!Array.isArray(data) || data.length === 0) return <div>Geen data gevonden.</div>;
+    const getSortIndicator = (key: keyof DataTableItem) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
+        }
+        return '';
+    };
+
+    if (loading.dataTable) return <div>Loading...</div>;
+    if (error.dataTable) return <div>Error: {error.dataTable}</div>;
+
+    const exportColumns = [
+    { label: 'CDR ID', key: 'id' },
+    { label: 'Authentication ID', key: 'authentication_id' },
+    { label: 'Duration', key: 'duration' },
+    { label: 'Volume (kWh)', key: 'volume' },
+    { label: 'Charge Point ID', key: 'charge_point_id' },
+    { label: 'Calculated Cost (€)', key: 'calculated_cost' },
+    ];
 
     return (
-        <div className="data-table-container">
-            <h2>Data Tabel</h2>
+        <div className="table-container">
+            <div className="table-search-wrapper">
+                <h2>Data Table</h2>
+                <TableExportButton
+                data={currentItems}
+                columns={exportColumns}
+                filename="cdr_data"
+                format="xlsx"
+                />
+                <div>
+                    <select
+                        value={searchField}
+                        onChange={e => setSearchField(e.target.value as 'id' | 'authentication_id' | 'charge_point_id')}
+                        className="table-search-dropdown"
+                    >
+                        <option value="id">CDR ID</option>
+                        <option value="authentication_id">Authentication ID</option>
+                        <option value="charge_point_id">Charge Point ID</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder={
+                            searchField === 'id'
+                                ? 'Search by CDR ID...'
+                                : searchField === 'authentication_id'
+                                ? 'Search by Authentication ID...'
+                                : 'Search by Charge Point ID...'
+                        }
+                        value={searchTerm}
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="table-search"
+                    />
+                </div>
+            </div>
             <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
+                <table className="table-form">
                     <thead>
                         <tr>
                             <th>CDR ID</th>
                             <th>Authentication ID</th>
                             <th>Duration</th>
-                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('volume')}>
-                                Volume {sortConfig.key === 'volume' ? (sortConfig.direction === 'asc' ? '▲' : sortConfig.direction === 'desc' ? '▼' : '') : ''}
+                            <th className="sortable-header" onClick={() => handleSort('volume')}>
+                                Volume{getSortIndicator('volume')}
                             </th>
                             <th>Charge Point ID</th>
-                            <th style={{ cursor: 'pointer' }} onClick={() => handleSort('calculated_cost')}>
-                                Calculated Cost {sortConfig.key === 'calculated_cost' ? (sortConfig.direction === 'asc' ? '▲' : sortConfig.direction === 'desc' ? '▼' : '') : ''}
+                            <th className="sortable-header" onClick={() => handleSort('calculated_cost')}>
+                                Calculated Cost {getSortIndicator('calculated_cost')}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((item) => (
-                            <tr key={item.id}>
-                                <td>{item.id}</td>
-                                <td>{item.authentication_id}</td>
-                                <td>{item.duration}</td>
-                                <td className="text-right">{Number(item.volume).toFixed(3)}</td>
-                                <td>{item.charge_point_id}</td>
-                                <td className="text-right">{Number(item.calculated_cost).toFixed(2)}</td>
+                        {currentItems.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} className="no-data-row">
+                                    No results found for: <strong>{searchTerm}</strong>
+                                </td>
                             </tr>
-                        ))}
+                        ) : (
+                            currentItems.map((item) => (
+                                <tr 
+                                    key={item.id} 
+                                    onClick={() => navigate(`/cdr-details/${item.id}`)}
+                                    className="clickable-row"
+                                >
+                                    <td>{item.id}</td>
+                                    <td>{item.authentication_id}</td>
+                                    <td>{item.duration}</td>
+                                    <td className="text-right">{item.volume}</td>
+                                    <td>{item.charge_point_id}</td>
+                                    <td className="text-right">{item.calculated_cost}</td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
@@ -138,73 +226,52 @@ const DataTable: React.FC = () => {
                     onClick={() => handlePageClick(currentPage - 1)} 
                     disabled={currentPage === 1}
                 >
-                    Vorige
+                    Previous
                 </button>
-                {getPageNumbers().map((page, idx) => {
-                    if (page === 'left-ellipsis') {
-                        return showInput.left ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('left'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('left')}
+                {(getPageNumbers() ?? []).map((page) => {
+                    if (typeof page === 'number') {
+                        return (
+                            <button
+                                key={page}
+                                onClick={() => handlePageClick(page)}
+                                className={`pagination-button ${page === currentPage ? 'active' : ''}`}
                             >
-                                ...
+                                {page}
+                            </button>
+                        );
+                    } else if (page === 'ellipsis1' || page === 'ellipsis2') {
+                        const side = page === 'ellipsis1' ? 'left' : 'right';
+                        return (
+                            <span key={page} className="pagination-ellipsis">
+                                {showInput[side] ? (
+                                    <input
+                                        type="text"
+                                        className="pagination-input"
+                                        value={inputValue}
+                                        onChange={handleInputChange}
+                                        onBlur={() => handleInputSubmit(side)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleInputSubmit(side);
+                                        }}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                                )}
                             </span>
                         );
                     }
-                    if (page === 'right-ellipsis') {
-                        return showInput.right ? (
-                            <input
-                                key={idx}
-                                type="text"
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onBlur={() => setShowInput({left: false, right: false})}
-                                onKeyDown={e => { if (e.key === 'Enter') handleInputSubmit('right'); }}
-                                className="pagination-input"
-                                autoFocus
-                            />
-                        ) : (
-                            <span 
-                                key={idx} 
-                                className="pagination-ellipsis" 
-                                onClick={() => handleEllipsisClick('right')}
-                            >
-                                ...
-                            </span>
-                        );
-                    }
-                    return (
-                        <button
-                            key={page}
-                            onClick={() => handlePageClick(Number(page))}
-                            className={`pagination-button ${page === currentPage ? 'active' : ''}`}
-                        >
-                            {page}
-                        </button>
-                    );
                 })}
                 <button 
                     className="pagination-button"
                     onClick={() => handlePageClick(currentPage + 1)} 
                     disabled={currentPage === totalPages}
                 >
-                    Volgende
+                    Next
                 </button>
             </div>
         </div>
     );
 };
 
-export default DataTable; 
+export default DataTable;

@@ -6,14 +6,10 @@
 - Amer Alhasoun 0992644
 - Jasper van der Laan 1073788
 - Stéphane Dauvillier 1060531
-- Jordy Mahn 1035230
 
+Inside Project-D directory -> run backend with: 
+```python -m backend.program``` 
 
-
-EXTENSIONS:
-
-PYTHON DEBUGGER
-PYTHON EXTENSION PACK
-PYTHON SNIPPETS 
-
+In frontend directory run frontend with: 
+```yarn start```
 ---

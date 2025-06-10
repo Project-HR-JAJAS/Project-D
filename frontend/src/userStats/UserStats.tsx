@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
 import UserDetailsModal from './UserDetailsModal';
 import TableExportButton from '../exportButton/TableExportButton';
+import { fetchAllFraudStats, fetchStatsByFraudType } from './UserStats.api';
 
 interface UserStat {
   Authentication_ID: string;
@@ -23,9 +24,14 @@ const UserStats: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAuthId, setSelectedAuthId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const itemsPerPage = 50;
+  const [fraudFilter, setFraudFilter] = useState<'all' | 'fraud' | string>('all');
+  const [filteredStats, setFilteredStats] = useState<UserStat[]>([]);
 
-  const filteredData = userStats.filter(item =>
+  const itemsPerPage = 50;
+  
+  const dataToDisplay = filteredStats ?? [];
+
+  const filteredData = dataToDisplay.filter(item =>
     (item.Authentication_ID ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -45,6 +51,21 @@ const UserStats: React.FC = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+  if (fraudFilter === 'all') {
+    setFilteredStats(userStats);
+  } else if (fraudFilter === 'fraud') {
+    fetchAllFraudStats()
+      .then(data => setFilteredStats(data))
+      .catch(err => console.error('Error fetching fraud stats:', err));
+  } else if (fraudFilter.startsWith('type:')) {
+    const reason = fraudFilter.split(':')[1];
+    fetchStatsByFraudType(reason)
+      .then(data => setFilteredStats(data))
+      .catch(err => console.error('Error fetching stats by reason:', err));
+  }
+}, [fraudFilter, userStats]);
 
   const handleSort = (key: keyof UserStat) => {
     setSortConfig(prev => {
@@ -156,6 +177,30 @@ const UserStats: React.FC = () => {
           }}
           className="table-search"
         />
+      </div>
+      <div>
+        <label>
+          Filter by: &nbsp;
+          <select
+            value={fraudFilter}
+            onChange={(e) => {
+              setFraudFilter(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="table-filter-dropdown"
+          >
+            <option value="all">All Users</option>
+            <option value="fraud">Fraudulent Users (Any Reason)</option>
+            <option value="type:Reason1">Fraud: High volume in a short duration</option>
+            <option value="type:Reason2">Fraud: Unusual cost per kWh</option>
+            <option value="type:Reason3">Fraud: Rapid consecutive sessions</option>
+            <option value="type:Reason4">Fraud: Overlapping sessions</option>
+            <option value="type:Reason5">Fraud: Repeating behaviour?</option>
+            <option value="type:Reason6">Fraud: Data integrity violation</option>
+            <option value="type:Reason7">Fraud: Unrealistic movement</option>
+            
+          </select>
+        </label>
       </div>
       <div className="userstats-table-wrapper">
             <table className="table-form">

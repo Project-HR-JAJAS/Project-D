@@ -20,6 +20,7 @@ from backend.endpoints.user_stats import router as user_stats_router
 from backend.endpoints.User import router as user_router
 from backend.endpoints.CDR import router as cdr_router
 from backend.endpoints.locations import router as locations_router
+from backend.fraud_per_user.fraud_per_user import router as fraud_per_user_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +39,7 @@ app.add_middleware(
 
 app.include_router(settings_router)
 app.include_router(tijdvlak_router)
+app.include_router(fraud_per_user_router)
 app.include_router(import_router)
 app.include_router(export_router)
 app.include_router(tabel_router)

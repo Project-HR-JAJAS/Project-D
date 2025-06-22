@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './UserDetailsModal.css';
 import '../css/UniversalTableCss.css';
 import TableExportButton from '../exportButton/TableExportButton';
@@ -38,6 +39,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
   const [currentPage, setCurrentPage] = useState(1);
   const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
   const [inputValue, setInputValue] = useState('');
+  const navigate = useNavigate();
 
   /* Fetch */
   useEffect(() => {
@@ -192,7 +194,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
               </thead>
               <tbody>
                 {currentItems.map(row => (
-                  <tr key={row.CDR_ID}>
+                  <tr 
+                    key={row.CDR_ID} 
+                    onClick={() => navigate(`/cdr-details/${row.CDR_ID}`)} 
+                    className="clickable-row"
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td>{row.CDR_ID}</td>
                     <td>{row.Charge_Point_ID}</td>
                     <td>{formatDate(row.Start_datetime)}</td>
@@ -206,6 +213,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
                 ))}
               </tbody>
             </table>
+
 
             {/* Pagination */}
             <div className="pagination-container">

@@ -145,7 +145,7 @@ const DataTable: React.FC = () => {
             <div className="table-search-wrapper">
                 <h2>Data Table</h2>
                 <TableExportButton
-                data={currentItems}
+                data={sortedData}
                 columns={exportColumns}
                 filename="cdr_data"
                 format="xlsx"

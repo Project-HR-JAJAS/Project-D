@@ -245,7 +245,7 @@ const ChargeDetails: React.FC = () => {
                 <div>
 
                 <TableExportButton
-                    data={currentItems}
+                    data={sortedData}
                     columns={exportColumns}
                     filename={`charge_details_${timeRange}`}
                     format="xlsx"

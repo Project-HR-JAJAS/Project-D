@@ -142,7 +142,7 @@ const ChargePointStatsTable: React.FC = () => {
             <div className="table-search-wrapper">
                 <h2>Charge Point Statistics</h2>
                 <TableExportButton
-                data={currentStats}
+                data={sortedStats}
                 columns={exportColumns}
                 filename="charge_point_stats"
                 format="xlsx"

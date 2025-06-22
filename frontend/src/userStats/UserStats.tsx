@@ -162,7 +162,7 @@ const UserStats: React.FC = () => {
       <div className="table-search-wrapper">
         <h2 >User Statistics by Authentication ID</h2>
         <TableExportButton
-          data={currentItems}
+          data={sortedData}
           columns={exportColumns}
           filename="user_statistics"
           format="xlsx"

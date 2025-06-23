@@ -12,4 +12,7 @@ Inside Project-D directory -> run backend with:
 
 In frontend directory run frontend with: 
 ```yarn start```
+
+To test the application you have to do the following for unittests:
+```python -m pytest```
 ---

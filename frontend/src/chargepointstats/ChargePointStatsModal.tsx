@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './UserDetailsModal.css';
+import '../userStats/UserDetailsModal.css';
 import '../css/UniversalTableCss.css';
 import TableExportButton from '../exportButton/TableExportButton';
 
@@ -11,19 +11,19 @@ interface CdrDetail {
   End_datetime: string;
   Duration: number;
   Volume: number;
-  Charge_Point_ID: string;
+  Authentication_ID: string;
   Charge_Point_City: string;
   Charge_Point_Country: string;
   Calculated_Cost: number;
 }
 
-interface UserDetailsModalProps {
-  authId: string;
+interface ChargeModalProps {
+  ChargeID: string;
   onClose: () => void;
 }
 
 /* ──────────────── Component ──────────────── */
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) => {
+const UserDetailsModal: React.FC<ChargeModalProps> = ({ ChargeID, onClose }) => {
   /* Data */
   const [details, setDetails] = useState<CdrDetail[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +43,11 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+
   /* Fetch */
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/user-details/${authId}`)
+    fetch(`http://localhost:8000/api/charge-point-details/${ChargeID}`)
       .then(res => res.json())
       .then(data => {
         const cleaned = data.map((item: any) => ({
@@ -57,7 +58,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
         setDetails(cleaned);
       })
       .finally(() => setLoading(false));
-  }, [authId]);
+  }, [ChargeID]);
 
   /* Helpers */
   const formatDate = (val: string) => new Date(val).toLocaleString();
@@ -147,7 +148,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
   /* Export definition */
   const exportColumns = [
     { label: 'CDR ID', key: 'CDR_ID' },
-    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+    { label: 'Authentication ID', key: 'Authentication_ID' },
     { label: 'Start Time', key: 'Start_datetime' },
     { label: 'End Time', key: 'End_datetime' },
     { label: 'Duration (min)', key: 'Duration' },
@@ -164,7 +165,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
         <button className="modal-close" onClick={onClose}>
           ×
         </button>
-        <h2 className="modal-title">CDR Details for Authentication ID: {authId}</h2>
+        <h2 className="modal-title">CDR Details for Charge Point ID: {ChargeID}</h2>
 
         {loading ? (
           <p className="modal-loading">Loading...</p>
@@ -178,16 +179,16 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
             <label>To:</label>
             <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
-            <TableExportButton data={sortedDetails} columns={exportColumns} filename={`cdr_details_${authId}`} format="xlsx"
-                    dateKey="Start_datetime"
-                    fromDate={fromDate}
-                    toDate={toDate}/>
+            <TableExportButton data={sortedDetails} columns={exportColumns} filename={`cdr_details_${ChargeID}`} format="xlsx"
+                dateKey="Start_datetime"
+                fromDate={fromDate}
+                toDate={toDate}/>
 
             <table className="modal-table">
               <thead>
                 <tr>
                   <th>CDR ID</th>
-                  <th>Charge Point ID</th>
+                  <th>Authentication ID</th>
                   <th>Start Time</th>
                   <th>End Time</th>
                   <th>Duration (min)</th>
@@ -212,7 +213,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ authId, onClose }) 
                     style={{ cursor: 'pointer' }}
                   >
                     <td>{row.CDR_ID}</td>
-                    <td>{row.Charge_Point_ID}</td>
+                    <td>{row.Authentication_ID}</td>
                     <td>{formatDate(row.Start_datetime)}</td>
                     <td>{formatDate(row.End_datetime)}</td>
                     <td>{row.Duration}</td>

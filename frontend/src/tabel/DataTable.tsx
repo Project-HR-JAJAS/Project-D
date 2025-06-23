@@ -23,6 +23,8 @@ const DataTable: React.FC = () => {
     const [searchField, setSearchField] = useState<'id' | 'authentication_id' | 'charge_point_id'>('id');
     const [sortConfig, setSortConfig] = useState<{ key: keyof DataTableItem | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
     const navigate = useNavigate();
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
 
     // Client-side filtering
     const filteredStats = dataTableItems.filter((stat: DataTableItem) => {
@@ -144,11 +146,21 @@ const DataTable: React.FC = () => {
         <div className="table-container">
             <div className="table-search-wrapper">
                 <h2>Data Table</h2>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <label>From:</label>
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+                <label>To:</label>
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+                </div>
                 <TableExportButton
-                data={currentItems}
+                data={sortedData}
                 columns={exportColumns}
                 filename="cdr_data"
                 format="xlsx"
+                dateKey="Start_datetime"
+                fromDate={fromDate}
+                toDate={toDate}
+
                 />
                 <div>
                     <select

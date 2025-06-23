@@ -31,6 +31,18 @@ const ChargeDetails: React.FC = () => {
     const [sortConfig, setSortConfig] = useState<{ key: keyof ChargeDetail | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
     const navigate = useNavigate();
     const itemsPerPage = 15;
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
+    // Map reason keys to human-readable names (matching Fraude_detectie.py)
+    const reasonNameMap: { [key: string]: string } = {
+        Reason1: 'High volume in short duration',
+        Reason2: 'Unusual cost per kWh',
+        Reason3: 'Rapid consecutive sessions',
+        Reason4: 'Overlapping sessions',
+        Reason5: 'Repeated behavior',
+        Reason6: 'Data integrity violation',
+        Reason7: 'Impossible travel',
+    };
 
     const filteredStats = data.filter((stat: ChargeDetail) => {
         const fieldMap: Record<typeof searchField, keyof ChargeDetail> = {
@@ -55,21 +67,6 @@ const ChargeDetails: React.FC = () => {
         return 0;
         });
     }
-
-    // const columnsToShow: (keyof ChargeDetail)[] = [
-    //     'CDR_ID',
-    //     'Start_datetime',
-    //     'End_datetime',
-    //     'Duration',
-    //     'Volume',
-    //     'Charge_Point_Address',
-    //     'Charge_Point_ZIP',
-    //     'Charge_Point_City',
-    //     'Charge_Point_Country',
-    //     'Charge_Point_Type',
-    //     'Charge_Point_ID',
-    //     'Calculated_Cost'
-    // ];
 
     useEffect(() => {
         if (reasonKey) {
@@ -106,20 +103,6 @@ const ChargeDetails: React.FC = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
-
-    // const formatColumnName = (name: string) => {
-    //     const nameMap: Record<string, string> = {
-    //         'CDR_ID': 'ID',
-    //         'Charge_Point_Address': 'Address',
-    //         'Charge_Point_ZIP': 'ZIP',
-    //         'Charge_Point_City': 'City',
-    //         'Charge_Point_Country': 'Country',
-    //         'Charge_Point_Type': 'Type',
-    //         'Charge_Point_ID': 'Charge Point ID',
-    //         'Calculated_Cost': 'Cost'
-    //     };
-    //     return nameMap[name] || name.replace(/_/g, ' ');
-    // };
 
     const getTimeRangeLabel = (range: string) => {
         const labels: Record<string, string> = {
@@ -241,14 +224,22 @@ const ChargeDetails: React.FC = () => {
     return (
         <div className="table-container">
             <div className= 'table-search-wrapper'>
-                <h2>Fraud Cases for {reasonKey}</h2>
+                <h2>Fraud Cases for {reasonNameMap[reasonKey as keyof typeof reasonNameMap] || reasonKey}</h2>
                 <div>
-
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <label>From:</label>
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+                <label>To:</label>
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+                </div>
                 <TableExportButton
-                    data={currentItems}
+                    data={sortedData}
                     columns={exportColumns}
                     filename={`charge_details_${timeRange}`}
                     format="xlsx"
+                    dateKey="Start_datetime"
+                    fromDate={fromDate}
+                    toDate={toDate}
                 />
                     <select
                         value={searchField}

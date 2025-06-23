@@ -124,7 +124,7 @@ const OverlappingSessions: React.FC = () => {
       <div className="table-search-wrapper">
         <h2>Overlapping Sessions per Charge Card</h2>
         <TableExportButton
-          data={currentItems}
+          data={sortedData}
           columns={exportColumns}
           filename="overlapping_sessions"
           format="xlsx"

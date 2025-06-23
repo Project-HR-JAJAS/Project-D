@@ -282,11 +282,8 @@ class DbContext:
             JOIN CDR b
             ON a.Authentication_ID = b.Authentication_ID
             AND a.CDR_ID != b.CDR_ID
-            AND (
-                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
-                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
-                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
-            )
+            AND datetime(a.Start_datetime) < datetime(b.End_datetime, '-1 second')
+            AND datetime(a.End_datetime)   > datetime(b.Start_datetime, '+1 second')
         )
         SELECT o.main_id AS CDR_ID, o.Authentication_ID, o.Start_datetime, o.End_datetime,
             o.Charge_Point_City, o.Volume, o.Calculated_Cost,
@@ -334,24 +331,24 @@ class DbContext:
         self.connect()
         query = """
         WITH Overlaps AS (
-            SELECT a.Authentication_ID, a.CDR_ID, a.Volume, a.Calculated_Cost
-            FROM CDR a
-            JOIN CDR b
-            ON a.Authentication_ID = b.Authentication_ID
-            AND a.CDR_ID != b.CDR_ID
-            AND (
-                datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
-                OR datetime(a.End_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
-                OR datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
-            )
+            SELECT a.Authentication_ID,
+                a.CDR_ID,
+                a.Volume,
+                a.Calculated_Cost
+            FROM   CDR a
+            JOIN   CDR b
+            ON   a.Authentication_ID = b.Authentication_ID
+            AND   a.CDR_ID           != b.CDR_ID
+            -- 1-seconde leeway
+            AND   datetime(a.Start_datetime) < datetime(b.End_datetime, '-1 second')
+            AND   datetime(a.End_datetime)   > datetime(b.Start_datetime, '+1 second')
         )
-        SELECT
-            Authentication_ID,
-            COUNT(DISTINCT CDR_ID) AS ClusterCount,
-            SUM(Volume) AS TotalVolume,
-            SUM(Calculated_Cost) AS TotalCost
-        FROM Overlaps
-        GROUP BY Authentication_ID
+        SELECT  Authentication_ID,
+                COUNT(DISTINCT CDR_ID) AS ClusterCount,
+                SUM(Volume)           AS TotalVolume,
+                SUM(Calculated_Cost)  AS TotalCost
+        FROM    Overlaps
+        GROUP BY Authentication_ID;
         """
         df = pd.read_sql_query(query, self.connection)
         self.close()
@@ -374,20 +371,26 @@ class DbContext:
         self.connect()
 
         # Query voor overlappende sessies
-        query = f""" 
-        SELECT b.CDR_ID, b.Start_datetime, b.End_datetime, b.Charge_Point_City, b.Volume, b.Authentication_ID,
-            b.Charge_Point_ID, b.Charge_Point_Country, b.Calculated_Cost
-        FROM CDR a
-        JOIN CDR b
-        ON a.Authentication_ID = b.Authentication_ID
-        AND a.CDR_ID = ?
-        AND a.CDR_ID != b.CDR_ID
-        AND (
-            datetime(b.Start_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
-            OR datetime(b.End_datetime) BETWEEN datetime(a.Start_datetime, '-1 seconds') AND datetime(a.End_datetime, '+1 seconds')
-            OR datetime(a.Start_datetime) BETWEEN datetime(b.Start_datetime, '-1 seconds') AND datetime(b.End_datetime, '+1 seconds')
-        )
+        query = """ 
+        SELECT  b.CDR_ID,
+                b.Start_datetime,
+                b.End_datetime,
+                b.Charge_Point_City,
+                b.Volume,
+                b.Authentication_ID,
+                b.Charge_Point_ID,
+                b.Charge_Point_Country,
+                b.Calculated_Cost
+        FROM    CDR a
+        JOIN    CDR b
+        ON    a.Authentication_ID = b.Authentication_ID
+        AND    a.CDR_ID = ?                -- target CDR
+        AND    a.CDR_ID != b.CDR_ID        -- niet zichzelf
+        -- 1-sec leeway
+        AND    datetime(b.Start_datetime) < datetime(a.End_datetime,  '-1 second')
+        AND    datetime(b.End_datetime)   > datetime(a.Start_datetime, '+1 second')
         """
+
         df_overlaps = pd.read_sql_query(query, self.connection, params=(cdr_id,))
 
         # Query voor het originele CDR zelf (A)
@@ -477,6 +480,31 @@ class DbContext:
         """
         cursor = self.connection.cursor()
         cursor.execute(query, (auth_id,))
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        self.close()
+        return [dict(zip(columns, row)) for row in rows]
+    
+    def get_cdrs_by_charge_point_id(self, charge_point_id: str) -> list[dict]:
+        """Returns all CDR rows for a given Charge_Point_ID"""
+        self.connect()
+        query = """
+            SELECT 
+                CDR_ID,
+                Start_datetime,
+                End_datetime,
+                Duration,
+                Volume,
+                Authentication_ID,
+                Charge_Point_City,
+                Charge_Point_Country,
+                Calculated_Cost
+            FROM CDR
+            WHERE Charge_Point_ID = ?
+            ORDER BY Start_datetime DESC
+        """
+        cursor = self.connection.cursor()
+        cursor.execute(query, (charge_point_id,))
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         self.close()

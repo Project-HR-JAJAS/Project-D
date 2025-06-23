@@ -21,6 +21,11 @@ from backend.endpoints.User import router as user_router
 from backend.endpoints.CDR import router as cdr_router
 from backend.endpoints.locations import router as locations_router
 from backend.fraud_per_user.fraud_per_user import router as fraud_per_user_router
+from backend.fraud_charge_point.fraud_charge_point import router as fraud_charge_points_router
+from backend.sessions.session_manager import SessionManager
+from backend.fraud_decision.decision_manager import FraudDecisionManager
+from backend.fraude_detectie.Fraude_detectie import FraudDetector
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +55,50 @@ app.include_router(user_stats_router)
 app.include_router(user_router)
 app.include_router(cdr_router)
 app.include_router(locations_router)
+app.include_router(fraud_charge_points_router)
+
+def initialize_all_databases():
+    """Initialize all databases and tables required by the application."""
+    try:
+        # Get the base directory for database files
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Initialize user database
+        logger.info("Initializing user database...")
+        user_db = DbUserContext()
+        user_db.initialize_user_database()
+        
+        # Initialize main CDR database
+        logger.info("Initializing CDR database...")
+        cdr_db = DbContext()
+        cdr_db.initialize_database()
+        
+        # Initialize sessions table
+        logger.info("Initializing sessions table...")
+        session_manager = SessionManager(os.path.join(base_dir, "user.db"))
+        session_manager.create_sessions_table()
+        
+        # Initialize fraud decision table
+        logger.info("Initializing fraud decision table...")
+        decision_manager = FraudDecisionManager(os.path.join(base_dir, "project-d.db"))
+        decision_manager.create_decision_table()
+        
+        # Initialize fraud locations table and add coordinate columns to CDR
+        logger.info("Initializing fraud locations table...")
+        fraud_location_manager = FraudLocationManager(os.path.join(base_dir, "project-d.db"))
+        # The initialize_tables method is called in the constructor
+        
+        # Initialize fraud detection tables (ThresholdSettings and FraudCase)
+        logger.info("Initializing fraud detection tables...")
+        fraud_detector = FraudDetector(os.path.join(base_dir, "project-d.db"))
+        # The load_thresholds method creates ThresholdSettings table
+        # The _create_fraud_table method creates FraudCase table
+        
+        logger.info("All databases initialized successfully!")
+        
+    except Exception as e:
+        logger.error(f"Error initializing databases: {str(e)}")
+        raise
 
 def start_geocoding_process(db_path: str):
     """Start the geocoding process in a background thread."""
@@ -71,54 +120,8 @@ def export_db_to_file():
     root = Tk()
     root.withdraw()  # hides the Tkinter window
 
-# @app.get("/api/overlapping-sessions")
-# async def get_overlapping_sessions():
-#     try:
-#         db = DbContext()
-#         sessions = db.get_overlapping_sessions()
-#         return sessions
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-# # Endpoit die Authentication_ID, ClusterCount (aantal unieke CDR_IDs in het cluster), TotalVolume, TotalCost haalt
-# @app.get('/api/overlapping-stats')
-# async def get_overlapping_stats():
-#     db = DbContext()
-#     result = db.get_overlapping_stats()
-#     return result
-
-# # Dit haalt alle overlappende sessies voor een gegeven Authentication_ID op.
-# @app.get("/api/overlapping-sessions/{auth_id}")
-# async def get_overlapping_sessions_by_auth_id(auth_id: str):
-#     try:
-#         db = DbContext()
-#         rows = db.get_overlapping_sessions_by_auth_id(auth_id)
-#         return rows
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error fetching overlapping sessions: {str(e)}")
-
-
-# # Endpoint die het hele cluster per Authentication_ID telt 
-# @app.get('/api/overlapping-cluster-count')
-# async def get_overlapping_cluster_count():
-#     db = DbContext()
-#     result = db.get_overlapping_cluster_count()
-#     return result
-
-
-# # Endpoit dat de details ophaalt van overlappende CDR’s voor een specifieke CDR_ID.
-# @app.get("/api/overlapping-details/{cdr_id}")
-# async def get_overlapping_details_for_cdr(cdr_id: str):
-#     try:
-#         db = DbContext()
-#         sessions = db.get_all_overlapping_for_cdr(cdr_id)
-#         return sessions
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error fetching overlapping details: {str(e)}")
-
-
 if __name__ == "__main__":
-    db = DbUserContext()
-    db.initialize_user_database()
+    # Initialize all databases and tables
+    initialize_all_databases()
+    
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -3,7 +3,7 @@ import { PAGE_SIZE } from './ChargePointStatsTable.api';
 import { useData } from '../context/DataContext';
 import '../css/UniversalTableCss.css';
 import TableExportButton from '../exportButton/TableExportButton';
-// test
+import ChargePointStatsModal from './ChargePointStatsModal';
 
 interface ChargePointStat {
     Charge_Point_ID: string;
@@ -21,6 +21,8 @@ const ChargePointStatsTable: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchField, setSearchField] = useState<'Charge_Point_ID' | 'Charge_Point_Country'>('Charge_Point_ID');
     const [sortConfig, setSortConfig] = useState<{ key: keyof ChargePointStat | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
+    const [selectedChargePointId, setSelectedChargePointId] = useState<string | null>(null);
+    const [showModal, setShowModal] = useState(false);
 
     // Client-side filtering
     const filteredStats = chargePointStats.filter((stat: ChargePointStat) => {
@@ -195,7 +197,14 @@ const ChargePointStatsTable: React.FC = () => {
                             </tr>
                         ) : (
                             currentStats.map((stat: ChargePointStat) => (
-                                <tr key={stat.Charge_Point_ID}>
+                                <tr 
+                                    key={stat.Charge_Point_ID} 
+                                    className="clickable-row" 
+                                    onClick={() => {
+                                        setSelectedChargePointId(stat.Charge_Point_ID);
+                                        setShowModal(true);
+                                    }}
+                                >
                                     <td>{stat.Charge_Point_ID}</td>
                                     <td>{stat.Charge_Point_Country}</td>
                                     <td>{stat.transaction_count}</td>
@@ -259,6 +268,15 @@ const ChargePointStatsTable: React.FC = () => {
                         Next
                     </button>
                 </div>
+            )}
+            {showModal && selectedChargePointId && (
+                <ChargePointStatsModal
+                    ChargeID={selectedChargePointId}
+                    onClose={() => {
+                        setShowModal(false);
+                        setSelectedChargePointId(null);
+                    }}
+                />
             )}
         </div>
     );

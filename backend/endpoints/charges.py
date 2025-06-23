@@ -176,7 +176,6 @@ async def get_all_charge_point_stats():
         raise HTTPException(status_code=500, detail=f"Error fetching charge point statistics: {str(e)}")
 
 
-
 @router.get("/api/charge-details/reason/{reason_key}")
 async def get_charge_details_by_reason(reason_key: str):
     db = DbContext()
@@ -193,3 +192,12 @@ async def get_charge_details_by_reason(reason_key: str):
     results = [dict(zip(columns, row)) for row in cursor.fetchall()]
     db.close()
     return results
+
+@router.get("/api/charge-point-details/{ChargeID}")
+async def get_user_details(ChargeID: str):
+    try:
+        db = DbContext()
+        rows = db.get_cdrs_by_charge_point_id(ChargeID)
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching user details: {str(e)}")

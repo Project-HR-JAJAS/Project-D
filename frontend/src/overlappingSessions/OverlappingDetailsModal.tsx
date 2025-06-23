@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OverlappingDetailsModal.css';
 import '../css/UniversalTableCss.css';
+import TableExportButton from '../exportButton/TableExportButton';
+
 
 interface OverlappingSession {
   CDR_ID: string;
@@ -120,11 +122,30 @@ const OverlappingDetailsModal: React.FC<OverlappingDetailsModalProps> = ({ cdrId
     return allPages;
   };
 
+  const exportColumns = [
+    { label: 'CDR ID', key: 'CDR_ID' },
+    { label: 'Authentication ID', key: 'Authentication_ID' },
+    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+    { label: 'Start Time', key: 'Start_datetime' },
+    { label: 'End Time', key: 'End_datetime' },
+    { label: 'City', key: 'Charge_Point_City' },
+    { label: 'Country', key: 'Charge_Point_Country' },
+    { label: 'Volume (kWh)', key: 'Volume' },
+    { label: 'Cost (€)', key: 'Calculated_Cost' },
+  ];
+
   return (
     <div className="details-modal-overlay">
       <div className="details-modal-content">
         <button className="modal-close" onClick={onClose}>×</button>
         <h2 className="details-modal-title">Details for CDR: {cdrId}</h2>
+        <TableExportButton
+        data={details}
+        columns={exportColumns}
+        filename={`overlapping_details_${cdrId}`}
+        format="xlsx"
+      />
+
         {loading ? (
           <p className="modal-loading">Loading...</p>
         ) : details.length === 0 ? (

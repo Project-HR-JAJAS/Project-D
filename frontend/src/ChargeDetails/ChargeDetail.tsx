@@ -31,7 +31,8 @@ const ChargeDetails: React.FC = () => {
     const [sortConfig, setSortConfig] = useState<{ key: keyof ChargeDetail | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
     const navigate = useNavigate();
     const itemsPerPage = 15;
-
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
     // Map reason keys to human-readable names (matching Fraude_detectie.py)
     const reasonNameMap: { [key: string]: string } = {
         Reason1: 'High volume in short duration',
@@ -225,12 +226,20 @@ const ChargeDetails: React.FC = () => {
             <div className= 'table-search-wrapper'>
                 <h2>Fraud Cases for {reasonNameMap[reasonKey as keyof typeof reasonNameMap] || reasonKey}</h2>
                 <div>
-
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <label>From:</label>
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+                <label>To:</label>
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+                </div>
                 <TableExportButton
                     data={sortedData}
                     columns={exportColumns}
                     filename={`charge_details_${timeRange}`}
                     format="xlsx"
+                    dateKey="Start_datetime"
+                    fromDate={fromDate}
+                    toDate={toDate}
                 />
                     <select
                         value={searchField}

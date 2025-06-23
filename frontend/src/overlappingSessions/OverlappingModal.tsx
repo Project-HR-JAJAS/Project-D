@@ -29,6 +29,8 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, authId, onCl
 
   const [selectedCdrForDetails, setSelectedCdrForDetails] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   /* Pagination state */
   const itemsPerPage = 15;
@@ -184,11 +186,20 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, authId, onCl
           <p className="modal-empty">No overlapping sessions found.</p>
         ) : (
           <>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <label>From:</label>
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            <label>To:</label>
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+          </div>
             <TableExportButton
               data={sortedSessions}
               columns={exportColumns}
               filename={`overlapping_sessions_${cdrId}`}
               format="xlsx"
+              dateKey="Start_datetime" 
+              fromDate={fromDate}
+              toDate={toDate}
             />
             <table className="modal-table">
               <thead>

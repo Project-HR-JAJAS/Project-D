@@ -34,7 +34,19 @@ const Home: React.FC = () => {
                     chartInstanceRef.current.destroy();
                 }
 
-                const labels = Object.keys(fraudReasons[0].reason_percentages || {});
+                // Map reason keys to human-readable names (matching Fraude_detectie.py)
+                const reasonNameMap: { [key: string]: string } = {
+                    Reason1: 'High volume in short duration',
+                    Reason2: 'Unusual cost per kWh',
+                    Reason3: 'Rapid consecutive sessions',
+                    Reason4: 'Overlapping sessions',
+                    Reason5: 'Repeated behavior',
+                    Reason6: 'Data integrity violation',
+                    Reason7: 'Impossible travel',
+                };
+
+                const labelsRaw = Object.keys(fraudReasons[0].reason_percentages || {});
+                const labels = labelsRaw.map(key => reasonNameMap[key] || key);
                 const percentages = Object.values(fraudReasons[0].reason_percentages || {});
                 const counts = Object.values(fraudReasons[0].reason_counts || {});
 
@@ -105,7 +117,7 @@ const Home: React.FC = () => {
                         onClick: (event, elements) => {
                             if (elements && elements.length > 0) {
                                 const index = elements[0].index;
-                                const reasonKey = labels[index];
+                                const reasonKey = labelsRaw[index]; // Use the original key for navigation
                                 navigate(`/charge-details/reason/${reasonKey}`);
                             }
                         },

@@ -146,18 +146,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
                 const data = await response.json();
 
+                // Check if data is an array before calling map
+                if (!Array.isArray(data)) {
+                    console.error('Expected array but received:', data);
+                    setOverlappingSessions([]);
+                    setError(prev => ({ ...prev, overlappingSessions: 'Invalid data format received' }));
+                    return;
+                }
+
                 const cleanedData: OverlappingSession[] = data.map((item: any) => ({
                     Authentication_ID: item.Authentication_ID ?? '',
                     CDR_ID: '',
                     Start_datetime: '',
                     End_datetime: '',
                     Charge_Point_City: '',
+                    Charge_Point_ID: '',
+                    Charge_Point_Country: '',
                     Volume: parseFloat((item.TotalVolume ?? '0').toString().replace(',', '.')) || 0,
                     Calculated_Cost: parseFloat((item.TotalCost ?? '0').toString().replace(',', '.')) || 0,
                     OverlappingCount: item.ClusterCount ?? 0,
                 }));
 
-                setOverlappingSessions(Array.isArray(cleanedData) ? cleanedData : []);
+                setOverlappingSessions(cleanedData);
                 setError(prev => ({ ...prev, overlappingSessions: undefined }));
 
         } catch (err) {

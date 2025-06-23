@@ -39,14 +39,30 @@ const OverlappingModal: React.FC<OverlappingModalProps> = ({ cdrId, authId, onCl
   useEffect(() => {
     setLoading(true);
     fetch(`http://localhost:8000/api/overlapping-sessions/${authId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
+        // Check if data is an array before calling map
+        if (!Array.isArray(data)) {
+          console.error('Expected array but received:', data);
+          setSessions([]);
+          return;
+        }
+        
         const cleaned = data.map((item: any) => ({
           ...item,
           Volume: parseFloat((item.Volume ?? '0').toString().replace(',', '.')),
           Calculated_Cost: typeof item.Calculated_Cost === 'string' ? parseFloat(item.Calculated_Cost.replace(',', '.')) : item.Calculated_Cost,
         }));
         setSessions(cleaned);
+      })
+      .catch(error => {
+        console.error('Error fetching overlapping sessions:', error);
+        setSessions([]);
       })
       .finally(() => setLoading(false));
   }, [authId]);

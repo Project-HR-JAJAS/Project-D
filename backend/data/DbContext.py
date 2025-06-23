@@ -371,7 +371,7 @@ class DbContext:
         self.connect()
 
         # Query voor overlappende sessies
-        query = f""" 
+        query = """ 
         SELECT  b.CDR_ID,
                 b.Start_datetime,
                 b.End_datetime,
@@ -388,8 +388,7 @@ class DbContext:
         AND    a.CDR_ID != b.CDR_ID        -- niet zichzelf
         -- 1-sec leeway
         AND    datetime(b.Start_datetime) < datetime(a.End_datetime,  '-1 second')
-        AND    datetime(b.End_datetime)   > datetime(a.Start_datetime, '+1 second');
-                df_overlaps = pd.read_sql_query(query, self.connection, params=(cdr_id,))
+        AND    datetime(b.End_datetime)   > datetime(a.Start_datetime, '+1 second')
         """
 
         df_overlaps = pd.read_sql_query(query, self.connection, params=(cdr_id,))

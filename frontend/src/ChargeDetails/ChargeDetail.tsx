@@ -56,21 +56,6 @@ const ChargeDetails: React.FC = () => {
         });
     }
 
-    // const columnsToShow: (keyof ChargeDetail)[] = [
-    //     'CDR_ID',
-    //     'Start_datetime',
-    //     'End_datetime',
-    //     'Duration',
-    //     'Volume',
-    //     'Charge_Point_Address',
-    //     'Charge_Point_ZIP',
-    //     'Charge_Point_City',
-    //     'Charge_Point_Country',
-    //     'Charge_Point_Type',
-    //     'Charge_Point_ID',
-    //     'Calculated_Cost'
-    // ];
-
     useEffect(() => {
         if (reasonKey) {
             setIsLoading(true);
@@ -106,20 +91,6 @@ const ChargeDetails: React.FC = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
-
-    // const formatColumnName = (name: string) => {
-    //     const nameMap: Record<string, string> = {
-    //         'CDR_ID': 'ID',
-    //         'Charge_Point_Address': 'Address',
-    //         'Charge_Point_ZIP': 'ZIP',
-    //         'Charge_Point_City': 'City',
-    //         'Charge_Point_Country': 'Country',
-    //         'Charge_Point_Type': 'Type',
-    //         'Charge_Point_ID': 'Charge Point ID',
-    //         'Calculated_Cost': 'Cost'
-    //     };
-    //     return nameMap[name] || name.replace(/_/g, ' ');
-    // };
 
     const getTimeRangeLabel = (range: string) => {
         const labels: Record<string, string> = {

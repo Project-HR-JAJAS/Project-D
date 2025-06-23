@@ -62,11 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsedProp, setCollapsed }) => {
     <>
       <div className={`sidebar${collapsedProp ? ' collapsed' : ''}`}>
         <div className="sidebar-top">
-          {/* <div className="sidebar-header">
-            <Link to="/home" className="sidebar-title">
-              <span style={{ color: '#6c63ff', fontWeight: 'bold', fontSize: '1.3rem' }}>Project D</span>
-            </Link>
-          </div> */}
           <button
             className="sidebar-toggle-floating"
             onClick={() => setCollapsed(!collapsedProp)}
@@ -92,19 +87,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsedProp, setCollapsed }) => {
           </nav>
         </div>
         <div className="sidebar-bottom">
-          {/* <button className="sidebar-link" onClick={() => setShowImportHistory(true)}>
-            Import History
-          </button>
-          <br />
-          <button className="sidebar-link" onClick={handleFileSelect} disabled={isUploading}>Import Files</button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            multiple
-            accept=".xlsx,.xls"
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          /> */}
           <div className="sidebar-logout-separator" />
           <button className="sidebar-link sidebar-logout" style={{ textAlign: 'left', height: '50px', width: '100%', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }} onClick={logout}><FaSignOutAlt className="sidebar-icon" /> Logout</button>
         </div>

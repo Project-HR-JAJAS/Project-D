@@ -5,66 +5,6 @@ import json
 
 router = APIRouter()
 
-# @router.get("/api/charge-details/{timeRange}")
-# async def get_charge_details(timeRange: str):
-#     try:
-#         db = DbContext()
-#         db.connect()
-        
-#         # Map time range to SQL condition
-#         time_conditions = {
-#             '0000-0900': "time(Start_datetime) >= '00:00:00' AND time(Start_datetime) < '09:00:00'",
-#             '0900-1300': "time(Start_datetime) >= '09:00:00' AND time(Start_datetime) < '13:00:00'",
-#             '1300-1700': "time(Start_datetime) >= '13:00:00' AND time(Start_datetime) < '17:00:00'",
-#             '1700-2100': "time(Start_datetime) >= '17:00:00' AND time(Start_datetime) < '21:00:00'",
-#             '2100-0000': "time(Start_datetime) >= '21:00:00' AND time(Start_datetime) <= '23:59:59'"
-#         }
-        
-#         if timeRange not in time_conditions:
-#             raise HTTPException(status_code=400, detail="Invalid time range")
-            
-#         condition = time_conditions[timeRange]
-#         query = f"""
-#             SELECT 
-#                 CDR_ID,
-#                 Start_datetime,
-#                 End_datetime,
-#                 Duration,
-#                 Volume,
-#                 Charge_Point_Address,
-#                 Charge_Point_ZIP,
-#                 Charge_Point_City,
-#                 Charge_Point_Country,
-#                 Charge_Point_Type,
-#                 Charge_Point_ID,
-#                 Calculated_Cost
-#             FROM CDR 
-#             WHERE {condition}
-#             ORDER BY Start_datetime DESC
-#         """
-        
-#         cursor = db.connection.cursor()
-#         cursor.execute(query)
-#         columns = [description[0] for description in cursor.description]
-#         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
-#         db.close()
-#         return Response(
-#             content=json.dumps(results),
-#             media_type="application/json",
-#             headers={
-#                 "Cache-Control": "no-cache, no-store, must-revalidate",
-#                 "Pragma": "no-cache",
-#                 "Expires": "0"
-#             }
-#         )
-        
-#     except Exception as e:
-#         if db.connection:
-#             db.close()
-#         raise HTTPException(status_code=500, detail=f"Error fetching charge details: {str(e)}")
-
-
 @router.get("/api/charge-point-stats")
 async def get_charge_point_stats(
     page: int = Query(1, ge=1),

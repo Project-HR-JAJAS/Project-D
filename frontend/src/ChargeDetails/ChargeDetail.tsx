@@ -32,6 +32,17 @@ const ChargeDetails: React.FC = () => {
     const navigate = useNavigate();
     const itemsPerPage = 15;
 
+    // Map reason keys to human-readable names (matching Fraude_detectie.py)
+    const reasonNameMap: { [key: string]: string } = {
+        Reason1: 'High volume in short duration',
+        Reason2: 'Unusual cost per kWh',
+        Reason3: 'Rapid consecutive sessions',
+        Reason4: 'Overlapping sessions',
+        Reason5: 'Repeated behavior',
+        Reason6: 'Data integrity violation',
+        Reason7: 'Impossible travel',
+    };
+
     const filteredStats = data.filter((stat: ChargeDetail) => {
         const fieldMap: Record<typeof searchField, keyof ChargeDetail> = {
             CDR_ID: 'CDR_ID',
@@ -212,7 +223,7 @@ const ChargeDetails: React.FC = () => {
     return (
         <div className="table-container">
             <div className= 'table-search-wrapper'>
-                <h2>Fraud Cases for {reasonKey}</h2>
+                <h2>Fraud Cases for {reasonNameMap[reasonKey as keyof typeof reasonNameMap] || reasonKey}</h2>
                 <div>
 
                 <TableExportButton

@@ -41,6 +41,9 @@ const UserDetailsModal: React.FC<ChargeModalProps> = ({ ChargeID, onClose }) => 
   const [inputValue, setInputValue] = useState('');
   const navigate = useNavigate();
 
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
   /* Fetch */
   useEffect(() => {
     setLoading(true);
@@ -170,7 +173,16 @@ const UserDetailsModal: React.FC<ChargeModalProps> = ({ ChargeID, onClose }) => 
           <p className="modal-empty">No records found.</p>
         ) : (
           <>
-            <TableExportButton data={sortedDetails} columns={exportColumns} filename={`cdr_details_${ChargeID}`} format="xlsx" />
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <label>From:</label>
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            <label>To:</label>
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+            </div>
+            <TableExportButton data={sortedDetails} columns={exportColumns} filename={`cdr_details_${ChargeID}`} format="xlsx"
+                dateKey="Start_datetime"
+                fromDate={fromDate}
+                toDate={toDate}/>
 
             <table className="modal-table">
               <thead>

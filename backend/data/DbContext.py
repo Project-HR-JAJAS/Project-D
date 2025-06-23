@@ -492,7 +492,7 @@ class DbContext:
                 End_datetime,
                 Duration,
                 Volume,
-                Charge_Point_ID,
+                Authentication_ID,
                 Charge_Point_City,
                 Charge_Point_Country,
                 Calculated_Cost

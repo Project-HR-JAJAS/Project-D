@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { PAGE_SIZE } from './ChargePointStatsTable.api';
-import { useData } from '../context/DataContext';
-import '../css/UniversalTableCss.css';
+import React, { useEffect, useState } from 'react';
+import { PAGE_SIZE, fetchChargePointStats, fetchAllFraudStats, fetchStatsByFraudType } from './ChargePointStatsTable.api';
 import TableExportButton from '../exportButton/TableExportButton';
 import ChargePointStatsModal from './ChargePointStatsModal';
+import '../css/UniversalTableCss.css';
 
 interface ChargePointStat {
     Charge_Point_ID: string;
@@ -14,40 +13,78 @@ interface ChargePointStat {
 }
 
 const ChargePointStatsTable: React.FC = () => {
-    const { chargePointStats, loading, error } = useData();
-    const [currentPage, setCurrentPage] = useState(1);
-    const [showInput, setShowInput] = useState<{left: boolean, right: boolean}>({left: false, right: false});
-    const [inputValue, setInputValue] = useState('');
+    const [allStats, setAllStats] = useState<ChargePointStat[]>([]);
+    const [filteredStats, setFilteredStats] = useState<ChargePointStat[]>([]);
+    const [fraudFilter, setFraudFilter] = useState<'all' | 'fraud' | string>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchField, setSearchField] = useState<'Charge_Point_ID' | 'Charge_Point_Country'>('Charge_Point_ID');
     const [sortConfig, setSortConfig] = useState<{ key: keyof ChargePointStat | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
+    const [inputValue, setInputValue] = useState('');
     const [selectedChargePointId, setSelectedChargePointId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
 
-    // Client-side filtering
-    const filteredStats = chargePointStats.filter((stat: ChargePointStat) => {
-        const value = stat[searchField] ?? '';
-        return value.toLowerCase().includes(searchTerm.toLowerCase());
+    // Load all stats once on mount
+    useEffect(() => {
+        fetchChargePointStats()
+            .then(data => {
+                setAllStats(data);
+                setFilteredStats(data);
+            })
+            .catch(console.error);
+    }, []);
+
+    // Load filtered data when fraudFilter changes
+    useEffect(() => {
+        if (fraudFilter === 'all') {
+            setFilteredStats(allStats);
+            setCurrentPage(1);
+        } else if (fraudFilter === 'fraud') {
+            fetchAllFraudStats()
+                .then(data => {
+                    setFilteredStats(data);
+                    setCurrentPage(1);
+                })
+                .catch(console.error);
+        } else if (fraudFilter.startsWith('type:')) {
+            const reason = fraudFilter.split(':')[1];
+            fetchStatsByFraudType(reason)
+                .then(data => {
+                    setFilteredStats(data);
+                    setCurrentPage(1);
+                })
+                .catch(console.error);
+        }
+    }, [fraudFilter, allStats]);
+
+    // Filter by search term on selected field
+    const filteredData = filteredStats.filter(stat => {
+        const val = stat[searchField] ?? '';
+        return val.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-    // Client-side sorting
-    const sortedStats = [...filteredStats];
+    // Sort data
+    const sortedData = [...filteredData];
     if (sortConfig.key && sortConfig.direction) {
-        sortedStats.sort((a, b) => {
-            const aVal = sortConfig.key ? a[sortConfig.key] ?? 0 : 0;
-            const bVal = sortConfig.key ? b[sortConfig.key] ?? 0 : 0;
-            if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-            }
-            return 0;
-        });
+    const key = sortConfig.key;  // Now key is guaranteed not null
+
+    sortedData.sort((a, b) => {
+        const aVal = a[key] ?? 0;
+        const bVal = b[key] ?? 0;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return 0;
+    });
     }
 
-    const totalPages = Math.ceil(sortedStats.length / PAGE_SIZE);
+    // Pagination calculations
+    const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
     const startIndex = (currentPage - 1) * PAGE_SIZE;
-    const endIndex = startIndex + PAGE_SIZE;
-    const currentStats = sortedStats.slice(startIndex, endIndex);
+    const currentPageData = sortedData.slice(startIndex, startIndex + PAGE_SIZE);
 
+    // Sorting handler
     const handleSort = (key: keyof ChargePointStat) => {
         setSortConfig(prev => {
             if (prev.key !== key) return { key, direction: 'asc' };
@@ -58,50 +95,57 @@ const ChargePointStatsTable: React.FC = () => {
         setCurrentPage(1);
     };
 
-    const getSortIndicator = (key: keyof ChargePointStat) => {
-        if (sortConfig.key === key) {
-            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
-        }
-        return '';
-    };
-
+    // Pagination page click
     const handlePageClick = (page: number) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {
             setCurrentPage(page);
-            setShowInput({left: false, right: false});
+            setShowInput({ left: false, right: false });
             setInputValue('');
         }
     };
 
+    // Ellipsis click toggles input
+    const handleEllipsisClick = (side: 'left' | 'right') => {
+        setShowInput({ left: side === 'left', right: side === 'right' });
+        setInputValue('');
+    };
+
+    // Input change only allows digits
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value.replace(/[^0-9]/g, '');
+        setInputValue(val);
+    };
+
+    // Submit input to jump to page
+    const handleInputSubmit = (side: 'left' | 'right') => {
+        const page = Number(inputValue);
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setShowInput({ left: false, right: false });
+            setInputValue('');
+        }
+    };
+
+    // Pagination page numbers with ellipsis
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
         if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
             return pages;
         } else {
-            // Always show first 3
             const firstPages = [1, 2, 3];
-            // Always show last 3
             const lastPages = [totalPages - 2, totalPages - 1, totalPages];
-            // Sliding window
             let start = Math.max(4, currentPage - 1);
             let end = Math.min(totalPages - 3, currentPage + 1);
             const middlePages = [];
-            for (let i = start; i <= end; i++) {
-                middlePages.push(i);
-            }
+            for (let i = start; i <= end; i++) middlePages.push(i);
             let allPages: (number | string)[] = [];
-            // Add first 3
             allPages.push(...firstPages);
-            // Add ellipsis if gap between first 3 and middle
             if (start > 4) allPages.push('ellipsis1');
-            // Add middle pages
             for (const p of middlePages) {
                 if (!allPages.includes(p)) allPages.push(p);
             }
-            // Add ellipsis if gap between middle and last 3
             if (end < totalPages - 3) allPages.push('ellipsis2');
-            // Add last 3
             for (const p of lastPages) {
                 if (!allPages.includes(p)) allPages.push(p);
             }
@@ -109,45 +153,29 @@ const ChargePointStatsTable: React.FC = () => {
         }
     };
 
-    const handleEllipsisClick = (side: 'left' | 'right') => {
-        setShowInput({left: side === 'left', right: side === 'right'});
-        setInputValue('');
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value.replace(/[^0-9]/g, '');
-        setInputValue(val);
-    };
-
-    const handleInputSubmit = (side: 'left' | 'right') => {
-        const page = Number(inputValue);
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-            setShowInput({left: false, right: false});
-            setInputValue('');
+    // Sort indicator arrows
+    const getSortIndicator = (key: keyof ChargePointStat) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'asc' ? ' ▲' : sortConfig.direction === 'desc' ? ' ▼' : '';
         }
+        return '';
     };
 
-    if (loading.chargePoints) return <div>Loading...</div>;
-    if (error.chargePoints) return <div>Error: {error.chargePoints}</div>;
-
-
-    const exportColumns = [
-    { label: 'Charge Point ID', key: 'Charge_Point_ID' },
-    { label: 'Country', key: 'Charge_Point_Country' },
-    { label: 'Total Transactions', key: 'transaction_count' },
-    { label: 'Total Volume', key: 'total_volume' },
-    { label: 'Total Cost', key: 'total_cost' },
-    ];    
     return (
         <div className="table-container">
             <div className="table-search-wrapper">
                 <h2>Charge Point Statistics</h2>
                 <TableExportButton
-                data={sortedStats}
-                columns={exportColumns}
-                filename="charge_point_stats"
-                format="xlsx"
+                    data={sortedData}
+                    columns={[
+                        { label: 'Charge Point ID', key: 'Charge_Point_ID' },
+                        { label: 'Country', key: 'Charge_Point_Country' },
+                        { label: 'Total Transactions', key: 'transaction_count' },
+                        { label: 'Total Volume', key: 'total_volume' },
+                        { label: 'Total Cost', key: 'total_cost' },
+                    ]}
+                    filename="charge_point_stats"
+                    format="xlsx"
                 />
                 <div>
                     <select
@@ -159,7 +187,8 @@ const ChargePointStatsTable: React.FC = () => {
                         <option value="Charge_Point_ID">Charge Point ID</option>
                         <option value="Charge_Point_Country">Country</option>
                     </select>
-                    <input
+                </div>
+                <input
                         type="text"
                         placeholder={searchField === 'Charge_Point_ID' ? 'Search by Charge Point ID...' : 'Search by Country...'}
                         value={searchTerm}
@@ -170,7 +199,30 @@ const ChargePointStatsTable: React.FC = () => {
                         className="table-search"
                     />
                 </div>
-            </div>
+                <div>
+                    <label>
+                        Filter by Fraud:&nbsp;
+                        <select
+                            value={fraudFilter}
+                            onChange={e => {
+                                setFraudFilter(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="table-filter-dropdown"
+                        >
+                            <option value="all">All Charge Points</option>
+                            <option value="fraud">Fraudulent Charge Points (Any Reason)</option>
+                            <option value="type:Reason1">Fraud: High volume in a short duration</option>
+                            <option value="type:Reason2">Fraud: Unusual cost per kWh</option>
+                            <option value="type:Reason3">Fraud: Rapid consecutive sessions</option>
+                            <option value="type:Reason4">Fraud: Overlapping sessions</option>
+                            <option value="type:Reason5">Fraud: Repeating behaviour?</option>
+                            <option value="type:Reason6">Fraud: Data integrity violation</option>
+                            <option value="type:Reason7">Fraud: Unrealistic movement</option>
+                        </select>
+                    </label>
+                </div>
+            
             <div style={{ overflowX: 'auto' }}>
                 <table className="table-form">
                     <thead>
@@ -189,17 +241,17 @@ const ChargePointStatsTable: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentStats.length === 0 ? (
+                        {currentPageData.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="no-data-row">
                                     No results found for: <strong>{searchTerm}</strong>
                                 </td>
                             </tr>
                         ) : (
-                            currentStats.map((stat: ChargePointStat) => (
-                                <tr 
-                                    key={stat.Charge_Point_ID} 
-                                    className="clickable-row" 
+                            currentPageData.map(stat => (
+                                <tr
+                                    key={stat.Charge_Point_ID}
+                                    className="clickable-row"
                                     onClick={() => {
                                         setSelectedChargePointId(stat.Charge_Point_ID);
                                         setShowModal(true);
@@ -216,16 +268,18 @@ const ChargePointStatsTable: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            {currentStats.length > 0 && (
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
                 <div className="pagination-container">
-                    <button 
+                    <button
                         className="pagination-button"
-                        onClick={() => handlePageClick(currentPage - 1)} 
+                        onClick={() => handlePageClick(currentPage - 1)}
                         disabled={currentPage === 1}
                     >
                         Previous
                     </button>
-                    {(getPageNumbers() ?? []).map((page) => {
+                    {(getPageNumbers() ?? []).map(page => {
                         if (typeof page === 'number') {
                             return (
                                 <button
@@ -243,32 +297,39 @@ const ChargePointStatsTable: React.FC = () => {
                                     {showInput[side] ? (
                                         <input
                                             type="text"
-                                            placeholder={`${page}`}
                                             className="pagination-input"
                                             value={inputValue}
                                             onChange={handleInputChange}
                                             onBlur={() => handleInputSubmit(side)}
-                                            onKeyDown={(e) => {
+                                            onKeyDown={e => {
                                                 if (e.key === 'Enter') handleInputSubmit(side);
                                             }}
                                             autoFocus
                                         />
                                     ) : (
-                                        <span onClick={() => handleEllipsisClick(side)} style={{ cursor: 'pointer' }}>...</span>
+                                        <span
+                                            onClick={() => handleEllipsisClick(side)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            ...
+                                        </span>
                                     )}
                                 </span>
                             );
                         }
+                        return null;
                     })}
-                    <button 
-                        className="pagination-button" 
-                        onClick={() => handlePageClick(currentPage + 1)} 
+                    <button
+                        className="pagination-button"
+                        onClick={() => handlePageClick(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        >
+                    >
                         Next
                     </button>
                 </div>
             )}
+
+            {/* Modal for details */}
             {showModal && selectedChargePointId && (
                 <ChargePointStatsModal
                     ChargeID={selectedChargePointId}

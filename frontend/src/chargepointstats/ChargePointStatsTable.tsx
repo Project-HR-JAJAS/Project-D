@@ -201,7 +201,7 @@ const ChargePointStatsTable: React.FC = () => {
                 </div>
                 <div>
                     <label>
-                        Filter by Fraud:&nbsp;
+                        Filter by: &nbsp;
                         <select
                             value={fraudFilter}
                             onChange={e => {

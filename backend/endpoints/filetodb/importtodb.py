@@ -113,18 +113,22 @@ async def get_fraud_cases_for_import(filename: str = Query(...)):
         SELECT CDR_ID FROM CDR WHERE import_filename = ?
     """, (filename,))
     cdr_ids = [row[0] for row in cursor.fetchall()]
-    if not cdr_ids:
-        db.close()
-        return []
-    format_strings = ','.join(['?'] * len(cdr_ids))
-    cursor.execute(f"""
-        SELECT f.*, c.Charge_Point_City, c.Charge_Point_Address, c.Charge_Point_Country
-        FROM FraudCase f
-        JOIN CDR c ON f.CDR_ID = c.CDR_ID
-        WHERE f.CDR_ID IN ({format_strings})
-    """, cdr_ids)
-    fraud_cases = cursor.fetchall()
-    columns = [desc[0] for desc in cursor.description]
-    result = [dict(zip(columns, row)) for row in fraud_cases]
+    fraud_cases = []
+    if cdr_ids:
+        batch_size = 900  # safely below SQLite's 999 limit
+        for i in range(0, len(cdr_ids), batch_size):
+            batch = cdr_ids[i:i+batch_size]
+            format_strings = ','.join(['?'] * len(batch))
+            cursor.execute(f"""
+                SELECT f.*, c.Charge_Point_City, c.Charge_Point_Address, c.Charge_Point_Country
+                FROM FraudCase f
+                JOIN CDR c ON f.CDR_ID = c.CDR_ID
+                WHERE f.CDR_ID IN ({format_strings})
+            """, batch)
+            fraud_cases.extend(cursor.fetchall())
+        columns = [desc[0] for desc in cursor.description]
+        result = [dict(zip(columns, row)) for row in fraud_cases]
+    else:
+        result = []
     db.close()
     return result

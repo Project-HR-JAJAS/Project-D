@@ -481,3 +481,28 @@ class DbContext:
         rows = cursor.fetchall()
         self.close()
         return [dict(zip(columns, row)) for row in rows]
+    
+    def get_cdrs_by_charge_point_id(self, charge_point_id: str) -> list[dict]:
+        """Returns all CDR rows for a given Charge_Point_ID"""
+        self.connect()
+        query = """
+            SELECT 
+                CDR_ID,
+                Start_datetime,
+                End_datetime,
+                Duration,
+                Volume,
+                Authentication_ID,
+                Charge_Point_City,
+                Charge_Point_Country,
+                Calculated_Cost
+            FROM CDR
+            WHERE Charge_Point_ID = ?
+            ORDER BY Start_datetime DESC
+        """
+        cursor = self.connection.cursor()
+        cursor.execute(query, (charge_point_id,))
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        self.close()
+        return [dict(zip(columns, row)) for row in rows]

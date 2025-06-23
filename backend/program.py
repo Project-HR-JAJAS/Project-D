@@ -21,6 +21,7 @@ from backend.endpoints.User import router as user_router
 from backend.endpoints.CDR import router as cdr_router
 from backend.endpoints.locations import router as locations_router
 from backend.fraud_per_user.fraud_per_user import router as fraud_per_user_router
+from backend.fraud_charge_point.fraud_charge_point import router as fraud_charge_points_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +51,7 @@ app.include_router(user_stats_router)
 app.include_router(user_router)
 app.include_router(cdr_router)
 app.include_router(locations_router)
+app.include_router(fraud_charge_points_router)
 
 def start_geocoding_process(db_path: str):
     """Start the geocoding process in a background thread."""

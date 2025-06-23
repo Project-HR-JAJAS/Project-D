@@ -3,9 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { GetDataByCDR, RawApiResponse } from "./Tabel.api";
 import '../css/UniversalTableCss.css';
 
-// Moet worden aangepast, zodat het meer relevante informatie toont
-// voor het bekijken van fraude
-// Zal dan ook waarschijnlijk niet meer een standaard tabel zijn
 
 const fieldMapping: { [key: string]: string } = {
     Start_datetime: "Start datetime",

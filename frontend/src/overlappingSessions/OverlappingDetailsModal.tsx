@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './OverlappingDetailsModal.css';
 import '../css/UniversalTableCss.css';
 
@@ -28,6 +29,7 @@ const OverlappingDetailsModal: React.FC<OverlappingDetailsModalProps> = ({ cdrId
   const [currentPage, setCurrentPage] = useState(1);
   const [showInput, setShowInput] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
   const [inputValue, setInputValue] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -129,7 +131,12 @@ const OverlappingDetailsModal: React.FC<OverlappingDetailsModalProps> = ({ cdrId
               </thead>
               <tbody>
                 {currentItems.map(detail => (
-                  <tr key={detail.CDR_ID} className={detail.CDR_ID === cdrId ? 'highlight-bold-row' : ''}>
+                  <tr
+                    key={detail.CDR_ID}
+                    onClick={() => navigate(`/cdr-details/${detail.CDR_ID}`)}
+                    className={`clickable-row ${detail.CDR_ID === cdrId ? 'highlight-bold-row' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td>{detail.CDR_ID}</td>
                     <td>{detail.Authentication_ID}</td>
                     <td>{detail.Charge_Point_ID}</td>

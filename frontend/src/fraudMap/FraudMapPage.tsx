@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import FraudMap from './FraudMap';
 import './FraudMapPage.css';
+import { FraudMapProvider } from './FraudMapContext';
 
 const FraudMapPage: React.FC = () => {
     const [selectedCity, setSelectedCity] = useState<string>('');
@@ -65,6 +66,8 @@ const FraudMapPage: React.FC = () => {
                             value={dateRange.start}
                             onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                             className="filter-input"
+                            placeholder="Start date"
+                            title="Start date"
                         />
                         <span>to</span>
                         <input
@@ -73,6 +76,8 @@ const FraudMapPage: React.FC = () => {
                             value={dateRange.end}
                             onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                             className="filter-input"
+                            placeholder="End date"
+                            title="End date"
                         />
                     </div>
                 </div>
@@ -86,6 +91,8 @@ const FraudMapPage: React.FC = () => {
                             value={timeRange.start}
                             onChange={(e) => setTimeRange(prev => ({ ...prev, start: e.target.value }))}
                             className="filter-input"
+                            placeholder="Start time"
+                            title="Start time"
                         />
                         <span>to</span>
                         <input
@@ -94,6 +101,8 @@ const FraudMapPage: React.FC = () => {
                             value={timeRange.end}
                             onChange={(e) => setTimeRange(prev => ({ ...prev, end: e.target.value }))}
                             className="filter-input"
+                            placeholder="End time"
+                            title="End time"
                         />
                     </div>
                 </div>
@@ -116,6 +125,8 @@ const FraudMapPage: React.FC = () => {
                     onChange={e => setBatchCount(Number(e.target.value))}
                     style={{ width: 60, marginRight: 12 }}
                     disabled={batchLoading}
+                    placeholder="Batch count"
+                    title="Batch count"
                 />
                 <button onClick={handleBatchGeocode} disabled={batchLoading} style={{ padding: '8px 18px', borderRadius: 6, background: '#3498db', color: '#fff', border: 'none', fontWeight: 500, fontSize: '1rem', cursor: 'pointer' }}>
                     {batchLoading ? 'Processing...' : `Geocode ${batchCount} New Locations`}
@@ -123,12 +134,14 @@ const FraudMapPage: React.FC = () => {
                 {batchMessage && <span style={{ marginLeft: 16 }}>{batchMessage}</span>}
             </div>
             
-            <FraudMap 
-                cityFilter={selectedCity}
-                dateRange={dateRange}
-                timeRange={timeRange}
-                refreshTrigger={refreshCounter}
-            />
+            <FraudMapProvider>
+                <FraudMap 
+                    cityFilter={selectedCity}
+                    dateRange={dateRange}
+                    timeRange={timeRange}
+                    refreshTrigger={refreshCounter}
+                />
+            </FraudMapProvider>
         </div>
     );
 };

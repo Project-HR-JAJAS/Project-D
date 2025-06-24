@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './FraudMap.css';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import { Link } from 'react-router-dom';
+import { useFraudMapContext } from './FraudMapContext';
 
 // Fix for default marker icons in Leaflet with React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -40,6 +42,7 @@ interface FraudLocation {
     Country: string;
     Fraud_Count: number;
     Last_Detected_Date: string;
+    CDR_ID?: string;
     reasons?: string;
 }
 
@@ -65,32 +68,7 @@ interface FraudMapProps {
 }
 
 const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange, refreshTrigger = 0 }) => {
-    const [locations, setLocations] = useState<FraudLocation[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-    const fetchLocations = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await fetch('http://localhost:8000/api/fraud-locations');
-            if (!response.ok) {
-                throw new Error('Failed to fetch fraud locations');
-            }
-            const data = await response.json();
-            setLocations(Array.isArray(data) ? data : []);
-            setLastUpdated(new Date());
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchLocations();
-    }, [refreshTrigger]);
+    const { locations, loading, error, lastUpdated, refresh } = useFraudMapContext();
 
     // Filter locations based on city, date range, and time range
     const filteredLocations = locations.filter(location => {
@@ -148,7 +126,7 @@ const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange, r
                 </div>
                 <button 
                     className="refresh-button"
-                    onClick={fetchLocations}
+                    onClick={refresh}
                     disabled={loading}
                 >
                     {loading ? 'Refreshing...' : 'Refresh Data'}
@@ -165,7 +143,7 @@ const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange, r
             {error && (
                 <div className="error-overlay">
                     <p>Error: {error}</p>
-                    <button onClick={fetchLocations}>Retry</button>
+                    <button onClick={refresh}>Retry</button>
                 </div>
             )}
 
@@ -191,6 +169,9 @@ const FraudMap: React.FC<FraudMapProps> = ({ cityFilter, dateRange, timeRange, r
                                     <div className="popup-content">
                                         <h3>Fraud Location Details</h3>
                                         <p><strong>Charge Point ID:</strong> {location.Charge_Point_ID}</p>
+                                        {location.CDR_ID && (
+                                            <p><strong>CDR ID:</strong> <Link to={`/cdr-details/${location.CDR_ID}`}>{location.CDR_ID}</Link></p>
+                                        )}
                                         <p><strong>Address:</strong> {location.Address}</p>
                                         <p><strong>City:</strong> {location.City}</p>
                                         <p><strong>Country:</strong> {location.Country}</p>

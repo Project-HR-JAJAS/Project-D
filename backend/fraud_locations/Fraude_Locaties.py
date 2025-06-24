@@ -349,6 +349,14 @@ class FraudLocationManager:
                         fl.Country,
                         fl.Fraud_Count,
                         fl.Last_Detected_Date,
+                        (
+                            SELECT f.CDR_ID
+                            FROM FraudCase f
+                            JOIN CDR c2 ON f.CDR_ID = c2.CDR_ID
+                            WHERE c2.Charge_Point_ID = fl.Charge_Point_ID
+                            ORDER BY c2.Start_datetime DESC
+                            LIMIT 1
+                        ) as CDR_ID,
                         TRIM(
                             COALESCE(fg.Reason1 || '; ', '') ||
                             COALESCE(fg.Reason2 || '; ', '') ||

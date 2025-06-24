@@ -14,6 +14,8 @@ const ExportPage: React.FC = () => {
   const [format, setFormat] = useState<'xlsx' | 'csv'>('xlsx');
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([...allColumns]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const toggleColumn = (column: string) => {
     setSelectedColumns((prev) =>
@@ -40,6 +42,8 @@ const ExportPage: React.FC = () => {
         format,
         columns: selectedColumns.join(","),
       });
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
 
       const response = await fetch(`http://localhost:8000/api/export?${params.toString()}`);
 
@@ -69,6 +73,17 @@ const ExportPage: React.FC = () => {
   return (
     <div className="export-container">
       <h1>Export CDR Data</h1>
+
+      <div className="date-filter">
+        <label>
+          From:
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </label>
+        <label>
+          To:
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </label>
+      </div>
 
       <div className="format-selector">
         <select

@@ -3,6 +3,7 @@ import { PAGE_SIZE, fetchChargePointStats, fetchAllFraudStats, fetchStatsByFraud
 import TableExportButton from '../exportButton/TableExportButton';
 import ChargePointStatsModal from './ChargePointStatsModal';
 import '../css/UniversalTableCss.css';
+import { useChargePointStats } from './ChargePointStatsContext';
 
 interface ChargePointStat {
     Charge_Point_ID: string;
@@ -13,8 +14,8 @@ interface ChargePointStat {
 }
 
 const ChargePointStatsTable: React.FC = () => {
-    const [allStats, setAllStats] = useState<ChargePointStat[]>([]);
-    const [filteredStats, setFilteredStats] = useState<ChargePointStat[]>([]);
+    const { stats, loading, error } = useChargePointStats();
+    const [filteredStats, setFilteredStats] = useState<ChargePointStat[]>(stats);
     const [fraudFilter, setFraudFilter] = useState<'all' | 'fraud' | string>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchField, setSearchField] = useState<'Charge_Point_ID' | 'Charge_Point_Country'>('Charge_Point_ID');
@@ -29,7 +30,6 @@ const ChargePointStatsTable: React.FC = () => {
     useEffect(() => {
         fetchChargePointStats()
             .then(data => {
-                setAllStats(data);
                 setFilteredStats(data);
             })
             .catch(console.error);
@@ -38,7 +38,7 @@ const ChargePointStatsTable: React.FC = () => {
     // Load filtered data when fraudFilter changes
     useEffect(() => {
         if (fraudFilter === 'all') {
-            setFilteredStats(allStats);
+            setFilteredStats(stats);
             setCurrentPage(1);
         } else if (fraudFilter === 'fraud') {
             fetchAllFraudStats()
@@ -56,16 +56,26 @@ const ChargePointStatsTable: React.FC = () => {
                 })
                 .catch(console.error);
         }
-    }, [fraudFilter, allStats]);
+    }, [fraudFilter, stats]);
 
-    // Filter by search term on selected field
-    const filteredData = filteredStats.filter(stat => {
-        const val = stat[searchField] ?? '';
-        return val.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+    // Filter stats based on fraud filter and search term
+    useEffect(() => {
+        let filtered = stats;
+        if (fraudFilter === 'fraud') {
+            filtered = filtered.filter(stat => stat.transaction_count > 0); // Example condition
+        } else if (fraudFilter.startsWith('type:')) {
+            const reason = fraudFilter.split(':')[1];
+            filtered = filtered.filter(stat => stat.transaction_count > 0); // Example condition
+        }
+        filtered = filtered.filter(stat => {
+            const val = stat[searchField] ?? '';
+            return val.toLowerCase().includes(searchTerm.toLowerCase());
+        });
+        setFilteredStats(filtered);
+    }, [fraudFilter, searchTerm, searchField, stats]);
 
     // Sort data
-    const sortedData = [...filteredData];
+    const sortedData = [...filteredStats];
     if (sortConfig.key && sortConfig.direction) {
     const key = sortConfig.key;  // Now key is guaranteed not null
 
@@ -160,6 +170,14 @@ const ChargePointStatsTable: React.FC = () => {
         }
         return '';
     };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
 
     return (
         <div className="table-container">

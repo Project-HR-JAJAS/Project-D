@@ -21,6 +21,7 @@ import ChargeDetail from './ChargeDetails/ChargeDetail';
 import CDRDetailPage from './CDRDetailPage/CDRDetailPage';
 import FraudCasesForImport from './pages/FraudCasesForImport';
 import Settings from './settings/Settings';
+import { ChargePointStatsProvider } from './chargepointstats/ChargePointStatsContext';
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED_WIDTH = 60;
@@ -81,9 +82,11 @@ const App: React.FC = () => {
 
   return (
     <DataProvider>
-      <Router>
-        <AppRoutes sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
-      </Router>
+      <ChargePointStatsProvider>
+        <Router>
+          <AppRoutes sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
+        </Router>
+      </ChargePointStatsProvider>
     </DataProvider>
   );
 };

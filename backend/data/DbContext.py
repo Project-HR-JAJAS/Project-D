@@ -233,44 +233,60 @@ class DbContext:
                 self.close()
 
 
-    def export_cdr_to_file(self, output_path: str, columns: Optional[str] = None) -> Tuple[bool, int]:
-        """Export all CDR data to CSV or Excel, and log the result."""
+    def export_cdr_to_file(
+        self,
+        output_path: str,
+        columns: Optional[str] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Tuple[bool, int]:
+        """Export filtered CDR data to CSV or Excel."""
         try:
             self.connect()
-            query = f"SELECT {columns} FROM CDR" if columns else "SELECT * FROM CDR"
 
-            df = pd.read_sql_query(query, self.connection)
-            
+            # Build base query
+            query = f"SELECT {columns} FROM CDR" if columns else "SELECT * FROM CDR"
+            filters = []
+            params = {}
+
+            if start_date:
+                filters.append("datetime(Start_datetime) >= datetime(:start)")
+                params["start"] = start_date
+
+            if end_date:
+                filters.append("datetime(Start_datetime) <= datetime(:end)")
+                params["end"] = end_date
+
+            if filters:
+                query += " WHERE " + " AND ".join(filters)
+
+            df = pd.read_sql_query(query, self.connection, params=params)
+
             record_count = len(df)
             if record_count == 0:
-                msg = "No records found in the database"
-                self.export_logger.warning(msg)
-                print(msg)
+                self.export_logger.warning("No records found in the database")
+                print("No records found")
                 return False, 0
 
+            # Write to file
             if output_path.endswith(('.xlsx', '.xls')):
                 df.to_excel(output_path, index=False)
             elif output_path.endswith('.csv'):
                 df.to_csv(output_path, index=False)
             else:
-                msg = f"Export failed: Unsupported file format for {output_path}"
-                self.import_logger.error(msg)
-                print("Unsupported file format. Please use .csv or .xlsx/.xls")
+                print("Unsupported file format")
                 return False, record_count
 
-            msg = f"Successfully exported {record_count} records to {output_path}"
-            self.export_logger.info(msg)
-            print(f"Data exported successfully to {output_path}")
+            print(f"Exported {record_count} records to {output_path}")
             return True, record_count
 
         except Exception as e:
-            msg = f"Failed to export records to {output_path}. Error: {str(e)}"
-            self.export_logger.error(msg)
-            print(f"Error exporting data: {str(e)}")
+            print(f"Error exporting data: {e}")
             return False, 0
 
         finally:
             self.close()
+
 
 
     def get_overlapping_sessions_by_auth_id(self, auth_id: str) -> list[dict]:

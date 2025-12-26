@@ -50,6 +50,8 @@
     "@types/react-csv": "^1.1.10",
     "@types/react-dom": "^19.1.2",
     "@types/react-helmet": "^6.1.11",
+    "ajv": "^8.17.1",
+    "ajv-keywords": "^5.1.0",
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",
     "ts-jest": "^29.4.0"
